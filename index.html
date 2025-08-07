@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Giffú · Home</title>
+  <link rel="icon" type="image/x-icon" href="/_source/favico.ico">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://use.typekit.net/tco5ixw.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<div id="video-overlay">
+  <span class="close" onclick="closeVideo()">&times;</span>
+  <iframe id="video-frame" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+</div>
+
+<body>
+  <!-- AVISO LEGAL - Overlay -->
+<div id="overlay-aviso-dilan" style="display: none;">
+  <div id="mensagem-overlay-dilan">
+    <h2>⚠️</h2>
+    <p>
+      Todos os vídeos aqui contidos são propriedade de seus respectivos contratantes.<br>
+      Este é o portfólio pessoal de pós-produção do Dilan, mas todos os créditos pertencem exclusivamente às marcas citadas em cada descrição.
+    </p>
+    <button id="fechar-overlay-dilan">OK</button>
+  </div>
+</div>
+<style>
+  #overlay-aviso-dilan {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20000; /* maior que video-overlay (ajuste se necessário) */
+  }
+  #mensagem-overlay-dilan {
+    background: #fff;
+    padding: 32px 36px;
+    border-radius: 8px;
+    box-shadow: 0 2px 24px #0005;
+    text-align: center;
+    max-width: 450px;
+    font-family: 'Outfit', sans-serif;
+  }
+  #mensagem-overlay-dilan h2 {
+    margin: 0 0 16px 0;
+    font-size: 2rem;
+    line-height: 1;
+  }
+  #mensagem-overlay-dilan p {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #222;
+  }
+  #fechar-overlay-dilan {
+    margin-top: 24px;
+    padding: 8px 28px;
+    background: #222;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+</style>
+
+
+  <header>
+    <a class="logo" href="index.html">
+      <img src="_source/W_404040SVG.svg" alt="Logo">
+    </a>
+    <nav class="menu">
+      <a href="index.html" style="font-weight: bold;">Aftermovies</a>
+      <a href="motion.html">Motion Design</a>
+      <a href="eventos.html">Edição de Eventos</a>
+      <a href="about.html">Sobre</a>
+    </nav>
+    <div class="social">
+      <a href="https://www.instagram.com/giffu.mov" target="_blank" rel="noopener">
+        <i class="fab fa-instagram"></i>
+      </a>
+
+      <a href="https://www.youtube.com/dilangiffu" target="_blank" rel="noopener">
+        <i class="fab fa-youtube"></i>
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <section>
+    <div class="video-grid">
+
+      <a class="video-card" href="https://www.youtube.com/watch?v=7ihaPVzhgJs" target="_blank">
+        <img src="_source/thumbs/C0000.jpg" alt="Thumb">
+        <div class="video-info">
+        <h3 class="video-title">Leaders Academy</h3>
+        <p class="video-subtitle">Lamídia, S.I.N. Implant System (2025)</p>
+        </div>
+      </a>  
+
+      <a class="video-card" href="https://www.youtube.com/watch?v=jKV0vrUENZs" target="_blank">
+        <img src="_source/thumbs/C0001.jpg" alt="Thumb">
+        <div class="video-info">
+        <h3 class="video-title">PHZin na Tuzzy</h3>
+        <p class="video-subtitle">Lamídia, Tuzzy E-Sports (2025)</p>
+        </div>
+      </a> 
+
+      <a class="video-card" href="www.youtube.com/watch?v=KQOwsIB8oyQ" target="_blank">
+        <img src="_source/thumbs/C0003.jpg" alt="Thumb">
+        <div class="video-info">
+        <h3 class="video-title">MUB + Tardezinha</h3>
+        <p class="video-subtitle">Lamídia, EletroLab (2025)</p>
+        </div>
+      </a>
+
+      <a class="video-card" href="https://www.youtube.com/watch?v=bc3rQenOo3s" target="_blank">
+        <img src="_source/thumbs/C0002.jpg" alt="Thumb">
+        <div class="video-info">
+        <h3 class="video-title">GoldeN Krypto Fan Fest</h3>
+        <p class="video-subtitle">Lamídia, PremieRPet + Warner Bros. (2025)</p>
+        </div>
+      </a>
+
+      <a class="video-card" href="https://www.youtube.com/watch?v=ZwFBS2I9k8c" target="_blank">
+        <img src="_source/thumbs/C0004.jpg" alt="Thumb">
+        <div class="video-info">
+        <h3 class="video-title">Mil Folhas Campinas + Dani Bolina</h3>
+        <p class="video-subtitle">Suzan, Mil Folhas (2019)</p>
+        </div>
+      </a>
+
+      </div>
+    </section>
+  </main>
+</body>
+
+<script>
+  // Overlay Aviso Legal (Dilan)
+  function esconderOverlayDilan() {
+    document.getElementById('overlay-aviso-dilan').style.display = 'none';
+    localStorage.setItem('avisoDilanExibido', 'sim');
+  }
+
+  document.getElementById('fechar-overlay-dilan').onclick = esconderOverlayDilan;
+
+  window.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') {
+      if (document.getElementById('overlay-aviso-dilan').style.display !== 'none') {
+        esconderOverlayDilan();
+      }
+    }
+  });
+
+  window.onload = function() {
+    if (!localStorage.getItem('avisoDilanExibido')) {
+      document.getElementById('overlay-aviso-dilan').style.display = 'flex';
+    }
+  };
+</script>
+
+
+<script>
+  // Overlay VÍDEO
+  function openVideo(videoId) {
+    const overlay = document.getElementById('video-overlay');
+    const iframe = document.getElementById('video-frame');
+    iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&vq=hd3840`;
+    overlay.style.display = 'flex';
+  }
+
+  function closeVideo() {
+    const overlay = document.getElementById('video-overlay');
+    const iframe = document.getElementById('video-frame');
+    iframe.src = '';
+    overlay.style.display = 'none';
+  }
+
+  // intercepta clique nos cards
+  document.querySelectorAll('.video-card').forEach(card => {
+    const url = new URL(card.href);
+    const videoId = url.searchParams.get('v');
+    card.addEventListener('click', (e) => {
+      e.preventDefault();
+      openVideo(videoId);
+    });
+  });
+
+  document.getElementById('video-overlay').addEventListener('click', function (e) {
+  if (e.target === this) {
+    closeVideo();
+  }
+});
+
+  document.addEventListener('keydown', function (event) {
+  if (event.key === 'Escape') {
+    closeVideo();
+  }
+});
+</script>
+
+</html>
