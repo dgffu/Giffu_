@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Clipboard Pro</title>
+  <style>
+    /* Estilos globais e de layout */
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      background: #f0f0f5; /* Tema Claro padrão */
+      color: #333; /* Texto escuro */
+      font-family: 'Segoe UI', sans-serif;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* Tema Escuro */
+    body.dark-theme {
+      background: #282c34; /* Fundo escuro */
+      color: #e0e0e0; /* Texto claro */
+    }
+
+    body.dark-theme .toolbar button,
+    body.dark-theme .item {
+      background: #3a3f4a; /* Fundo mais escuro para botões e itens */
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3); /* Sombra mais forte */
+      color: #e0e0e0;
+    }
+
+    body.dark-theme .item .text {
+      color: inherit; /* Garante que o texto dentro do item seja claro */
+    }
+
+    body.dark-theme .handle {
+      background: #999; /* Alças mais visíveis no tema escuro */
+    }
+
+    .toolbar {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      gap: 10px;
+      z-index: 1000;
+    }
+    .toolbar button {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 8px;
+      background: white;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    .toolbar button:hover {
+        opacity: 0.9;
+    }
+    .clipboard {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+    .placeholder {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 36px;
+      color: #ccc;
+      pointer-events: none;
+    }
+    .item {
+      position: absolute;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      padding: 0; /* ALTERADO: Removido o padding do item */
+      min-width: 80px;
+      min-height: 60px;
+      display: flex; /* Usar flexbox para alinhar o conteúdo */
+      align-items: center;
+      justify-content: center;
+      cursor: grab; /* Cursor padrão para arrastar */
+      border: 2px solid transparent; /* Borda para indicar seleção */
+      transition: background 0.3s, box-shadow 0.3s, border-color 0.1s;
+      overflow: hidden; /* Garante que o conteúdo não vaze, se houver padding */
+    }
+    .item:active {
+      cursor: grabbing;
+    }
+    .item.selected {
+        border-color: dodgerblue; /* Borda azul para item selecionado */
+        z-index: 1001 !important; /* Garante que o selecionado fique por cima */
+    }
+    .item img {
+      max-width: 100%;  /* Imagem se adapta à largura do pai */
+      max-height: 100%; /* Imagem se adapta à altura do pai */
+      width: 100%; /* Garante que a imagem preencha a largura disponível */
+      height: 100%; /* Garante que a imagem preencha a altura disponível */
+      object-fit: contain; /* Redimensiona para caber, mantendo proporção e sem cortar */
+      border-radius: 8px;
+      pointer-events: none; /* Faz o clique "passar através" da imagem */
+      padding: 8px; /* Adicionado: Padding para a imagem */
+    }
+    .item .text {
+      width: 100%;
+      height: 100%;
+      padding: 6px; /* Mantido o padding para o texto */
+      outline: none;
+      border: none;
+      font-size: 16px;
+      background: transparent;
+      resize: none; /* remove o resizer nativo do textarea, se fosse um */
+      color: inherit;
+      overflow: auto; /* Adiciona scroll se o texto for maior que a box */
+      pointer-events: none; /* Faz o clique "passar através" do texto */
+      user-select: none; /* Impede a seleção de texto indesejada durante o arrasto */
+    }
+
+    /* Adiciona estilo para o texto quando editável */
+    .item .text.editable {
+        pointer-events: auto; /* Permite interação com o texto */
+        user-select: text; /* Permite seleção de texto */
+        cursor: text; /* Muda o cursor para indicar que é editável */
+    }
+
+    .handle {
+     width: 10px;
+     height: 10px;
+     background: #666;
+     position: absolute;
+     border-radius: 50%;
+     opacity: 0; /* Começa invisível */
+     transition: opacity 0.1s ease-in-out; /* Transição suave */
+     z-index: 11; /* Garante que fiquem acima da borda de seleção */
+   }
+   .item.selected .handle {
+       opacity: 1;
+   }
+
+   .handle.nw { top: -6px; left: -6px; cursor: nwse-resize; }
+   .handle.ne { top: -6px; right: -6px; cursor: nesw-resize; }
+   .handle.sw { bottom: -6px; left: -6px; cursor: nesw-resize; }
+   .handle.se { bottom: -6px; right: -6px; cursor: nwse-resize; }
+   .handle.n { top: -6px; left: 50%; transform: translateX(-50%); cursor: ns-resize; }
+   .handle.s { bottom: -6px; left: 50%; transform: translateX(-50%); cursor: ns-resize; }
+   .handle.w { left: -6px; top: 50%; transform: translateY(-50%); cursor: ew-resize; }
+   .handle.e { right: -6px; top: 50%; transform: translateY(-50%); cursor: ew-resize; }
+
+    /* Menu de contexto */
+    /* ... (restante do CSS do menu de contexto e tudo abaixo) ... */
+  </style>
+</head>
+<body>
+<div class="toolbar">
+  <button id="theme-btn">☀️ Tema</button>
+  <button id="clear-btn">🗑️ Limpar</button>
+</div>
+
+<div class="clipboard" id="clipboard">
+  <div class="placeholder" id="placeholder">Paste it!</div>
+</div>
+
+<div id="context-menu" class="context-menu">
+    <ul>
+        <li id="remove-option">Remover</li>
+    </ul>
+</div>
+
+<script>
+// ... (seu código JavaScript permanece o mesmo) ...
+const clipboard = document.getElementById('clipboard');
+const placeholder = document.getElementById('placeholder');
+const clearBtn = document.getElementById('clear-btn');
+const themeBtn = document.getElementById('theme-btn');
+const contextMenu = document.getElementById('context-menu');
+const removeOption = document.getElementById('remove-option');
+
+let selectedItem = null; // Para controlar o item selecionado
+let isDragging = false; // Estado global de arrasto
+let isResizing = false; // Estado global de redimensionamento
+
+// --- Funções de Criação de Itens ---
+function createText(text) {
+  const div = document.createElement('div');
+  div.classList.add('text');
+  div.contentEditable = false; // Começa como não editável
+  div.innerText = text;
+  return div;
+}
+
+function createImage(src) {
+  const img = document.createElement('img');
+  img.src = src;
+  return img;
+}
+
+function createItem(content, x = 100, y = 100, w = 200, h = 150) {
+  const item = document.createElement('div');
+  item.classList.add('item');
+  item.style.left = `${x}px`;
+  item.style.top = `${y}px`;
+  item.style.width = `${w}px`;
+  item.style.height = `${h}px`;
+
+  item.appendChild(content);
+  addHandles(item);
+
+  clipboard.appendChild(item);
+  placeholder.style.display = 'none';
+
+  setupItemInteraction(item); // Gerencia cliques, arrastos, seleção e edição
+}
+
+function addHandles(item) {
+  const positions = ['nw', 'ne', 'sw', 'se', 'n', 's', 'e', 'w'];
+  positions.forEach(pos => {
+    const handle = document.createElement('div');
+    handle.classList.add('handle', pos);
+    item.appendChild(handle);
+  });
+}
+
+// --- Funções de Interação (Arrastar, Redimensionar, Selecionar, Editar) ---
+function setupItemInteraction(el) {
+    let xOffset = 0, yOffset = 0;
+    let initialMouseX, initialMouseY;
+    const dragThreshold = 5; // Pixels de movimento para considerar um arrasto
+    const textElement = el.querySelector('.text'); // Pega o elemento de texto, se existir
+
+    el.addEventListener('mousedown', (e) => {
+        // Ignora cliques com botão direito, em alças de redimensionamento ou se já estiver redimensionando
+        if (e.button !== 0 || e.target.classList.contains('handle') || isResizing) {
+            return;
+        }
+
+        e.stopPropagation(); // Impede que o clique se propague para o documento imediatamente
+
+        // Seleciona o item se não estiver selecionado
+        if (selectedItem !== el) {
+            deselectAllItems();
+            el.classList.add('selected');
+            selectedItem = el;
+        }
+
+        // Prepara para arrasto
+        initialMouseX = e.clientX;
+        initialMouseY = e.clientY;
+        xOffset = e.clientX - parseFloat(el.style.left || 0);
+        yOffset = e.clientY - parseFloat(el.style.top || 0);
+
+        el.style.zIndex = 1000; // Coloca o item arrastado no topo
+
+        // Adiciona listener para verificar se o arrasto começou
+        document.addEventListener('mousemove', checkDragThreshold);
+        document.addEventListener('mouseup', handlePossibleClick, { once: true });
+    });
+
+    function checkDragThreshold(e) {
+        const dx = Math.abs(e.clientX - initialMouseX);
+        const dy = Math.abs(e.clientY - initialMouseY);
+
+        if (dx > dragThreshold || dy > dragThreshold) {
+            isDragging = true;
+            document.removeEventListener('mousemove', checkDragThreshold); // Remove este listener
+            document.addEventListener('mousemove', drag); // Adiciona o listener de arrasto real
+            // A função handlePossibleClick (no mouseup) ainda será executada para dragEnd
+        }
+    }
+
+    function handlePossibleClick(e) {
+        document.removeEventListener('mousemove', checkDragThreshold); // Garante que seja removido
+
+        if (!isDragging) { // Se não se tornou um arrasto, é um clique
+            // A seleção já foi feita no mousedown
+            // Não há mais necessidade de lógica específica para cliques simples aqui,
+            // pois o dblclick cuidará da edição e o clique simples já seleciona
+        }
+        dragEnd(); // Garante que dragEnd seja chamado para limpar o estado de arrasto
+    }
+
+    function drag(e) {
+        if (!isDragging) return;
+        e.preventDefault(); // Previne seleção de texto ou outros comportamentos padrão
+
+        let newX = e.clientX - xOffset;
+        let newY = e.clientY - yOffset;
+
+        // Limita o item dentro dos limites do clipboard
+        const clipboardRect = clipboard.getBoundingClientRect();
+        const itemRect = el.getBoundingClientRect();
+
+        newX = Math.max(0, Math.min(newX, clipboardRect.width - itemRect.width));
+        newY = Math.max(0, Math.min(newY, clipboardRect.height - itemRect.height));
+
+        el.style.left = `${newX}px`;
+        el.style.top = `${newY}px`;
+    }
+
+    function dragEnd() {
+        isDragging = false;
+        el.style.zIndex = ''; // Remove o z-index alto
+        document.removeEventListener('mousemove', drag);
+        document.removeEventListener('mouseup', dragEnd);
+    }
+
+    makeResizable(el); // A função de redimensionamento
+    setupContextMenu(el); // Setup do menu de contexto
+
+    // Adiciona listener de duplo clique para edição de texto na box (no item)
+    el.addEventListener('dblclick', (e) => {
+        // Se houver um elemento de texto dentro do item
+        if (textElement) {
+            e.stopPropagation(); // Impede que o dblclick se propague para o documento
+            textElement.contentEditable = true;
+            textElement.classList.add('editable'); // Adiciona classe para estilo de edição
+            textElement.focus(); // Coloca o foco para que o usuário possa digitar
+        }
+    });
+
+    // Quando o foco sai do texto (ao clicar fora, por exemplo), desativa a edição
+    if (textElement) {
+        textElement.addEventListener('blur', () => {
+            textElement.contentEditable = false;
+            textElement.classList.remove('editable'); // Remove classe de estilo de edição
+        });
+    }
+}
+
+function makeResizable(el) {
+  let currentHandle = null;
+  let startX, startY, startW, startH, startL, startT;
+
+  const handles = el.querySelectorAll('.handle');
+  handles.forEach(handle => {
+    handle.addEventListener('mousedown', (e) => {
+      e.stopPropagation(); // Impede o clique de arrastar o item ou selecionar
+      isResizing = true; // Define o estado de redimensionamento
+      currentHandle = handle.classList[1];
+      startX = e.clientX;
+      startY = e.clientY;
+      const rect = el.getBoundingClientRect();
+      startW = rect.width;
+      startH = rect.height;
+      startL = rect.left;
+      startT = rect.top;
+
+      // Adiciona listeners ao document para capturar movimentos fora do item
+      document.addEventListener('mousemove', resize);
+      document.addEventListener('mouseup', resizeEnd);
+    });
+  });
+
+  function resize(e) {
+    if (!isResizing) return;
+    e.preventDefault(); // Previne seleção de texto ou outros comportamentos
+
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    let newW = startW;
+    let newH = startH;
+    let newL = startL;
+    let newT = startT;
+
+    const ratio = startW / startH;
+    const keepRatio = e.shiftKey; // Mantém proporção com Shift
+
+    if (currentHandle.includes('e')) newW = startW + dx;
+    if (currentHandle.includes('s')) newH = startH + dy;
+    if (currentHandle.includes('w')) {
+      newW = startW - dx;
+      newL = startL + dx;
+    }
+    if (currentHandle.includes('n')) {
+      newH = startH - dy;
+      newT = startT + dy;
+    }
+
+    if (keepRatio) {
+      if (currentHandle === 'n' || currentHandle === 's') {
+        newW = newH * ratio;
+        if (currentHandle === 'n') newL = startL + (startW - newW) / 2;
+      } else if (currentHandle === 'e' || currentHandle === 'w') {
+        newH = newW / ratio;
+        if (currentHandle === 'w') newT = startT + (startH - newH) / 2;
+      } else { // Cantos
+        if (Math.abs(dx) > Math.abs(dy)) {
+          newH = newW / ratio;
+        } else {
+          newW = newH * ratio;
+        }
+        if (currentHandle.includes('w')) newL = startL + (startW - newW);
+        if (currentHandle.includes('n')) newT = startT + (startH - newH);
+      }
+    }
+
+    newW = Math.max(60, newW); // Largura mínima
+    newH = Math.max(40, newH); // Altura mínima
+
+    el.style.width = `${newW}px`;
+    el.style.height = `${newH}px`;
+    el.style.left = `${newL}px`;
+    el.style.top = `${newT}px`;
+  }
+
+  function resizeEnd() {
+    isResizing = false; // Redefine o estado de redimensionamento
+    currentHandle = null;
+    document.removeEventListener('mousemove', resize);
+    document.removeEventListener('mouseup', resizeEnd);
+  }
+}
+
+function setupContextMenu(item) {
+    item.addEventListener('contextmenu', (e) => {
+        e.preventDefault(); // Impede o menu de contexto padrão do navegador
+        deselectAllItems(); // Garante que apenas este item esteja selecionado
+        item.classList.add('selected');
+        selectedItem = item;
+
+        // Posiciona o menu de contexto
+        contextMenu.style.left = `${e.clientX}px`;
+        contextMenu.style.top = `${e.clientY}px`;
+        contextMenu.style.display = 'block';
+    });
+}
+
+function deselectAllItems() {
+    document.querySelectorAll('.item').forEach(item => {
+        item.classList.remove('selected');
+        const textElement = item.querySelector('.text');
+        if (textElement) {
+            textElement.contentEditable = false; // Desativa edição ao deselecionar
+            textElement.classList.remove('editable');
+        }
+    });
+    selectedItem = null;
+    contextMenu.style.display = 'none'; // Esconde o menu de contexto
+}
+
+// --- Event Listeners Globais ---
+
+// Ocultar menu de contexto e deselecionar ao clicar em qualquer lugar que não seja um item
+document.addEventListener('click', (e) => {
+    // Se o clique não foi em um item (ou seus filhos), em uma alça, ou no menu de contexto
+    if (!e.target.closest('.item') && !e.target.closest('.context-menu')) {
+        deselectAllItems();
+    }
+});
+
+// Ocultar menu de contexto e deselecionar ao pressionar "Esc"
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        deselectAllItems();
+    }
+});
+
+
+// Listener para colar conteúdo
+document.addEventListener('paste', (e) => {
+  const items = e.clipboardData.items;
+  let found = false;
+
+  for (let item of items) {
+    if (item.type.indexOf('image') !== -1) {
+      const file = item.getAsFile();
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(file);
+      createItem(img);
+      found = true;
+      break; // Cola apenas a primeira imagem encontrada
+    } else if (item.type === 'text/plain') {
+      item.getAsString(text => {
+        const div = createText(text);
+        createItem(div);
+      });
+      found = true;
+      break; // Cola apenas o primeiro texto encontrado
+    }
+  }
+
+  if (!found) {
+    alert('Nada para colar ou tipo de conteúdo não suportado!');
+  }
+  deselectAllItems(); // Garante que o novo item seja o selecionado se houver mais de um
+});
+
+// Listener para o botão "Limpar"
+clearBtn.addEventListener('click', () => {
+  clipboard.querySelectorAll('.item').forEach(e => e.remove());
+  placeholder.style.display = 'block';
+  deselectAllItems(); // Garante que não haja item selecionado após limpar
+});
+
+// Listener para o botão "Tema"
+themeBtn.addEventListener('click', () => {
+  document.body.classList.toggle('dark-theme');
+  // Altera o ícone do botão
+  if (document.body.classList.contains('dark-theme')) {
+    themeBtn.innerHTML = '🌙 Tema';
+  } else {
+    themeBtn.innerHTML = '☀️ Tema';
+  }
+});
+
+// Listener para a opção "Remover" no menu de contexto
+removeOption.addEventListener('click', () => {
+    if (selectedItem) {
+        selectedItem.remove();
+        deselectAllItems();
+        if (clipboard.querySelectorAll('.item').length === 0) {
+            placeholder.style.display = 'block';
+        }
+    }
+});
+
+// Listener para a tecla Delete/Backspace
+document.addEventListener('keydown', (e) => {
+    // Verifica se o foco está em um elemento editável antes de permitir a exclusão
+    const activeElement = document.activeElement;
+    const isEditingText = (activeElement && activeElement.classList.contains('text') && activeElement.contentEditable === 'true');
+
+    if (selectedItem && (e.key === 'Delete' || e.key === 'Backspace')) {
+        if (isEditingText) {
+            return; // Permite que a tecla Delete/Backspace funcione normalmente na edição de texto
+        }
+        e.preventDefault(); // Previne o comportamento padrão do navegador
+        selectedItem.remove();
+        deselectAllItems();
+        if (clipboard.querySelectorAll('.item').length === 0) {
+            placeholder.style.display = 'block';
+        }
+    }
+});
+</script>
+
+</body>
+</html>
