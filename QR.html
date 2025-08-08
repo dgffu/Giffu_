@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Novel QR Code Generator</title>
+<script src="./qr-code-styling.js"></script>
+ <style>
+    body {
+      font-family: 'Helvetica Neue', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+      background: #f5f5f5;
+      color: #333;
+    }
+    h1 {
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+    .container {
+      background: white;
+      padding: 2rem;
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      max-width: 500px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    input[type="text"], select {
+      padding: 0.75rem;
+      font-size: 1rem;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      width: 100%;
+    }
+    button {
+      padding: 0.75rem;
+      background-color: #333;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #111;
+    }
+    canvas {
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Novel QR Code Generator</h1>
+  <div class="container">
+    <input type="text" id="urlInput" placeholder="Insira o link aqui" />
+    <label>Imagem central (PNG):</label>
+    <input type="file" id="imageInput" accept="image/png" />
+
+    <label>Estilo dos cantos:</label>
+    <select id="cornerStyleSelect">
+      <option value="square">Quadrado</option>
+      <option value="dot">Ponto</option>
+      <option value="extra-rounded">Extra arredondado</option>
+    </select>
+
+    <button onclick="generateQRCode()">Gerar QR Code</button>
+    <div id="qr-code"></div>
+    <button onclick="downloadQRCode()">Baixar QR Code</button>
+  </div>
+
+  <script>
+    let qrCode = new QRCodeStyling({
+      width: 300,
+      height: 300,
+      type: "canvas",
+      data: "",
+      image: "",
+      dotsOptions: {
+        color: "#000",
+        type: "square"
+      },
+      cornersSquareOptions: {
+        type: "square"
+      },
+      cornersDotOptions: {
+        type: "square"
+      },
+      imageOptions: {
+        crossOrigin: "anonymous",
+        margin: 10
+      }
+    });
+
+    qrCode.append(document.getElementById("qr-code"));
+
+    function generateQRCode() {
+      const url = document.getElementById("urlInput").value;
+      const style = document.getElementById("cornerStyleSelect").value;
+      const imageInput = document.getElementById("imageInput");
+
+      const reader = new FileReader();
+
+      if (imageInput.files[0]) {
+        reader.onload = function (e) {
+          updateQRCode(url, e.target.result, style);
+        };
+        reader.readAsDataURL(imageInput.files[0]);
+      } else {
+        updateQRCode(url, "", style);
+      }
+    }
+
+    function updateQRCode(url, imageData, style) {
+      qrCode.update({
+        data: url,
+        image: imageData || "",
+        dotsOptions: {
+          type: "square"
+        },
+        cornersSquareOptions: {
+          type: style
+        },
+        cornersDotOptions: {
+          type: style
+        }
+      });
+    }
+
+    function downloadQRCode() {
+      qrCode.download({ name: "novel-qr-code", extension: "png" });
+    }
+  </script>
+
+</body>
+</html>
