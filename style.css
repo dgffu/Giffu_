@@ -31,7 +31,7 @@ header {
 .logo img:hover {
   cursor: pointer;
   filter: invert(47%) sepia(92%) saturate(3000%) hue-rotate(4deg) brightness(92%) contrast(101%);
-  transition: filter 0.3s;
+  transition: filter 0.4s;
 }
 
 .menu {
