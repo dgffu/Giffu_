@@ -189,3 +189,66 @@ h1 {
 
 h3 { font-family: 'Outfit';}
 p { font-family: 'Outfit';}
+
+
+
+/* --- RESPONSIVIDADE MOBILE --- */
+@media (max-width: 768px) {
+  header {
+    flex-direction: column;
+    align-items:center;
+    text-align: center;
+    height: auto;
+    padding: 12px;
+  }
+
+  .menu {
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  .social {
+    margin-top: 8px;
+  }
+
+  .section-title {
+    font-size: 24px;
+    padding-left: 12px;
+  }
+
+  .video-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .video-title {
+    font-size: 18px;
+  }
+
+  .video-subtitle {
+    font-size: 12px;
+  }
+
+  #video-overlay iframe {
+    width: 95vw;
+  }
+}
+
+@media (max-width: 480px) {
+  header {
+    padding: 8px;
+  }
+
+  .menu a {
+    font-size: 14px;
+  }
+
+  .social a {
+    font-size: 16px;
+    margin-left: 12px;
+  }
+
+  .section-title {
+    font-size: 20px;
+  }
+}
