@@ -433,10 +433,21 @@ main {
   transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s ease;
 }
 
+.video-card img.crop-4-3,
+.admin-video-thumb img.crop-4-3 {
+  transform: scale(1.35) !important;
+  object-fit: cover !important;
+}
+
 .video-card:hover img {
   transform: scale(1.08);
   filter: brightness(0.85);
 }
+
+.video-card:hover img.crop-4-3 {
+  transform: scale(1.43) !important;
+}
+
 
 .video-card::after {
   content: '';

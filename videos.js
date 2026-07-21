@@ -78,19 +78,43 @@
   }
   window.getHighResThumb = getHighResThumb;
 
+  window.checkAndCropThumb = function(img) {
+    if (!img || !img.naturalWidth || !img.naturalHeight) return;
+    const aspect = img.naturalWidth / img.naturalHeight;
+    if (aspect > 1.2 && aspect < 1.45) {
+      img.classList.add('crop-4-3');
+    } else {
+      img.classList.remove('crop-4-3');
+    }
+  };
+
+  window.autoCropAllThumbs = function() {
+    document.querySelectorAll('.video-card img, .admin-video-thumb img, .thumb-edit-preview img').forEach(img => {
+      if (img.complete) {
+        checkAndCropThumb(img);
+      } else {
+        img.addEventListener('load', () => checkAndCropThumb(img));
+      }
+    });
+  };
+
   window.handleThumbError = function(img, videoId) {
     if (!img) return;
     const step = parseInt(img.dataset.fallbackStep || '0', 10);
     if (step === 0 && videoId) {
       img.dataset.fallbackStep = '1';
-      img.src = `https://img.youtube.com/vi/${videoId}/sddefault.jpg`;
+      img.src = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
     } else if (step === 1 && videoId) {
       img.dataset.fallbackStep = '2';
-      img.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+      img.src = `https://img.youtube.com/vi/${videoId}/sddefault.jpg`;
     } else if (step === 2 && videoId) {
       img.dataset.fallbackStep = '3';
+      img.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+    } else if (step === 3 && videoId) {
+      img.dataset.fallbackStep = '4';
       img.src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
     }
+    setTimeout(() => checkAndCropThumb(img), 50);
   };
 
   function enhanceStaticCards() {
@@ -100,6 +124,11 @@
         playBtn.className = 'play-icon-badge';
         playBtn.innerHTML = '<i class="fas fa-play"></i>';
         card.appendChild(playBtn);
+      }
+      const img = card.querySelector('img');
+      if (img) {
+        if (img.complete) checkAndCropThumb(img);
+        else img.addEventListener('load', () => checkAndCropThumb(img));
       }
     });
   }
@@ -134,6 +163,7 @@
 
     // Re-bind overlay click handlers for all cards
     bindOverlayEvents();
+    autoCropAllThumbs();
   }
 
   function createCardElement(v) {
@@ -146,7 +176,7 @@
     const thumbUrl = getHighResThumb(v.thumb, v.id);
 
     a.innerHTML = `
-      <img src="${thumbUrl}" alt="${escapeHtml(v.title)}" loading="lazy" onerror="handleThumbError(this, '${v.id}')">
+      <img src="${thumbUrl}" alt="${escapeHtml(v.title)}" loading="lazy" onerror="handleThumbError(this, '${v.id}')" onload="checkAndCropThumb(this)">
       <div class="play-icon-badge"><i class="fas fa-play"></i></div>
       <div class="video-info">
         <h3 class="video-title">${escapeHtml(v.title)}</h3>
@@ -155,6 +185,7 @@
     `;
     return a;
   }
+
 
   function escapeHtml(str) {
     if (!str) return '';
@@ -312,7 +343,9 @@
     initTheme();
     initMobileMenu();
     loadVideos();
+    autoCropAllThumbs();
   }
+
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initApp);
