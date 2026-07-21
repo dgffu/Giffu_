@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel de Administração - Giffú</title>
+  <link rel="icon" type="image/x-icon" href="source/favico.ico">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Google Identity Services Library -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+
+  <header>
+    <a class="logo" href="index.html">
+      <img src="source/W_404040SVG.svg" alt="Logo">
+    </a>
+    <nav class="menu">
+      <a href="index.html">Para Marcas</a>
+      <a href="motion.html">Motion Design</a>
+      <a href="eventos.html">Edição de Eventos</a>
+      <a href="about.html">Sobre</a>
+      <a href="admin.html" class="admin-nav-link" title="Painel de Administração" style="font-weight: bold;"><i class="fas fa-cog"></i></a>
+    </nav>
+    <div class="social">
+      <a href="https://www.instagram.com/giffu.mov" target="_blank" rel="noopener">
+        <i class="fab fa-instagram"></i>
+      </a>
+      <a href="https://www.youtube.com/dilangiffu" target="_blank" rel="noopener">
+        <i class="fab fa-youtube"></i>
+      </a>
+    </div>
+  </header>
+
+  <main style="height: auto; min-height: calc(100vh - 56px); padding-bottom: 60px;">
+    <div class="admin-wrapper">
+      
+      <!-- Header Box com Login Status -->
+      <div class="admin-header-box">
+        <div class="admin-title-area">
+          <h2><i class="fab fa-youtube" style="color: #FE5E00;"></i> Painel de Administração Giffú</h2>
+          <p>Envio direto de vídeos via API do YouTube e gerenciamento de portfólio</p>
+        </div>
+        <div class="auth-badge">
+          <div id="authStatusDot" class="auth-status-dot"></div>
+          <span id="authStatusText" style="font-size: 13px; color: #aaa;">Não conectado</span>
+          <button id="btnGoogleAuth" class="btn-gsi">
+            <i class="fab fa-google"></i> Conectar Conta
+          </button>
+        </div>
+      </div>
+
+      <!-- Abas do Painel -->
+      <div class="admin-tabs">
+        <button class="tab-btn active" onclick="switchTab('upload')">
+          <i class="fas fa-cloud-upload-alt"></i> Novo Vídeo (YouTube)
+        </button>
+        <button class="tab-btn" onclick="switchTab('manage')">
+          <i class="fas fa-tasks"></i> Gerenciar Vídeos
+        </button>
+        <button class="tab-btn" onclick="switchTab('config')">
+          <i class="fas fa-cog"></i> Configurar API Google
+        </button>
+      </div>
+
+      <!-- ABA 1: UPLOAD DE VÍDEO -->
+      <div id="tab-upload" class="admin-tab-content">
+        <div class="admin-card">
+          <h3 style="margin-bottom: 20px; font-size: 20px;"><i class="fas fa-video"></i> Upload de Novo Vídeo para o YouTube</h3>
+          
+          <form id="uploadForm" onsubmit="return false;">
+            <!-- Dropzone do Vídeo -->
+            <div class="form-group full-width">
+              <label><i class="fas fa-file-video"></i> Arquivo de Vídeo <span class="req">*</span></label>
+              <div class="dropzone" id="videoDropzone" onclick="document.getElementById('videoFile').click()">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p id="videoDropText">Arraste e solte seu arquivo de vídeo aqui ou clique para selecionar</p>
+                <span class="hint">Formatos suportados: MP4, MOV, AVI, WebM</span>
+                <input type="file" id="videoFile" accept="video/*" style="display:none;" onchange="handleVideoFileSelect(this)">
+              </div>
+            </div>
+
+            <div class="form-grid">
+              <!-- Título -->
+              <div class="form-group">
+                <label for="videoTitle">Título do Vídeo <span class="req">*</span></label>
+                <input type="text" id="videoTitle" class="form-input" placeholder="Ex: Leaders Academy" required>
+              </div>
+
+              <!-- Subtítulo / Créditos -->
+              <div class="form-group">
+                <label for="videoSubtitle">Subtítulo / Créditos & Ano <span class="req">*</span></label>
+                <input type="text" id="videoSubtitle" class="form-input" placeholder="Ex: Lamídia, S.I.N. Implant System (2025)" required>
+              </div>
+
+              <!-- Qual página vai? Combobox -->
+              <div class="form-group">
+                <label for="videoPage">Qual página vai no site? <span class="req">*</span></label>
+                <select id="videoPage" class="form-select" required>
+                  <option value="marcas">Para Marcas (index.html)</option>
+                  <option value="motion">Motion Design (motion.html)</option>
+                  <option value="eventos">Edição de Eventos (eventos.html)</option>
+                </select>
+              </div>
+
+              <!-- Status de Privacidade YouTube -->
+              <div class="form-group">
+                <label for="videoPrivacy">Privacidade no YouTube</label>
+                <select id="videoPrivacy" class="form-select">
+                  <option value="public">Público</option>
+                  <option value="unlisted" selected>Não listado (Unlisted)</option>
+                  <option value="private">Privado</option>
+                </select>
+              </div>
+
+              <!-- Tags -->
+              <div class="form-group full-width">
+                <label for="videoTags">Tags (separadas por vírgula)</label>
+                <input type="text" id="videoTags" class="form-input" placeholder="Ex: motion design, edicao, portfolio, giffu, 2025">
+              </div>
+
+              <!-- Descrição -->
+              <div class="form-group full-width">
+                <label for="videoDescription">Descrição do Vídeo no YouTube</label>
+                <textarea id="videoDescription" class="form-textarea" rows="4" placeholder="Escreva a descrição que aparecerá no YouTube..."></textarea>
+              </div>
+
+              <!-- Thumbnail Customizada -->
+              <div class="form-group full-width">
+                <label><i class="fas fa-image"></i> Thumbnail de Capa (YouTube e Capa do Site)</label>
+                <div class="dropzone" id="thumbDropzone" onclick="document.getElementById('thumbFile').click()">
+                  <i class="fas fa-camera"></i>
+                  <p id="thumbDropText">Selecione uma imagem para a capa do vídeo (opcional)</p>
+                  <span class="hint">Recomendado: 1920x1080 (JPG ou PNG)</span>
+                  <input type="file" id="thumbFile" accept="image/*" style="display:none;" onchange="handleThumbFileSelect(this)">
+                </div>
+                <div id="thumbPreviewBox" class="thumb-preview-box">
+                  <img id="thumbPreviewImg" src="" alt="Preview Capa">
+                </div>
+              </div>
+            </div>
+
+            <!-- Progresso de Upload -->
+            <div id="progressContainer" class="progress-container">
+              <div class="progress-info">
+                <span id="progressStatus">Enviando vídeo para o YouTube...</span>
+                <span id="progressPercent">0%</span>
+              </div>
+              <div class="progress-track">
+                <div id="progressFill" class="progress-fill"></div>
+              </div>
+            </div>
+
+            <!-- Botão Submit -->
+            <div style="margin-top: 30px; text-align: right;">
+              <button type="button" id="btnUpload" class="btn-primary" onclick="startVideoUpload()">
+                <i class="fab fa-youtube"></i> Enviar Vídeo para o YouTube
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- ABA 2: GERENCIAR VÍDEOS -->
+      <div id="tab-manage" class="admin-tab-content" style="display: none;">
+        <div class="admin-card">
+          <h3 style="margin-bottom: 20px; font-size: 20px;"><i class="fas fa-list"></i> Vídeos no Portfólio</h3>
+          
+          <div class="filter-bar">
+            <input type="text" id="manageSearch" class="form-input search-input" placeholder="Buscar por título ou créditos..." oninput="filterManagedVideos()">
+            <select id="manageCategory" class="form-select" style="width: 220px;" onchange="filterManagedVideos()">
+              <option value="all">Todas as páginas</option>
+              <option value="marcas">Para Marcas</option>
+              <option value="motion">Motion Design</option>
+              <option value="eventos">Edição de Eventos</option>
+            </select>
+          </div>
+
+          <div id="adminVideoGrid" class="admin-video-grid">
+            <!-- Renderizado dinamicamente pelo admin.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ABA 3: CONFIGURAÇÃO GOOGLE OAUTH -->
+      <div id="tab-config" class="admin-tab-content" style="display: none;">
+        <div class="admin-card">
+          <h3 style="margin-bottom: 20px; font-size: 20px;"><i class="fas fa-key"></i> Configuração da API do Google / YouTube</h3>
+          
+          <div class="notice-box">
+            <strong><i class="fas fa-info-circle"></i> Como funciona a autenticação?</strong><br>
+            Para enviar vídeos diretamente para o canal <strong>Giffú</strong> via API, você precisa fornecer o seu <strong>OAuth 2.0 Client ID</strong> criado no Google Cloud Console com a conta <code>dilangoficial@gmail.com</code>.
+          </div>
+
+          <div class="form-group">
+            <label for="googleClientId">Google OAuth Client ID</label>
+            <input type="text" id="googleClientId" class="form-input" placeholder="Ex: 1234567890-abcdefg.apps.googleusercontent.com">
+          </div>
+          
+          <div style="margin-top: 16px;">
+            <button type="button" class="btn-primary" onclick="saveClientId()">
+              <i class="fas fa-save"></i> Salvar Client ID
+            </button>
+          </div>
+
+          <hr style="border: 0; border-top: 1px solid #333; margin: 30px 0;">
+
+          <h4>Instruções para criar o Client ID no Google Cloud Console:</h4>
+          <ol style="margin-left: 20px; margin-top: 12px; color: #ccc; line-height: 1.8; font-size: 14px;">
+            <li>Acesse o <a href="https://console.cloud.google.com/" target="_blank" style="color:#FE5E00;">Google Cloud Console</a> logado na sua conta <code>dilangoficial@gmail.com</code>.</li>
+            <li>Crie um projeto ou selecione um existente (ex: <em>Giffu Portfolio</em>).</li>
+            <li>No menu lateral, vá em <strong>APIs e Serviços &gt; Biblioteca</strong> e ative a <strong>YouTube Data API v3</strong>.</li>
+            <li>Vá em <strong>APIs e Serviços &gt; Credenciais</strong> &gt; Clique em <strong>Criar Credenciais &gt; ID do cliente OAuth</strong>.</li>
+            <li>Em Tipo de Aplicação, escolha <strong>Aplicação Web</strong>.</li>
+            <li>Em <strong>Origens JavaScript autorizadas</strong>, adicione:<br>
+              <code>https://giffu.com.br</code> e <code>http://localhost:8080</code> (ou seu domínio local).
+            </li>
+            <li>Copie o Client ID gerado e cole no campo acima!</li>
+          </ol>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- MODAL DE EDIÇÃO DE THUMBNAIL -->
+  <div id="thumbEditModal" class="modal-backdrop">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3><i class="fas fa-image" style="color: #FE5E00;"></i> Editar Capa / Thumbnail</h3>
+        <button type="button" class="modal-close-btn" onclick="closeThumbEditor()">&times;</button>
+      </div>
+      
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div>
+          <p id="thumbEditVideoTitle" style="font-weight: 600; color: #fff; font-size: 15px; margin-bottom: 4px;"></p>
+          <span id="thumbEditVideoId" style="font-size: 12px; color: #888;"></span>
+        </div>
+
+        <div class="thumb-edit-preview">
+          <img id="thumbEditPreviewImg" src="" alt="Preview da Thumbnail">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label style="font-size: 13px; color: #ccc;">Escolher Nova Imagem (JPG ou PNG):</label>
+          <input type="file" id="thumbEditFileInput" accept="image/*" class="form-input" style="padding: 8px; font-size: 13px;" onchange="handleThumbEditFileSelect(this)">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label style="font-size: 13px; color: #ccc;">Ou cole uma URL externa de Thumbnail:</label>
+          <input type="url" id="thumbEditUrlInput" class="form-input" placeholder="https://exemplo.com/minha-capa.jpg" oninput="handleThumbEditUrlInput(this)">
+        </div>
+
+        <div id="thumbEditStatus" style="font-size: 13px; color: #FE5E00; display: none;"></div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; flex-wrap: wrap; gap: 10px;">
+          <button type="button" class="btn-secondary" style="font-size: 12px; padding: 8px 12px;" onclick="resetThumbToYouTubeDefault()">
+            <i class="fas fa-undo"></i> Usar Capa Padrão YouTube
+          </button>
+
+          <div style="display: flex; gap: 10px;">
+            <button type="button" class="btn-secondary" onclick="closeThumbEditor()">Cancelar</button>
+            <button type="button" id="btnSaveThumb" class="btn-primary" style="padding: 10px 20px; font-size: 14px;" onclick="saveEditedThumbnail()">
+              <i class="fas fa-save"></i> Salvar Capa
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="videos.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

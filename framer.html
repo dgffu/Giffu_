@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FPS Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f9;
+        }
+        .calculator {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 300px;
+        }
+        .calculator h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .calculator label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+        .calculator input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .calculator button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .calculator button:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h1>FPS Calculator</h1>
+        <label for="seconds">Time in seconds:</label>
+        <input type="number" id="seconds" placeholder="Enter seconds">
+
+        <label for="fps">Frames per second (FPS):</label>
+        <input type="number" id="fps" placeholder="Enter FPS">
+
+        <button onclick="calculateFrames()">Calculate Frames</button>
+
+        <label for="frames">Total frames:</label>
+        <input type="number" id="frames" placeholder="Enter frames">
+
+        <button onclick="calculateSeconds()">Calculate Seconds</button>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        function calculateFrames() {
+            const seconds = parseFloat(document.getElementById('seconds').value);
+            const fps = parseFloat(document.getElementById('fps').value);
+
+            if (isNaN(seconds) || isNaN(fps)) {
+                document.getElementById('result').innerText = 'Please enter valid numbers.';
+                return;
+            }
+
+            const frames = seconds * fps;
+            document.getElementById('result').innerText = `Total Frames: ${frames}`;
+        }
+
+        function calculateSeconds() {
+            const frames = parseFloat(document.getElementById('frames').value);
+            const fps = parseFloat(document.getElementById('fps').value);
+
+            if (isNaN(frames) || isNaN(fps)) {
+                document.getElementById('result').innerText = 'Please enter valid numbers.';
+                return;
+            }
+
+            const seconds = frames / fps;
+            document.getElementById('result').innerText = `Total Seconds: ${seconds}`;
+        }
+    </script>
+</body>
+</html>
