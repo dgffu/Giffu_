@@ -2,50 +2,62 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
+  <script>if(localStorage.getItem('giffu_theme')==='light')document.documentElement.classList.add('light-mode');</script>
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Painel de Administração - Giffú</title>
+  <title>Painel de Administração · Giffú</title>
   <link rel="icon" type="image/x-icon" href="source/favico.ico">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Google Identity Services Library -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
+  <!-- Header Fixo Glassmorphic -->
   <header>
-    <a class="logo" href="index.html">
-      <img src="source/W_404040SVG.svg" alt="Logo">
+    <a class="logo" href="index.html" title="Giffú Home">
+      <img src="source/W_404040SVG.svg" alt="Giffú Logo">
     </a>
+
     <nav class="menu">
       <a href="index.html">Para Marcas</a>
       <a href="motion.html">Motion Design</a>
       <a href="eventos.html">Edição de Eventos</a>
       <a href="about.html">Sobre</a>
-      <a href="admin.html" class="admin-nav-link" title="Painel de Administração" style="font-weight: bold;"><i class="fas fa-cog"></i></a>
+      <a href="admin.html" class="active admin-nav-link" title="Painel de Administração"><i class="fas fa-cog"></i></a>
     </nav>
-    <div class="social">
-      <a href="https://www.instagram.com/giffu.mov" target="_blank" rel="noopener">
-        <i class="fab fa-instagram"></i>
-      </a>
-      <a href="https://www.youtube.com/dilangiffu" target="_blank" rel="noopener">
-        <i class="fab fa-youtube"></i>
-      </a>
+
+    <div class="header-right">
+      <div class="social">
+        <button class="theme-toggle-btn" title="Modo Claro" aria-label="Alternar modo claro e escuro">
+          <i class="fas fa-sun"></i>
+        </button>
+        <a href="https://www.instagram.com/giffu.mov" target="_blank" rel="noopener" title="Instagram">
+          <i class="fab fa-instagram"></i>
+        </a>
+        <a href="https://www.youtube.com/dilangiffu" target="_blank" rel="noopener" title="YouTube">
+          <i class="fab fa-youtube"></i>
+        </a>
+      </div>
+      <button class="mobile-nav-toggle" aria-label="Abrir Menu">
+        <i class="fas fa-bars"></i>
+      </button>
     </div>
   </header>
 
-  <main style="height: auto; min-height: calc(100vh - 56px); padding-bottom: 60px;">
+  <main style="padding-bottom: 60px;">
     <div class="admin-wrapper">
       
       <!-- Header Box com Login Status -->
       <div class="admin-header-box">
         <div class="admin-title-area">
           <h2><i class="fab fa-youtube" style="color: #FE5E00;"></i> Painel de Administração Giffú</h2>
-          <p>Envio direto de vídeos via API do YouTube e gerenciamento de portfólio</p>
         </div>
         <div class="auth-badge">
           <div id="authStatusDot" class="auth-status-dot"></div>
-          <span id="authStatusText" style="font-size: 13px; color: #aaa;">Não conectado</span>
+          <span id="authStatusText" style="font-size: 13px; color: var(--text-secondary);">Não conectado</span>
           <button id="btnGoogleAuth" class="btn-gsi">
             <i class="fab fa-google"></i> Conectar Conta
           </button>
@@ -70,6 +82,19 @@
         <div class="admin-card">
           <h3 style="margin-bottom: 20px; font-size: 20px;"><i class="fas fa-video"></i> Upload de Novo Vídeo para o YouTube</h3>
           
+          <div id="uploadLockNotice" class="auth-lock-card" style="display: none; text-align: center; padding: 50px 20px;">
+            <div style="background: rgba(254, 94, 0, 0.1); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; border: 1px solid rgba(254, 94, 0, 0.3);">
+              <i class="fas fa-lock" style="font-size: 36px; color: #FE5E00;"></i>
+            </div>
+            <h4 style="font-size: 22px; color: var(--text-primary); margin-bottom: 10px;">Acesso Restrito</h4>
+            <p style="color: var(--text-secondary); max-width: 480px; margin: 0 auto 24px auto; font-size: 14px; line-height: 1.6;">
+              Conecte sua conta autorizada do Google no botão <strong>"Conectar Conta"</strong> no topo para continuar.
+            </p>
+            <button class="btn-primary" onclick="handleAuthButtonClick()" style="padding: 12px 24px; font-size: 15px;">
+              <i class="fab fa-google"></i> Conectar Conta do Google
+            </button>
+          </div>
+
           <form id="uploadForm" onsubmit="return false;">
             <!-- Dropzone do Vídeo -->
             <div class="form-group full-width">
@@ -167,19 +192,52 @@
       <div id="tab-manage" class="admin-tab-content" style="display: none;">
         <div class="admin-card">
           <h3 style="margin-bottom: 20px; font-size: 20px;"><i class="fas fa-list"></i> Vídeos no Portfólio</h3>
-          
-          <div class="filter-bar">
-            <input type="text" id="manageSearch" class="form-input search-input" placeholder="Buscar por título ou créditos..." oninput="filterManagedVideos()">
-            <select id="manageCategory" class="form-select" style="width: 220px;" onchange="filterManagedVideos()">
-              <option value="all">Todas as páginas</option>
-              <option value="marcas">Para Marcas</option>
-              <option value="motion">Motion Design</option>
-              <option value="eventos">Edição de Eventos</option>
-            </select>
-          </div>
 
-          <div id="adminVideoGrid" class="admin-video-grid">
-            <!-- Renderizado dinamicamente pelo admin.js -->
+          <div id="manageLockNotice" class="auth-lock-card" style="display: none; text-align: center; padding: 50px 20px;">
+            <div style="background: rgba(254, 94, 0, 0.1); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; border: 1px solid rgba(254, 94, 0, 0.3);">
+              <i class="fas fa-lock" style="font-size: 36px; color: #FE5E00;"></i>
+            </div>
+            <h4 style="font-size: 22px; color: var(--text-primary); margin-bottom: 10px;">Painel Protegido</h4>
+            <p style="color: var(--text-secondary); max-width: 480px; margin: 0 auto 24px auto; font-size: 14px; line-height: 1.6;">
+              Conecte sua conta autorizada do Google no botão <strong>"Conectar Conta"</strong> no topo da página para visualizar e gerenciar os vídeos do portfólio.
+            </p>
+            <button class="btn-primary" onclick="handleAuthButtonClick()" style="padding: 12px 24px; font-size: 15px;">
+              <i class="fab fa-google"></i> Conectar Conta do Google
+            </button>
+          </div>
+          
+          <div id="manageProtectedContent">
+            <div class="filter-bar">
+              <input type="text" id="manageSearch" class="form-input search-input" placeholder="Buscar por título ou créditos..." oninput="filterManagedVideos()">
+              <select id="manageCategory" class="form-select" style="width: 220px;" onchange="filterManagedVideos()">
+                <option value="all">Todas as páginas</option>
+                <option value="marcas">Para Marcas</option>
+                <option value="motion">Motion Design</option>
+                <option value="eventos">Edição de Eventos</option>
+              </select>
+            </div>
+
+            <!-- Ações de Sincronização Online -->
+            <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; background: var(--bg-surface); padding: 14px; border-radius: 8px; border: 1px solid var(--border-medium); align-items: center; justify-content: space-between;">
+              <div style="font-size: 13px; color: var(--text-primary);">
+                <i class="fas fa-globe" style="color: #FE5E00;"></i> <strong>Publicar Portfólio Online (giffu.com.br)</strong>
+              </div>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button type="button" class="btn-primary" style="padding: 8px 14px; font-size: 13px;" onclick="syncPortfolioToGitHub()">
+                  <i class="fas fa-cloud-upload-alt"></i> Sincronizar com GitHub
+                </button>
+                <button type="button" class="btn-secondary" style="padding: 8px 14px; font-size: 13px;" onclick="downloadUpdatedVideosJson()">
+                  <i class="fas fa-file-download"></i> Baixar videos.json
+                </button>
+                <button type="button" class="btn-secondary" style="padding: 8px 14px; font-size: 13px;" onclick="copyPortfolioJson()">
+                  <i class="fas fa-copy"></i> Copiar JSON
+                </button>
+              </div>
+            </div>
+
+            <div id="adminVideoGrid" class="admin-video-grid">
+              <!-- Renderizado dinamicamente pelo admin.js -->
+            </div>
           </div>
         </div>
       </div>
@@ -189,10 +247,6 @@
         <div class="admin-card">
           <h3 style="margin-bottom: 20px; font-size: 20px;"><i class="fas fa-key"></i> Configuração da API do Google / YouTube</h3>
           
-          <div class="notice-box">
-            <strong><i class="fas fa-info-circle"></i> Como funciona a autenticação?</strong><br>
-            Para enviar vídeos diretamente para o canal <strong>Giffú</strong> via API, você precisa fornecer o seu <strong>OAuth 2.0 Client ID</strong> criado no Google Cloud Console com a conta <code>dilangoficial@gmail.com</code>.
-          </div>
 
           <div class="form-group">
             <label for="googleClientId">Google OAuth Client ID</label>
@@ -205,20 +259,22 @@
             </button>
           </div>
 
-          <hr style="border: 0; border-top: 1px solid #333; margin: 30px 0;">
+          <hr style="border: 0; border-top: 1px solid var(--border-medium); margin: 30px 0;">
 
-          <h4>Instruções para criar o Client ID no Google Cloud Console:</h4>
-          <ol style="margin-left: 20px; margin-top: 12px; color: #ccc; line-height: 1.8; font-size: 14px;">
-            <li>Acesse o <a href="https://console.cloud.google.com/" target="_blank" style="color:#FE5E00;">Google Cloud Console</a> logado na sua conta <code>dilangoficial@gmail.com</code>.</li>
-            <li>Crie um projeto ou selecione um existente (ex: <em>Giffu Portfolio</em>).</li>
-            <li>No menu lateral, vá em <strong>APIs e Serviços &gt; Biblioteca</strong> e ative a <strong>YouTube Data API v3</strong>.</li>
-            <li>Vá em <strong>APIs e Serviços &gt; Credenciais</strong> &gt; Clique em <strong>Criar Credenciais &gt; ID do cliente OAuth</strong>.</li>
-            <li>Em Tipo de Aplicação, escolha <strong>Aplicação Web</strong>.</li>
-            <li>Em <strong>Origens JavaScript autorizadas</strong>, adicione:<br>
-              <code>https://giffu.com.br</code> e <code>http://localhost:8080</code> (ou seu domínio local).
-            </li>
-            <li>Copie o Client ID gerado e cole no campo acima!</li>
-          </ol>
+          <h4 style="font-size: 16px; color: var(--text-primary);"><i class="fab fa-github" style="color: #FE5E00;"></i> Token do GitHub (Sincronização Online Automática)</h4>
+
+          <div class="form-group">
+            <label for="githubToken">GitHub Personal Access Token (com escopo <code>repo</code>)</label>
+            <input type="password" id="githubToken" class="form-input" placeholder="Ex: ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+          </div>
+          
+          <div style="margin-top: 16px;">
+            <button type="button" class="btn-primary" onclick="saveGitHubToken()">
+              <i class="fas fa-save"></i> Salvar GitHub Token
+            </button>
+          </div>
+
+
         </div>
       </div>
 
@@ -235,8 +291,8 @@
       
       <div style="display: flex; flex-direction: column; gap: 16px;">
         <div>
-          <p id="thumbEditVideoTitle" style="font-weight: 600; color: #fff; font-size: 15px; margin-bottom: 4px;"></p>
-          <span id="thumbEditVideoId" style="font-size: 12px; color: #888;"></span>
+          <p id="thumbEditVideoTitle" style="font-weight: 600; color: var(--text-primary); font-size: 15px; margin-bottom: 4px;"></p>
+          <span id="thumbEditVideoId" style="font-size: 12px; color: var(--text-secondary);"></span>
         </div>
 
         <div class="thumb-edit-preview">
@@ -244,12 +300,12 @@
         </div>
 
         <div class="form-group" style="margin-bottom: 0;">
-          <label style="font-size: 13px; color: #ccc;">Escolher Nova Imagem (JPG ou PNG):</label>
+          <label style="font-size: 13px; color: var(--text-primary);">Escolher Nova Imagem (JPG ou PNG):</label>
           <input type="file" id="thumbEditFileInput" accept="image/*" class="form-input" style="padding: 8px; font-size: 13px;" onchange="handleThumbEditFileSelect(this)">
         </div>
 
         <div class="form-group" style="margin-bottom: 0;">
-          <label style="font-size: 13px; color: #ccc;">Ou cole uma URL externa de Thumbnail:</label>
+          <label style="font-size: 13px; color: var(--text-primary);">Ou cole uma URL externa de Thumbnail:</label>
           <input type="url" id="thumbEditUrlInput" class="form-input" placeholder="https://exemplo.com/minha-capa.jpg" oninput="handleThumbEditUrlInput(this)">
         </div>
 
@@ -270,6 +326,27 @@
       </div>
     </div>
   </div>
+
+  <!-- Rodapé Unificado -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="source/W_404040SVG.svg" alt="Logo Giffú">
+        <span class="footer-text">© 2026 Dilan Giffú · Todos os direitos reservados.</span>
+      </div>
+      <div class="social">
+        <button class="theme-toggle-btn" title="Modo Claro" aria-label="Alternar modo claro e escuro">
+          <i class="fas fa-sun"></i>
+        </button>
+        <a href="https://www.instagram.com/giffu.mov" target="_blank" rel="noopener" title="Instagram">
+          <i class="fab fa-instagram"></i>
+        </a>
+        <a href="https://www.youtube.com/dilangiffu" target="_blank" rel="noopener" title="YouTube">
+          <i class="fab fa-youtube"></i>
+        </a>
+      </div>
+    </div>
+  </footer>
 
   <script src="videos.js"></script>
   <script src="admin.js"></script>

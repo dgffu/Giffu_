@@ -1,5 +1,5 @@
 /**
- * videos.js - Dynamic Video Sync and Grid Renderer for Giffú Portfolio
+ * videos.js - Dynamic Video Sync, Card Enhancement & Navigation for Giffú Portfolio
  */
 (function() {
   function getPageCategory() {
@@ -50,7 +50,6 @@
       if (res.ok) {
         const jsonVideos = await res.json();
         if (Array.isArray(jsonVideos)) {
-          // Merge avoiding duplicate IDs
           const existingIds = new Set(allVideos.map(v => v.id));
           jsonVideos.forEach(v => {
             if (!existingIds.has(v.id)) {
@@ -77,6 +76,7 @@
     }
     return thumb;
   }
+  window.getHighResThumb = getHighResThumb;
 
   window.handleThumbError = function(img, videoId) {
     if (!img) return;
@@ -93,9 +93,22 @@
     }
   };
 
+  function enhanceStaticCards() {
+    document.querySelectorAll('.video-card').forEach(card => {
+      if (!card.querySelector('.play-icon-badge')) {
+        const playBtn = document.createElement('div');
+        playBtn.className = 'play-icon-badge';
+        playBtn.innerHTML = '<i class="fas fa-play"></i>';
+        card.appendChild(playBtn);
+      }
+    });
+  }
+
   function renderGrid(category, videos) {
     const grid = document.querySelector('.video-grid');
     if (!grid) return;
+
+    enhanceStaticCards();
 
     // Identify already rendered cards in the DOM to avoid duplication
     const existingCards = Array.from(grid.querySelectorAll('.video-card'));
@@ -134,6 +147,7 @@
 
     a.innerHTML = `
       <img src="${thumbUrl}" alt="${escapeHtml(v.title)}" loading="lazy" onerror="handleThumbError(this, '${v.id}')">
+      <div class="play-icon-badge"><i class="fas fa-play"></i></div>
       <div class="video-info">
         <h3 class="video-title">${escapeHtml(v.title)}</h3>
         <p class="video-subtitle">${escapeHtml(v.subtitle)}</p>
@@ -151,6 +165,67 @@
               .replace(/'/g, "&#039;");
   }
 
+  function isMobileDevice() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (window.innerWidth <= 768);
+  }
+
+  function playOverlayVideo(videoId) {
+    const overlay = document.getElementById('video-overlay');
+    const iframe = document.getElementById('video-frame');
+    if (overlay && iframe) {
+      iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&vq=hd3840`;
+      overlay.style.display = 'flex';
+    } else {
+      window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank');
+    }
+  }
+  window.playOverlayVideo = playOverlayVideo;
+
+  function openVideo(videoId) {
+    if (!videoId) return;
+
+    if (isMobileDevice()) {
+      const isAndroid = /Android/i.test(navigator.userAgent);
+
+      let deepLinkUrl = `youtube://www.youtube.com/watch?v=${videoId}`;
+      if (isAndroid) {
+        deepLinkUrl = `intent://www.youtube.com/watch?v=${videoId}#Intent;package=com.google.android.youtube;scheme=https;end`;
+      }
+
+      let appOpened = false;
+      const startTime = Date.now();
+
+      function onBlurOrHide() {
+        appOpened = true;
+      }
+
+      window.addEventListener('pagehide', onBlurOrHide, { once: true });
+      window.addEventListener('blur', onBlurOrHide, { once: true });
+      const onVisChange = () => {
+        if (document.hidden) appOpened = true;
+      };
+      document.addEventListener('visibilitychange', onVisChange, { once: true });
+
+      // Tentar abrir o app do YouTube via deep-link
+      window.location.href = deepLinkUrl;
+
+      // Fallback: se o app do YouTube não abrir em 1.2s e a página continuar visível, reproduzir normalmente
+      setTimeout(() => {
+        window.removeEventListener('pagehide', onBlurOrHide);
+        window.removeEventListener('blur', onBlurOrHide);
+        document.removeEventListener('visibilitychange', onVisChange);
+
+        if (!appOpened && !document.hidden && (Date.now() - startTime < 2000)) {
+          playOverlayVideo(videoId);
+        }
+      }, 1200);
+    } else {
+      playOverlayVideo(videoId);
+    }
+  }
+  window.openVideo = openVideo;
+  window.handleVideoClick = openVideo;
+
   function bindOverlayEvents() {
     document.querySelectorAll('.video-card').forEach(card => {
       if (card.dataset.bound) return;
@@ -162,24 +237,87 @@
       if (videoId) {
         card.addEventListener('click', (e) => {
           e.preventDefault();
-          if (typeof window.openVideo === 'function') {
-            window.openVideo(videoId);
-          } else {
-            const overlay = document.getElementById('video-overlay');
-            const iframe = document.getElementById('video-frame');
-            if (overlay && iframe) {
-              iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&vq=hd3840`;
-              overlay.style.display = 'flex';
-            }
-          }
+          openVideo(videoId);
         });
       }
     });
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadVideos);
-  } else {
+  function updateThemeToggleIcons(isLight) {
+    document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+      btn.innerHTML = isLight ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+      btn.setAttribute('title', isLight ? 'Modo Escuro' : 'Modo Claro');
+      btn.setAttribute('aria-label', isLight ? 'Alternar para Modo Escuro' : 'Alternar para Modo Claro');
+    });
+  }
+
+  function applyTheme(isLight) {
+    if (isLight) {
+      document.documentElement.classList.add('light-mode');
+      if (document.body) document.body.classList.add('light-mode');
+    } else {
+      document.documentElement.classList.remove('light-mode');
+      if (document.body) document.body.classList.remove('light-mode');
+    }
+  }
+
+  function initTheme() {
+    const savedTheme = localStorage.getItem('giffu_theme');
+    const isLight = savedTheme === 'light';
+    applyTheme(isLight);
+    updateThemeToggleIcons(isLight);
+
+    document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+      if (btn.dataset.boundTheme) return;
+      btn.dataset.boundTheme = 'true';
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const currentlyLight = !document.documentElement.classList.contains('light-mode');
+        applyTheme(currentlyLight);
+        localStorage.setItem('giffu_theme', currentlyLight ? 'light' : 'dark');
+        updateThemeToggleIcons(currentlyLight);
+      });
+    });
+  }
+
+  // Pre-apply light mode immediately as script parses to prevent screen flicker
+  try {
+    const preTheme = localStorage.getItem('giffu_theme');
+    if (preTheme === 'light') {
+      document.documentElement.classList.add('light-mode');
+      if (document.body) document.body.classList.add('light-mode');
+    }
+  } catch (e) {}
+
+
+  function initMobileMenu() {
+    const toggleBtn = document.querySelector('.mobile-nav-toggle');
+    const menu = document.querySelector('.menu');
+    if (toggleBtn && menu) {
+      toggleBtn.addEventListener('click', () => {
+        menu.classList.toggle('mobile-open');
+        const icon = toggleBtn.querySelector('i');
+        if (icon) {
+          if (menu.classList.contains('mobile-open')) {
+            icon.className = 'fas fa-times';
+          } else {
+            icon.className = 'fas fa-bars';
+          }
+        }
+      });
+    }
+  }
+
+  function initApp() {
+    initTheme();
+    initMobileMenu();
     loadVideos();
   }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+  } else {
+    initApp();
+  }
 })();
+

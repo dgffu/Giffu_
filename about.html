@@ -1,112 +1,172 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
   <meta charset="UTF-8">
+  <script>if(localStorage.getItem('giffu_theme')==='light')document.documentElement.classList.add('light-mode');</script>
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>sobre mim · Dilan Giffú</title>
+  <title>Sobre mim · Dilan Giffú</title>
   <link rel="icon" type="image/x-icon" href="source/favico.ico">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="https://use.typekit.net/tco5ixw.css">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
 </head>
 
-<div id="video-overlay">
-  <span class="close" onclick="closeVideo()">&times;</span>
-  <iframe id="video-frame" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-</div>
-
 <body>
+  <!-- Header Fixo Glassmorphic -->
   <header>
-    <a class="logo" href="index.html">
-      <img src="source/W_404040SVG.svg" alt="Logo">
+    <a class="logo" href="index.html" title="Giffú Home">
+      <img src="source/W_404040SVG.svg" alt="Giffú Logo">
     </a>
+
     <nav class="menu">
-      <a href="index.html" >Para Marcas</a>
-      <a href="motion.html" >Motion Design</a>
-      <a href="eventos.html" >Edição de Eventos</a>
-      <a href="about.html" style="font-weight: bold;" >Sobre</a>
+      <a href="index.html">Para Marcas</a>
+      <a href="motion.html">Motion Design</a>
+      <a href="eventos.html">Edição de Eventos</a>
+      <a href="about.html" class="active">Sobre</a>
       <a href="admin.html" class="admin-nav-link" title="Painel de Administração"><i class="fas fa-cog"></i></a>
     </nav>
-    <div class="social">
-      <a href="https://www.instagram.com/giffu.mov" target="_blank" rel="noopener">
-        <i class="fab fa-instagram"></i>
-      </a>
 
-      <a href="https://www.youtube.com/dilangiffu" target="_blank" rel="noopener">
-        <i class="fab fa-youtube"></i>
-      </a>
+    <div class="header-right">
+      <div class="social">
+        <button class="theme-toggle-btn" title="Modo Claro" aria-label="Alternar modo claro e escuro">
+          <i class="fas fa-sun"></i>
+        </button>
+        <a href="https://www.instagram.com/giffu.mov" target="_blank" rel="noopener" title="Instagram">
+          <i class="fab fa-instagram"></i>
+        </a>
+        <a href="https://www.youtube.com/dilangiffu" target="_blank" rel="noopener" title="YouTube">
+          <i class="fab fa-youtube"></i>
+        </a>
+      </div>
+      <button class="mobile-nav-toggle" aria-label="Abrir Menu">
+        <i class="fas fa-bars"></i>
+      </button>
     </div>
   </header>
 
   <main>
+    <div class="about-wrapper">
+      <div class="about-bento-grid">
 
-    <section>
+        <!-- Perfil Card (Bento Esquerda) -->
+        <div class="bento-card profile-card">
+          <div class="profile-avatar-box">
+            <div class="profile-avatar-inner">
+              <img src="source/profile.jpeg" alt="Dilan Giffú">
+            </div>
+          </div>
+          <h2 class="profile-name">Dilan Giffú</h2>
+          <span class="profile-role">Filmmaker & Motion Designer</span>
 
-  <div class="container">
-    <h1>Sobre mim</h1>
-   <div class="circle">
-       <img src="source/profile.jpeg" alt="Foto">
-   </div>
-    <p>Oi, sou o <b>Dilan Giffú</b>. Sou filmmaker, motion designer, edito vídeos e também escrevo <i>(mas não conta pra ninguém)</i>.</p>
-    <p>Estou há 13 anos envolvido no universo da edição de vídeo e há mais de 7 trabalhando profissionalmente na área. Comecei criando conteúdo no YouTube, até que migrei para a área de eventos sociais e logo parti também para o motion design.</p>
-    <p>Em 2019 fundei a Novel, minha produtora audiovisual de projetos autorais, mas continuo servindo a projetos incríveis aos quais sou apresentado constantemente, desde eventos corporativos à outras produções, seja na idealização, captação ou pós-produção.</p>
-    <p>Desenvolvi este espaço independente da minha marca, para que o trabalho em que servi a outras empresas possa transmitir a excelência na qual sempre busquei fazer meu trabalho.</p>
-    <br/>
-    <p style="font-weight: 4s00; font-size: 14px;">"Assim resplandeça a vossa luz diante dos homens, para que vejam as vossas boas obras e glorifiquem a vosso Pai, que está nos céus."</p>
-      <p style="font-weight: 100; font-size: 12px; margin-top: -16px;">Mateus 5:16</p>
-  </div>
+          <div class="skills-section" style="width: 100%; text-align: left;">
+            <div class="skills-title"><i class="fas fa-layer-group"></i> Serviços</div>
+            <div class="skills-cloud">
+              <span class="skill-badge">Aftermovies</span>
+              <span class="skill-badge">Same-Day Edit</span>
+              <span class="skill-badge">Edição Comercial</span>
+              <span class="skill-badge">Teasers</span>
+              <span class="skill-badge">Motion Design</span>
+              <span class="skill-badge">Design & ID</span>
+              <span class="skill-badge">Color Grading</span>
+              <span class="skill-badge">3D (em breve)</span>
+            </div>
+          </div>
 
-<style>
+          <div class="skills-section" style="width: 100%; text-align: left; margin-top: 24px;">
+            <div class="skills-title"><i class="fas fa-wrench"></i> Ferramentas</div>
+            <div class="skills-cloud">
+              <span class="skill-badge">Premiere Pro</span>
+              <span class="skill-badge">After Effects</span>
+              <span class="skill-badge">Photoshop</span>
+              <span class="skill-badge">Illustrator</span>
+              <span class="skill-badge">AI</span>
+              <span class="skill-badge">DaVinci Resolve</span>
+              <span class="skill-badge">Blender</span>
+            </div>
+          </div>
+        </div>
 
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      margin-top: 25px;
-      
-      background: #ececec;
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 6px 24px rgba(0,0,0,0.08);
-    }
-    
-    .circle {
-      margin: auto;
-      margin-bottom: 32px;
-      width: 150px;
-      height: 150px;
-      border-radius: 50%;
-      overflow: hidden;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #ccc;
-    }
+        <!-- Conteúdo Principal (Bento Direita) -->
+        <div class="bento-card about-content-main">
+          <h1>Sobre mim</h1>
 
-    .circle img {
-      width: 100%;
-      height: auto;
-      transform: translateY(10px); /* ajuste aqui para descer */
-    }
+          <p class="about-text">
+            Oi, sou o <b>Dilan Giffú</b>. Sou filmmaker, motion designer, edito vídeos e também escrevo <i>(mas não
+              conta pra ninguém)</i>.
+          </p>
 
-    h1 {
-      color: #FE5E00;
-      text-align: center;
-      margin-top: 0;
-      margin-bottom: 18px;
-      font-size: 2.2em;
-      letter-spacing: 2px;
-    }
-    p {
-      text-align: justify;
-      line-height: 1.6;
-      margin-bottom: 20px;
-      font-size: 1.1em;
-    }
+          <p class="about-text">
+            Estou há <b>14 anos</b> envolvido no universo da edição de vídeo e há mais de <b>8 anos</b> trabalhando
+            profissionalmente na área. Comecei criando conteúdo no YouTube, até que migrei para a área de eventos
+            sociais e logo parti também para o motion design.
+          </p>
 
-  </style>
+          <p class="about-text">
+            Em 2019 fundei a <b>Novel</b>, minha produtora audiovisual de projetos autorais, mas continuo servindo a
+            projetos incríveis aos quais sou apresentado constantemente — desde eventos corporativos a grandes
+            produções, seja na idealização, captação ou pós-produção.
+          </p>
 
+          <p class="about-text">
+            Desenvolvi este espaço independente da minha marca para que o trabalho em que prestei serviços a outras
+            empresas possa transmitir a excelência com a qual sempre busco realizar meu trabalho.
+          </p>
+
+          <!-- Métricas e Estatísticas -->
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-number">14+</div>
+              <div class="stat-label">Anos de Edição</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number">8+</div>
+              <div class="stat-label">Anos Profissionalmente</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number">2019</div>
+              <div class="stat-label">Fundação da Novel</div>
+            </div>
+          </div>
+
+          <!-- Citação Inspiracional -->
+          <div class="quote-card">
+            <p class="quote-text">"Assim resplandeça a vossa luz diante dos homens, para que vejam as vossas boas obras
+              e glorifiquem a vosso Pai, que está nos céus."</p>
+            <span class="quote-ref">— Mateus 5:16</span>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
   </main>
+
+  <!-- Rodapé Unificado -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="source/W_404040SVG.svg" alt="Logo Giffú">
+        <span class="footer-text">© 2026 Dilan Giffú · Todos os direitos reservados.</span>
+      </div>
+      <div class="social">
+        <button class="theme-toggle-btn" title="Modo Claro" aria-label="Alternar modo claro e escuro">
+          <i class="fas fa-sun"></i>
+        </button>
+        <a href="https://www.instagram.com/giffu.mov" target="_blank" rel="noopener" title="Instagram">
+          <i class="fab fa-instagram"></i>
+        </a>
+        <a href="https://www.youtube.com/dilangiffu" target="_blank" rel="noopener" title="YouTube">
+          <i class="fab fa-youtube"></i>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="videos.js"></script>
 </body>
 
 </html>
