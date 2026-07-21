@@ -835,33 +835,57 @@ function copyPortfolioJson() {
   });
 }
 
-// --- THUMBNAIL EDITOR CONTROLLER ---
+// --- VIDEO & THUMBNAIL EDITOR CONTROLLER ---
 let editingVideoId = null;
 let editingThumbFile = null;
 
-function openThumbEditor(id) {
+function openVideoEditor(id) {
   const video = (window.adminVideosList || []).find(v => v.id === id);
   if (!video) return;
 
   editingVideoId = id;
   editingThumbFile = null;
 
-  document.getElementById('thumbEditVideoTitle').textContent = video.title || 'Sem título';
-  document.getElementById('thumbEditVideoId').textContent = `ID do Vídeo: ${id}`;
+  const titleEl = document.getElementById('videoEditTitleInput');
+  const subtitleEl = document.getElementById('videoEditSubtitleInput');
+  const pageEl = document.getElementById('videoEditPageSelect');
+  const idEl = document.getElementById('thumbEditVideoId');
+
+  if (titleEl) titleEl.value = video.title || '';
+  if (subtitleEl) subtitleEl.value = video.subtitle || '';
+  if (pageEl) pageEl.value = video.page || 'marcas';
+  if (idEl) idEl.textContent = `ID do Vídeo: ${id}`;
   
   const currentThumb = getHighResThumb(video.thumb, id);
-  document.getElementById('thumbEditPreviewImg').src = currentThumb;
-  document.getElementById('thumbEditFileInput').value = '';
-  document.getElementById('thumbEditUrlInput').value = (video.thumb && !video.thumb.includes('youtube.com/vi/')) ? video.thumb : '';
-  document.getElementById('thumbEditStatus').style.display = 'none';
+  const previewImg = document.getElementById('thumbEditPreviewImg');
+  if (previewImg) previewImg.src = currentThumb;
 
-  document.getElementById('thumbEditModal').classList.add('active');
+  const fileInput = document.getElementById('thumbEditFileInput');
+  if (fileInput) fileInput.value = '';
+
+  const urlInput = document.getElementById('thumbEditUrlInput');
+  if (urlInput) urlInput.value = (video.thumb && !video.thumb.includes('youtube.com/vi/')) ? video.thumb : '';
+
+  const statusEl = document.getElementById('thumbEditStatus');
+  if (statusEl) statusEl.style.display = 'none';
+
+  const modal = document.getElementById('thumbEditModal');
+  if (modal) modal.classList.add('active');
+}
+
+function openThumbEditor(id) {
+  openVideoEditor(id);
+}
+
+function closeVideoEditor() {
+  editingVideoId = null;
+  editingThumbFile = null;
+  const modal = document.getElementById('thumbEditModal');
+  if (modal) modal.classList.remove('active');
 }
 
 function closeThumbEditor() {
-  editingVideoId = null;
-  editingThumbFile = null;
-  document.getElementById('thumbEditModal').classList.remove('active');
+  closeVideoEditor();
 }
 
 async function handleThumbEditFileSelect(input) {
@@ -869,46 +893,67 @@ async function handleThumbEditFileSelect(input) {
     const rawFile = input.files[0];
     editingThumbFile = await cropImageTo16x9Blob(rawFile);
     const objectUrl = URL.createObjectURL(editingThumbFile);
-    document.getElementById('thumbEditPreviewImg').src = objectUrl;
-    document.getElementById('thumbEditUrlInput').value = '';
+    const previewImg = document.getElementById('thumbEditPreviewImg');
+    if (previewImg) previewImg.src = objectUrl;
+    const urlInput = document.getElementById('thumbEditUrlInput');
+    if (urlInput) urlInput.value = '';
   }
 }
-
 
 function handleThumbEditUrlInput(input) {
   const val = input.value.trim();
   if (val) {
     editingThumbFile = null;
-    document.getElementById('thumbEditFileInput').value = '';
-    document.getElementById('thumbEditPreviewImg').src = val;
+    const fileInput = document.getElementById('thumbEditFileInput');
+    if (fileInput) fileInput.value = '';
+    const previewImg = document.getElementById('thumbEditPreviewImg');
+    if (previewImg) previewImg.src = val;
   }
 }
 
 function resetThumbToYouTubeDefault() {
   if (!editingVideoId) return;
   editingThumbFile = null;
-  document.getElementById('thumbEditFileInput').value = '';
-  document.getElementById('thumbEditUrlInput').value = '';
+  const fileInput = document.getElementById('thumbEditFileInput');
+  if (fileInput) fileInput.value = '';
+  const urlInput = document.getElementById('thumbEditUrlInput');
+  if (urlInput) urlInput.value = '';
   const defaultUrl = `https://img.youtube.com/vi/${editingVideoId}/hq720.jpg`;
-  document.getElementById('thumbEditPreviewImg').src = defaultUrl;
+  const previewImg = document.getElementById('thumbEditPreviewImg');
+  if (previewImg) previewImg.src = defaultUrl;
 }
 
-async function saveEditedThumbnail() {
+async function saveEditedVideo() {
   if (!editingVideoId) return;
 
-  const statusEl = document.getElementById('thumbEditStatus');
-  statusEl.style.display = 'block';
-  statusEl.textContent = 'Salvando thumbnail...';
+  const newTitleInput = document.getElementById('videoEditTitleInput');
+  const newSubtitleInput = document.getElementById('videoEditSubtitleInput');
+  const newPageSelect = document.getElementById('videoEditPageSelect');
 
-  let newThumbUrl = document.getElementById('thumbEditPreviewImg').src;
+  const newTitle = newTitleInput ? newTitleInput.value.trim() : '';
+  const newSubtitle = newSubtitleInput ? newSubtitleInput.value.trim() : '';
+  const newPage = newPageSelect ? newPageSelect.value : 'marcas';
+
+  if (!newTitle || !newSubtitle) {
+    alert('Por favor, preencha o Título e o Subtítulo do vídeo.');
+    return;
+  }
+
+  const statusEl = document.getElementById('thumbEditStatus');
+  if (statusEl) {
+    statusEl.style.display = 'block';
+    statusEl.textContent = 'Salvando alterações...';
+  }
+
+  let newThumbUrl = document.getElementById('thumbEditPreviewImg')?.src || '';
 
   try {
     // 1. Send thumbnail to YouTube API if file is selected & OAuth connected
     if (editingThumbFile && accessToken) {
-      statusEl.textContent = 'Enviando thumbnail para o YouTube via API...';
+      if (statusEl) statusEl.textContent = 'Enviando thumbnail para o YouTube via API...';
       try {
         await uploadCustomThumbnail(editingVideoId, editingThumbFile);
-        statusEl.textContent = 'Thumbnail atualizada no YouTube com sucesso!';
+        if (statusEl) statusEl.textContent = 'Thumbnail atualizada no YouTube com sucesso!';
       } catch (err) {
         console.warn('Não foi possível enviar para o YouTube API:', err);
       }
@@ -918,36 +963,71 @@ async function saveEditedThumbnail() {
     if (editingThumbFile) {
       await GiffuDB.saveMedia(`thumb_${editingVideoId}`, editingThumbFile);
       newThumbUrl = `https://img.youtube.com/vi/${editingVideoId}/hq720.jpg?t=${Date.now()}`;
-    } else if (document.getElementById('thumbEditUrlInput').value.trim()) {
-      newThumbUrl = document.getElementById('thumbEditUrlInput').value.trim();
+    } else {
+      const urlVal = document.getElementById('thumbEditUrlInput')?.value.trim();
+      if (urlVal) {
+        newThumbUrl = urlVal;
+      }
     }
 
     // 3. Update localStorage video record
     let stored = cleanupLocalStorageVideos();
     const videoIndex = stored.findIndex(v => v.id === editingVideoId);
-    
+    let updatedVideoObj = null;
+
     if (videoIndex !== -1) {
+      stored[videoIndex].title = newTitle;
+      stored[videoIndex].subtitle = newSubtitle;
+      stored[videoIndex].page = newPage;
       stored[videoIndex].thumb = newThumbUrl;
+      updatedVideoObj = stored[videoIndex];
     } else {
       const video = (window.adminVideosList || []).find(v => v.id === editingVideoId);
       if (video) {
-        const updated = { ...video, thumb: newThumbUrl };
-        stored.unshift(updated);
+        updatedVideoObj = { 
+          ...video, 
+          title: newTitle, 
+          subtitle: newSubtitle, 
+          page: newPage, 
+          thumb: newThumbUrl 
+        };
+        stored.unshift(updatedVideoObj);
       }
     }
 
     localStorage.setItem('giffu_videos', JSON.stringify(stored));
-    
-    statusEl.textContent = 'Thumbnail salva com sucesso!';
+
+    // Also update in-memory array window.adminVideosList
+    if (window.adminVideosList) {
+      const memIndex = window.adminVideosList.findIndex(v => v.id === editingVideoId);
+      if (memIndex !== -1) {
+        window.adminVideosList[memIndex].title = newTitle;
+        window.adminVideosList[memIndex].subtitle = newSubtitle;
+        window.adminVideosList[memIndex].page = newPage;
+        window.adminVideosList[memIndex].thumb = newThumbUrl;
+      }
+    }
+
+    if (statusEl) statusEl.textContent = 'Alterações salvas com sucesso!';
+
+    // Automatic GitHub sync if GitHub token is present
+    if (getGitHubToken() && updatedVideoObj) {
+      syncPortfolioToGitHub(updatedVideoObj);
+    }
+
     setTimeout(() => {
-      closeThumbEditor();
+      closeVideoEditor();
       loadAdminVideos();
     }, 600);
 
   } catch (err) {
-    console.error('Erro ao salvar thumbnail:', err);
-    statusEl.textContent = `Erro ao salvar: ${err.message}`;
+    console.error('Erro ao salvar vídeo:', err);
+    if (statusEl) statusEl.textContent = `Erro ao salvar: ${err.message}`;
   }
+}
+
+function saveEditedThumbnail() {
+  saveEditedVideo();
 }
 
 // --- VIDEO MANAGEMENT LIST ---
@@ -1077,8 +1157,8 @@ function renderAdminVideoGrid(videos) {
             <a href="https://www.youtube.com/watch?v=${v.id}" target="_blank" class="btn-secondary" style="font-size:12px; padding:6px 10px;">
               <i class="fab fa-youtube"></i> Ver
             </a>
-            <button class="btn-secondary" style="font-size:12px; padding:6px 10px;" onclick="openThumbEditor('${v.id}')" title="Editar Thumbnail">
-              <i class="fas fa-image"></i> Capa
+            <button class="btn-secondary" style="font-size:12px; padding:6px 10px;" onclick="openVideoEditor('${v.id}')" title="Editar Título, Subtítulo, Página e Capa">
+              <i class="fas fa-edit"></i> Editar
             </button>
             <button class="btn-secondary" style="font-size:12px; padding:6px 10px;" onclick="copyCardHtml('${v.id}')" title="Copiar HTML">
               <i class="fas fa-code"></i> HTML
