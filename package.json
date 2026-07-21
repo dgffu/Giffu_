@@ -1,0 +1,21 @@
+{
+  "name": "giffu-portfolio",
+  "version": "1.0.0",
+  "description": "Portfólio Giffú - Edição de Vídeos, Motion Design e Produção de Conteúdo",
+  "homepage": "https://giffu.com.br",
+  "main": "index.html",
+  "scripts": {
+    "deploy": "gh-pages -d . -b main"
+  },
+  "devDependencies": {
+    "gh-pages": "^6.3.0"
+  },
+  "keywords": [
+    "giffu",
+    "portfolio",
+    "video",
+    "motion-design"
+  ],
+  "author": "Dilan Giffú",
+  "license": "ISC"
+}
