@@ -340,11 +340,12 @@ function handleVideoFileSelect(input) {
   }
 }
 
-function handleThumbFileSelect(input) {
+async function handleThumbFileSelect(input) {
   if (input.files && input.files[0]) {
-    selectedThumbFile = input.files[0];
+    const rawFile = input.files[0];
+    selectedThumbFile = await cropImageTo16x9Blob(rawFile);
     document.getElementById('thumbDropText').innerHTML = `
-      <strong>Imagem selecionada:</strong> ${escapeHtml(selectedThumbFile.name)}
+      <strong>Imagem ajustada (16:9 sem bordas):</strong> ${escapeHtml(selectedThumbFile.name)}
     `;
 
     const objectUrl = URL.createObjectURL(selectedThumbFile);
@@ -353,6 +354,7 @@ function handleThumbFileSelect(input) {
     document.getElementById('thumbPreviewBox').style.display = 'block';
   }
 }
+
 
 // --- YOUTUBE UPLOAD CONTROLLER ---
 async function startVideoUpload() {
@@ -502,17 +504,74 @@ async function startVideoUpload() {
   }
 }
 
+function cropImageTo16x9Blob(file) {
+  return new Promise((resolve) => {
+    if (!file || !file.type || !file.type.startsWith('image/')) {
+      return resolve(file);
+    }
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const targetWidth = 1280;
+      const targetHeight = 720;
+      const canvas = document.createElement('canvas');
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+      const ctx = canvas.getContext('2d');
+
+      const sourceWidth = img.width;
+      const sourceHeight = img.height;
+      const targetAspect = 16 / 9;
+      const sourceAspect = sourceWidth / sourceHeight;
+
+      let drawWidth, drawHeight, offsetX, offsetY;
+
+      if (sourceAspect > targetAspect) {
+        // Image is wider than 16:9 -> crop left & right sides
+        drawHeight = sourceHeight;
+        drawWidth = sourceHeight * targetAspect;
+        offsetX = (sourceWidth - drawWidth) / 2;
+        offsetY = 0;
+      } else {
+        // Image is taller than 16:9 (4:3, 1:1, vertical 9:16) -> crop top & bottom
+        drawWidth = sourceWidth;
+        drawHeight = sourceWidth / targetAspect;
+        offsetX = 0;
+        offsetY = (sourceHeight - drawHeight) / 2;
+      }
+
+      ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight, 0, 0, targetWidth, targetHeight);
+
+      canvas.toBlob((blob) => {
+        if (blob) {
+          resolve(new File([blob], file.name || 'thumbnail.jpg', { type: 'image/jpeg' }));
+        } else {
+          resolve(file);
+        }
+      }, 'image/jpeg', 0.92);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(file);
+    };
+    img.src = url;
+  });
+}
+
 async function uploadCustomThumbnail(videoId, imageFile) {
+  const croppedFile = await cropImageTo16x9Blob(imageFile);
   const res = await fetch(`https://www.googleapis.com/upload/youtube/v3/thumbnails/set?videoId=${videoId}`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${accessToken}`,
-      'Content-Type': imageFile.type
+      'Content-Type': croppedFile.type || 'image/jpeg'
     },
-    body: imageFile
+    body: croppedFile
   });
   return res.ok;
 }
+
 
 // --- INDEXEDDB HELPER FOR HEAVY LOCAL MEDIA (TESTS / OFFLINE BLOBS) ---
 const GiffuDB = {
@@ -805,14 +864,16 @@ function closeThumbEditor() {
   document.getElementById('thumbEditModal').classList.remove('active');
 }
 
-function handleThumbEditFileSelect(input) {
+async function handleThumbEditFileSelect(input) {
   if (input.files && input.files[0]) {
-    editingThumbFile = input.files[0];
+    const rawFile = input.files[0];
+    editingThumbFile = await cropImageTo16x9Blob(rawFile);
     const objectUrl = URL.createObjectURL(editingThumbFile);
     document.getElementById('thumbEditPreviewImg').src = objectUrl;
     document.getElementById('thumbEditUrlInput').value = '';
   }
 }
+
 
 function handleThumbEditUrlInput(input) {
   const val = input.value.trim();
