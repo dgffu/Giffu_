@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
   <meta charset="UTF-8">
-  <script>if(localStorage.getItem('giffu_theme')==='light')document.documentElement.classList.add('light-mode');</script>
+  <script>if (localStorage.getItem('giffu_theme') === 'light') document.documentElement.classList.add('light-mode');</script>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Motion Design · Dilan Giffú</title>
@@ -10,7 +11,8 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="https://use.typekit.net/tco5ixw.css">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
 </head>
 
 <body>
@@ -26,7 +28,8 @@
       <h2>⚠️</h2>
       <p>
         Todos os vídeos aqui contidos são propriedade de seus respectivos contratantes.<br><br>
-        Este é o portfólio pessoal de pós-produção do Dilan, mas todos os créditos pertencem exclusivamente às marcas citadas em cada descrição.
+        Este é o portfólio pessoal de pós-produção do Dilan, mas todos os créditos pertencem exclusivamente às marcas
+        citadas em cada descrição.
       </p>
       <button id="fechar-overlay-dilan">Entendi</button>
     </div>
@@ -69,7 +72,8 @@
     <section class="hero-intro">
       <div class="hero-badge"><i class="fas fa-cube"></i> Animação & VFX</div>
       <h1 class="hero-title">Motion Design & Identidades Visuais</h1>
-      <p class="hero-subtitle">Vinhetas 2D/3D, idents, animações de logo, elementos gráficos dinâmicos e aberturas para marcas e projetos autorais.</p>
+      <p class="hero-subtitle">Vinhetas 2D/3D, idents, animações de logo, elementos gráficos dinâmicos e aberturas para
+        marcas e projetos autorais.</p>
     </section>
 
     <!-- Grid de Vídeos -->
@@ -125,7 +129,7 @@
           <img src="source/thumbs/M0010.jpg" alt="Aprendendo a Prospera (Intro)">
           <div class="play-icon-badge"><i class="fas fa-play"></i></div>
           <div class="video-info">
-            <h3 class="video-title">Aprendendo a Prospera (Intro)</h3>
+            <h3 class="video-title">Aprendendo a Prosperar (Intro)</h3>
             <p class="video-subtitle">Unipro Editora (2024)</p>
           </div>
         </a>
@@ -156,7 +160,7 @@
             <p class="video-subtitle">Novel Original (2025)</p>
           </div>
         </a>
-      
+
         <a class="video-card" href="https://www.youtube.com/watch?v=NqtKmib9FGI" target="_blank">
           <img src="source/thumbs/M0002.jpeg" alt="ASAS ERP Move">
           <div class="play-icon-badge"><i class="fas fa-play"></i></div>
@@ -217,7 +221,7 @@
 
     document.getElementById('fechar-overlay-dilan').onclick = esconderOverlayDilan;
 
-    window.addEventListener('keydown', function(e){
+    window.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') {
         if (document.getElementById('overlay-aviso-dilan').style.display !== 'none') {
           esconderOverlayDilan();
@@ -225,7 +229,7 @@
       }
     });
 
-    window.onload = function() {
+    window.onload = function () {
       if (!localStorage.getItem('avisoDilanExibido')) {
         document.getElementById('overlay-aviso-dilan').style.display = 'flex';
       }
@@ -267,4 +271,5 @@
   </script>
   <script src="videos.js"></script>
 </body>
+
 </html>
