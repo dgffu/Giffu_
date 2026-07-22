@@ -1,11 +1,11 @@
 [
   {
-    "id": "YpasIgk3vPE",
-    "title": "Leilão de Veículos BV 2026",
-    "subtitle": "ELO & Co., Banco BV (2026)",
-    "thumb": "https://img.youtube.com/vi/YpasIgk3vPE/hq720.jpg",
-    "page": "marcas",
-    "youtubeUrl": "https://www.youtube.com/watch?v=YpasIgk3vPE"
+    "id": "WGQDH3Idb9M",
+    "title": "Paloma + João",
+    "subtitle": "Caravita Filmes, Same-Day Edit (2025)",
+    "thumb": "source/thumbs/0016.png",
+    "page": "eventos",
+    "youtubeUrl": "https://www.youtube.com/watch?v=WGQDH3Idb9M"
   },
   {
     "id": "N1Y9d4e9oSM",
@@ -30,6 +30,14 @@
     "thumb": "https://img.youtube.com/vi/ENuuEvtgswM/hq720.jpg",
     "page": "eventos",
     "youtubeUrl": "https://www.youtube.com/watch?v=ENuuEvtgswM"
+  },
+  {
+    "id": "YpasIgk3vPE",
+    "title": "Leilão de Veículos BV 2026",
+    "subtitle": "ELO & Co., Banco BV (2026)",
+    "thumb": "https://img.youtube.com/vi/YpasIgk3vPE/hq720.jpg",
+    "page": "marcas",
+    "youtubeUrl": "https://www.youtube.com/watch?v=YpasIgk3vPE"
   },
   {
     "id": "4_D9v2UouJ8",
@@ -254,14 +262,6 @@
     "thumb": "source/thumbs/0015.png",
     "page": "eventos",
     "youtubeUrl": "https://www.youtube.com/watch?v=QMv8C126NhQ"
-  },
-  {
-    "id": "WGQDH3Idb9M",
-    "title": "Paloma + João",
-    "subtitle": "Caravita Filmes, Save The Date (2025)",
-    "thumb": "source/thumbs/0016.png",
-    "page": "eventos",
-    "youtubeUrl": "https://www.youtube.com/watch?v=WGQDH3Idb9M"
   },
   {
     "id": "Zlj8SIv1b-k",
