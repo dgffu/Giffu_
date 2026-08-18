@@ -74,7 +74,7 @@
     <section class="library-container">
 
       <!-- Toolbar: Filtros de Categoria + Barra de Busca -->
-      <div class="library-toolbar">
+      <div class="library-toolbar" id="libraryToolbar">
         <div class="library-filters">
           <button class="lib-filter-btn active" data-filter="all">Todos</button>
           <button class="lib-filter-btn" data-filter="presets">Presets &amp; MOGRTs</button>
@@ -94,6 +94,27 @@
       <!-- Grid de Recursos Dinâmico -->
       <div class="library-grid" id="libraryGrid">
         <!-- Renderizado dinamicamente via JS -->
+      </div>
+
+      <!-- Estado "Em Breve" quando a biblioteca estiver vazia -->
+      <div id="emptyLibraryNotice" class="empty-library-state" style="display: none;">
+        <div class="empty-state-glow"></div>
+        <div class="empty-state-icon-wrap">
+          <i class="fas fa-clock"></i>
+        </div>
+        <span class="empty-state-badge"><i class="fas fa-sparkles"></i> Em Breve</span>
+        <h2 class="empty-state-title">Novos recursos em preparação</h2>
+        <p class="empty-state-desc">
+          Estamos organizando presets exclusivos, templates MOGRT, LUTs de cor cinematográfica, sound effects e scripts para otimizar seu fluxo de trabalho. Em breve novos arquivos estarão disponíveis!
+        </p>
+        <div class="empty-state-actions">
+          <a href="index.html" class="btn-primary" style="padding: 11px 24px; font-size: 14px;">
+            <i class="fas fa-play"></i> Conhecer o Portfólio
+          </a>
+          <a href="https://www.youtube.com/dilangiffu" target="_blank" rel="noopener" class="btn-secondary" style="padding: 11px 22px; font-size: 14px;">
+            <i class="fab fa-youtube"></i> Canal no YouTube
+          </a>
+        </div>
       </div>
 
       <!-- Feedback de Busca Vazia -->
@@ -153,28 +174,42 @@
       const grid = document.getElementById('libraryGrid');
       if (!grid) return;
 
-      // 1. Tentar ler do LocalStorage
+      // 1. Ler lista de excluídos
+      let deletedIds = [];
+      try {
+        const rawDel = localStorage.getItem('giffu_deleted_download_ids');
+        if (rawDel) {
+          const parsedDel = JSON.parse(rawDel);
+          if (Array.isArray(parsedDel)) deletedIds = parsedDel;
+        }
+      } catch (e) {}
+
+      let hasLocalData = false;
+
+      // 2. Tentar ler do LocalStorage
       try {
         const stored = localStorage.getItem('giffu_downloads');
-        if (stored) {
+        if (stored !== null) {
           const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            allDownloads = parsed;
+          if (Array.isArray(parsed)) {
+            allDownloads = parsed.filter(d => !deletedIds.includes(d.id));
+            hasLocalData = true;
           }
         }
       } catch (e) {
         console.warn('Erro ao ler giffu_downloads do localStorage:', e);
       }
 
-      // 2. Se vazio, carregar do downloads.json
-      if (allDownloads.length === 0) {
+      // 3. Se NUNCA foi inicializado no localStorage, carregar do downloads.json
+      if (!hasLocalData) {
         try {
           const res = await fetch('downloads.json');
           if (res.ok) {
             const json = await res.json();
             if (Array.isArray(json)) {
-              allDownloads = json;
+              allDownloads = json.filter(d => !deletedIds.includes(d.id));
               localStorage.setItem('giffu_downloads', JSON.stringify(allDownloads));
+              localStorage.setItem('giffu_downloads_initialized', 'true');
             }
           }
         } catch (e) {
@@ -187,8 +222,25 @@
 
     function renderLibraryCards() {
       const grid = document.getElementById('libraryGrid');
+      const toolbar = document.getElementById('libraryToolbar');
+      const emptyNotice = document.getElementById('emptyLibraryNotice');
+      const noResults = document.getElementById('noResultsNotice');
       if (!grid) return;
+
       grid.innerHTML = '';
+
+      // Se a lista de downloads estiver vazia, exibir o informe "Em Breve"
+      if (allDownloads.length === 0) {
+        if (toolbar) toolbar.style.display = 'none';
+        if (grid) grid.style.display = 'none';
+        if (noResults) noResults.style.display = 'none';
+        if (emptyNotice) emptyNotice.style.display = 'block';
+        return;
+      }
+
+      if (toolbar) toolbar.style.display = 'flex';
+      if (grid) grid.style.display = 'grid';
+      if (emptyNotice) emptyNotice.style.display = 'none';
 
       allDownloads.forEach(item => {
         const card = createResourceCard(item);

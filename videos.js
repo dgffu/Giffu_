@@ -25,43 +25,55 @@
     if (!category) return;
     let allVideos = [];
 
-    // Load custom saved videos from localStorage if available
+    // 1. Ler lista de vídeos excluídos
+    let deletedVideoIds = [];
+    try {
+      const rawDel = localStorage.getItem('giffu_deleted_video_ids');
+      if (rawDel) {
+        const parsedDel = JSON.parse(rawDel);
+        if (Array.isArray(parsedDel)) deletedVideoIds = parsedDel;
+      }
+    } catch (e) {}
+
+    let hasLocalVideos = false;
+
+    // 2. Carregar vídeos do localStorage se já inicializado
     try {
       const stored = localStorage.getItem('giffu_videos');
-      if (stored) {
+      if (stored !== null) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {
-          allVideos = parsed.map(v => {
-            if (v.thumb && (v.thumb.startsWith('data:') || v.thumb.includes('hqdefault.jpg'))) {
-              return {
-                ...v,
-                thumb: `https://img.youtube.com/vi/${v.id}/maxresdefault.jpg`
-              };
-            }
-            return v;
-          });
+          allVideos = parsed
+            .filter(v => !deletedVideoIds.includes(v.id))
+            .map(v => {
+              if (v.thumb && (v.thumb.startsWith('data:') || v.thumb.includes('hqdefault.jpg'))) {
+                return {
+                  ...v,
+                  thumb: `https://img.youtube.com/vi/${v.id}/maxresdefault.jpg`
+                };
+              }
+              return v;
+            });
+          hasLocalVideos = true;
         }
       }
     } catch (e) {
       console.warn('Could not read local video storage:', e);
     }
 
-    // Fetch static videos.json to combine
-    try {
-      const res = await fetch('videos.json');
-      if (res.ok) {
-        const jsonVideos = await res.json();
-        if (Array.isArray(jsonVideos)) {
-          const existingIds = new Set(allVideos.map(v => v.id));
-          jsonVideos.forEach(v => {
-            if (!existingIds.has(v.id)) {
-              allVideos.push(v);
-            }
-          });
+    // 3. Se NUNCA foi inicializado no localStorage, carregar de videos.json
+    if (!hasLocalVideos) {
+      try {
+        const res = await fetch('videos.json');
+        if (res.ok) {
+          const jsonVideos = await res.json();
+          if (Array.isArray(jsonVideos)) {
+            allVideos = jsonVideos.filter(v => !deletedVideoIds.includes(v.id));
+          }
         }
+      } catch (e) {
+        console.warn('Could not fetch videos.json:', e);
       }
-    } catch (e) {
-      console.warn('Could not fetch videos.json:', e);
     }
 
     renderGrid(category, allVideos);
@@ -142,12 +154,20 @@
         const grid = document.querySelector(`#grid-${cat}`);
         if (grid) {
           const catVideos = videos.filter(v => v.page === cat);
+          grid.innerHTML = '';
           if (catVideos.length > 0) {
-            grid.innerHTML = '';
             catVideos.forEach(v => {
               const cardElem = createCardElement(v);
               grid.appendChild(cardElem);
             });
+          } else {
+            grid.innerHTML = `
+              <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: var(--text-secondary);">
+                <i class="fas fa-clock" style="font-size: 28px; color: var(--accent-orange); margin-bottom: 10px; opacity: 0.8; display: block;"></i>
+                <h4 style="font-size: 16px; color: var(--text-primary); margin-bottom: 4px;">Em breve</h4>
+                <p style="font-size: 13px;">Novos projetos em produção.</p>
+              </div>
+            `;
           }
         }
       });
@@ -155,12 +175,20 @@
       const grid = document.querySelector('.video-grid');
       if (grid) {
         const categoryVideos = videos.filter(v => v.page === category);
+        grid.innerHTML = '';
         if (categoryVideos.length > 0) {
-          grid.innerHTML = '';
           categoryVideos.forEach(v => {
             const cardElem = createCardElement(v);
             grid.appendChild(cardElem);
           });
+        } else {
+          grid.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+              <i class="fas fa-clock" style="font-size: 36px; color: var(--accent-orange); margin-bottom: 14px; opacity: 0.8; display: block;"></i>
+              <h3 style="font-size: 20px; color: var(--text-primary); margin-bottom: 8px;">Em breve</h3>
+              <p style="font-size: 14px; max-width: 400px; margin: 0 auto;">Novos vídeos e produções desta categoria serão adicionados em breve.</p>
+            </div>
+          `;
         }
       }
     }

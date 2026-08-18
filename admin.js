@@ -1088,50 +1088,66 @@ const DEFAULT_PORTFOLIO_VIDEOS = [
   { "id": "SMnXTYnoTL4", "title": "Júlia + Júnior (Aftercut)", "subtitle": "Suzan & Novel, Aftercut (2019)", "thumb": "source/thumbs/0005.jpeg", "page": "eventos", "youtubeUrl": "https://www.youtube.com/watch?v=SMnXTYnoTL4" }
 ];
 
+function getDeletedVideoIds() {
+  try {
+    const raw = localStorage.getItem('giffu_deleted_video_ids');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (e) {}
+  return [];
+}
+
+function addDeletedVideoId(id) {
+  const list = getDeletedVideoIds();
+  if (!list.includes(id)) {
+    list.push(id);
+    localStorage.setItem('giffu_deleted_video_ids', JSON.stringify(list));
+  }
+}
+
 async function loadAdminVideos() {
   const container = document.getElementById('adminVideoGrid');
   if (!container) return;
 
+  const deletedIds = getDeletedVideoIds();
   let allVideos = [];
+  let hasLocalVideos = false;
 
-  // Local Storage videos
+  // 1. Tentar ler vídeos do LocalStorage se já inicializado
   try {
     const raw = localStorage.getItem('giffu_videos');
-    if (raw) {
+    if (raw !== null) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) allVideos = parsed;
-    }
-  } catch (e) {}
-
-  // Merge static videos.json or DEFAULT_PORTFOLIO_VIDEOS
-  let staticList = DEFAULT_PORTFOLIO_VIDEOS;
-  try {
-    const res = await fetch('videos.json');
-    if (res.ok) {
-      const jsonVideos = await res.json();
-      if (Array.isArray(jsonVideos) && jsonVideos.length > 0) {
-        staticList = jsonVideos;
+      if (Array.isArray(parsed)) {
+        allVideos = parsed.filter(v => !deletedIds.includes(v.id));
+        hasLocalVideos = true;
       }
     }
-  } catch (e) {}
+  } catch (e) {
+    console.warn('Erro ao ler giffu_videos do localStorage:', e);
+  }
 
-  if (allVideos.length === 0) {
-    allVideos = [...staticList];
-  } else {
-    // Keep existing order in allVideos, append any missing from staticList
-    const existingIds = new Set(allVideos.map(v => v.id));
-    staticList.forEach(v => {
-      if (!existingIds.has(v.id)) {
-        allVideos.push(v);
+  // 2. Se NUNCA foi inicializado no localStorage, carregar de videos.json ou padrão
+  if (!hasLocalVideos) {
+    let staticList = DEFAULT_PORTFOLIO_VIDEOS;
+    try {
+      const res = await fetch('videos.json');
+      if (res.ok) {
+        const jsonVideos = await res.json();
+        if (Array.isArray(jsonVideos) && jsonVideos.length > 0) {
+          staticList = jsonVideos;
+        }
       }
-    });
+    } catch (e) {}
+
+    allVideos = staticList.filter(v => !deletedIds.includes(v.id));
+    localStorage.setItem('giffu_videos', JSON.stringify(allVideos.map(sanitizeVideoObj)));
+    localStorage.setItem('giffu_videos_initialized', 'true');
   }
 
   window.adminVideosList = allVideos;
-  try {
-    localStorage.setItem('giffu_videos', JSON.stringify(allVideos.map(sanitizeVideoObj)));
-  } catch (e) {}
-
   filterManagedVideos();
 }
 
@@ -1355,8 +1371,14 @@ function copyCardHtml(id) {
 }
 
 function deletePortfolioVideo(id) {
-  if (!confirm('Deseja remover este vídeo do portfólio no site?')) return;
+  const video = (window.adminVideosList || []).find(v => v.id === id);
+  const title = video ? video.title : 'este vídeo';
+  if (!confirm(`Deseja realmente remover "${title}" do portfólio?`)) return;
 
+  // 1. Registrar na lista de IDs excluídos
+  addDeletedVideoId(id);
+
+  // 2. Atualizar localStorage
   let stored = [];
   try {
     const raw = localStorage.getItem('giffu_videos');
@@ -1365,7 +1387,13 @@ function deletePortfolioVideo(id) {
 
   stored = stored.filter(v => v.id !== id);
   localStorage.setItem('giffu_videos', JSON.stringify(stored));
-  loadAdminVideos();
+  localStorage.setItem('giffu_videos_initialized', 'true');
+
+  // 3. Atualizar em memória e re-renderizar diretamente
+  if (window.adminVideosList) {
+    window.adminVideosList = window.adminVideosList.filter(v => v.id !== id);
+  }
+  filterManagedVideos();
 }
 
 function escapeHtml(str) {
@@ -1413,32 +1441,56 @@ if (typeof window.handleThumbError === 'undefined') {
 let adminDownloads = [];
 let adminDownloadsFilter = 'all';
 
+function getDeletedDownloadIds() {
+  try {
+    const raw = localStorage.getItem('giffu_deleted_download_ids');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (e) {}
+  return [];
+}
+
+function addDeletedDownloadId(id) {
+  const list = getDeletedDownloadIds();
+  if (!list.includes(id)) {
+    list.push(id);
+    localStorage.setItem('giffu_deleted_download_ids', JSON.stringify(list));
+  }
+}
+
 async function loadAdminDownloads() {
   const container = document.getElementById('adminDownloadsGrid');
   if (!container) return;
 
-  // 1. Carregar do localStorage
+  const deletedIds = getDeletedDownloadIds();
+  let hasLocalDownloads = false;
+
+  // 1. Carregar do localStorage se já inicializado
   try {
     const raw = localStorage.getItem('giffu_downloads');
-    if (raw) {
+    if (raw !== null) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        adminDownloads = parsed;
+      if (Array.isArray(parsed)) {
+        adminDownloads = parsed.filter(d => !deletedIds.includes(d.id));
+        hasLocalDownloads = true;
       }
     }
   } catch (e) {
     console.warn('Erro ao ler giffu_downloads do localStorage:', e);
   }
 
-  // 2. Se vazio, carregar do downloads.json
-  if (adminDownloads.length === 0) {
+  // 2. Se NUNCA foi inicializado no localStorage, carregar do downloads.json
+  if (!hasLocalDownloads) {
     try {
       const res = await fetch('downloads.json');
       if (res.ok) {
         const json = await res.json();
         if (Array.isArray(json)) {
-          adminDownloads = json;
+          adminDownloads = json.filter(d => !deletedIds.includes(d.id));
           localStorage.setItem('giffu_downloads', JSON.stringify(adminDownloads));
+          localStorage.setItem('giffu_downloads_initialized', 'true');
         }
       }
     } catch (e) {
@@ -1734,8 +1786,15 @@ function deleteDownloadResource(id) {
     return;
   }
 
+  // 1. Marcar como excluído
+  addDeletedDownloadId(id);
+
+  // 2. Atualizar lista e salvar
   adminDownloads = adminDownloads.filter(d => d.id !== id);
   localStorage.setItem('giffu_downloads', JSON.stringify(adminDownloads));
+  localStorage.setItem('giffu_downloads_initialized', 'true');
+
+  // 3. Re-renderizar
   renderAdminDownloadsGrid();
 }
 
@@ -1801,17 +1860,19 @@ function setupDownloadDragAndDrop() {
 }
 
 async function resetDefaultDownloads() {
-  if (!confirm('Deseja restaurar a lista padrão de 6 recursos da Biblioteca do Editor?')) {
+  if (!confirm('Deseja restaurar a lista padrão de recursos da Biblioteca do Editor?')) {
     return;
   }
 
   try {
+    localStorage.removeItem('giffu_deleted_download_ids');
     const res = await fetch('downloads.json');
     if (res.ok) {
       const json = await res.json();
       if (Array.isArray(json)) {
         adminDownloads = json;
         localStorage.setItem('giffu_downloads', JSON.stringify(adminDownloads));
+        localStorage.setItem('giffu_downloads_initialized', 'true');
         renderAdminDownloadsGrid();
         alert('Recursos restaurados para os padrões com sucesso!');
       }
@@ -1820,3 +1881,87 @@ async function resetDefaultDownloads() {
     alert('Erro ao carregar dados padrão.');
   }
 }
+
+// --- DOWNLOADS SYNC & EXPORT TOOLS ---
+async function syncDownloadsToGitHub() {
+  const token = getGitHubToken();
+  if (!token) {
+    alert('Para sincronizar com o site online giffu.com.br automaticamente:\n\nCole o seu GitHub Personal Access Token na aba "Configurar API Google"!');
+    return false;
+  }
+
+  const repoPath = 'dgffu/Giffu_';
+  const filePath = 'downloads.json';
+  const apiUrl = `https://api.github.com/repos/${repoPath}/contents/${filePath}`;
+
+  try {
+    const res = await fetch(apiUrl, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+
+    let sha = '';
+    if (res.ok) {
+      const fileData = await res.json();
+      sha = fileData.sha;
+    }
+
+    const fullList = adminDownloads || [];
+    const jsonStr = JSON.stringify(fullList, null, 2);
+    const base64Content = btoa(unescape(encodeURIComponent(jsonStr)));
+
+    const bodyPayload = {
+      message: 'feat(downloads): atualizar lista de downloads online',
+      content: base64Content
+    };
+    if (sha) bodyPayload.sha = sha;
+
+    const putRes = await fetch(apiUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.github.v3+json'
+      },
+      body: JSON.stringify(bodyPayload)
+    });
+
+    if (putRes.ok) {
+      alert('🎉 Downloads publicados online com sucesso no GitHub! O site giffu.com.br foi atualizado.');
+      return true;
+    } else {
+      const errJson = await putRes.json();
+      throw new Error(errJson.message || 'Falha ao atualizar no GitHub.');
+    }
+  } catch (err) {
+    console.error('Erro na sincronização de downloads via GitHub API:', err);
+    alert(`Erro ao sincronizar downloads online: ${err.message}`);
+    return false;
+  }
+}
+
+function downloadUpdatedDownloadsJson() {
+  const jsonStr = JSON.stringify(adminDownloads || [], null, 2);
+  const blob = new Blob([jsonStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'downloads.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function copyDownloadsJson() {
+  const jsonStr = JSON.stringify(adminDownloads || [], null, 2);
+  navigator.clipboard.writeText(jsonStr).then(() => {
+    alert('Código JSON dos downloads copiado com sucesso para a área de transferência!');
+  }).catch(() => {
+    prompt('Copie o código JSON abaixo:', jsonStr);
+  });
+}
+
