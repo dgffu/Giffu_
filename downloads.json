@@ -1,20 +1,5 @@
 [
   {
-    "id": "down-7",
-    "title": "Essential Cinema Sound Effects Pack",
-    "category": "sfx",
-    "software": "Universal / DAW",
-    "badgeText": "SFX",
-    "icon": "fas fa-volume-up",
-    "description": "Biblioteca de efeitos sonoros essenciais para montagem: whooshes de transição, risers cinematográficos, deep hits, swooshes e texturas sonoras.",
-    "format": "WAV 24bit / 48kHz",
-    "fileSize": "120 MB",
-    "compatibility": "Masterizado",
-    "detailsDesc": "Biblioteca com mais de 80 efeitos sonoros masterizados em WAV 24bit/48kHz prontos para timeline sem distorção.",
-    "fileName": "Essential-SFX-Pack-Giffu.zip",
-    "downloadUrl": "https://github.com/dgffu/Giffu_"
-  },
-  {
     "id": "down-8",
     "title": "Estrutura de Pastas & Bins Pro",
     "category": "apps",
