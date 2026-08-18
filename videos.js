@@ -233,9 +233,70 @@
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (window.innerWidth <= 768);
   }
 
-  function playOverlayVideo(videoId) {
+  function ensureVideoOverlayExists() {
+    let overlay = document.getElementById('video-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'video-overlay';
+      overlay.innerHTML = `
+        <span class="close" onclick="closeVideo()" aria-label="Fechar Vídeo">&times;</span>
+        <iframe id="video-frame" src="" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>
+      `;
+      document.body.appendChild(overlay);
+    }
+    return overlay;
+  }
+
+  function closeVideo() {
     const overlay = document.getElementById('video-overlay');
     const iframe = document.getElementById('video-frame');
+    if (overlay) {
+      overlay.style.display = 'none';
+    }
+    if (iframe) {
+      iframe.src = '';
+    }
+  }
+  window.closeVideo = closeVideo;
+  window.closeOverlayVideo = closeVideo;
+
+  let overlayEventsBound = false;
+  function initOverlayEvents() {
+    if (overlayEventsBound) return;
+    overlayEventsBound = true;
+
+    const overlay = ensureVideoOverlayExists();
+
+    // 1. Fechar ao clicar no 'X'
+    overlay.querySelectorAll('.close').forEach(btn => {
+      btn.onclick = (e) => {
+        if (e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        closeVideo();
+      };
+    });
+
+    // 2. Fechar ao clicar no fundo escuro (fora do iframe)
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        closeVideo();
+      }
+    });
+
+    // 3. Fechar ao pressionar a tecla ESC (Escape)
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' || e.key === 'Esc' || e.keyCode === 27) {
+        closeVideo();
+      }
+    });
+  }
+
+  function playOverlayVideo(videoId) {
+    const overlay = ensureVideoOverlayExists();
+    const iframe = document.getElementById('video-frame');
+    initOverlayEvents();
     if (overlay && iframe) {
       iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&vq=hd3840`;
       overlay.style.display = 'flex';
@@ -399,6 +460,7 @@
     initTheme();
     initMobileMenu();
     initLanguageToggle();
+    initOverlayEvents();
     loadVideos();
     autoCropAllThumbs();
   }
