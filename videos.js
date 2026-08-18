@@ -62,7 +62,13 @@
 
     for (const ep of endpoints) {
       try {
-        const res = await fetch(ep, { cache: 'no-store' });
+        const res = await fetch(ep, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache'
+          }
+        });
         if (res.ok) {
           const jsonVideos = await res.json();
           if (Array.isArray(jsonVideos) && jsonVideos.length > 0) {
