@@ -24,20 +24,20 @@
     "youtubeUrl": "https://www.youtube.com/watch?v=4_D9v2UouJ8"
   },
   {
-    "id": "7ihaPVzhgJs",
-    "title": "Leaders Academy",
-    "subtitle": "Lamídia, S.I.N. Implant System (2025)",
-    "thumb": "source/thumbs/C0000.jpg",
-    "page": "marcas",
-    "youtubeUrl": "https://www.youtube.com/watch?v=7ihaPVzhgJs"
-  },
-  {
     "id": "jKV0vrUENZs",
     "title": "PHZin na Tuzzy",
     "subtitle": "Lamídia, Tuzzy E-Sports (2025)",
     "thumb": "source/thumbs/C0001.jpeg",
     "page": "marcas",
     "youtubeUrl": "https://www.youtube.com/watch?v=jKV0vrUENZs"
+  },
+  {
+    "id": "7ihaPVzhgJs",
+    "title": "Leaders Academy",
+    "subtitle": "Lamídia, S.I.N. Implant System (2025)",
+    "thumb": "source/thumbs/C0000.jpg",
+    "page": "marcas",
+    "youtubeUrl": "https://www.youtube.com/watch?v=7ihaPVzhgJs"
   },
   {
     "id": "YpasIgk3vPE",
