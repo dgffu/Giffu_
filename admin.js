@@ -755,11 +755,13 @@ function saveGitHubToken() {
   }
 }
 
-async function syncPortfolioToGitHub(singleVideoObj = null) {
+async function syncPortfolioToGitHub(singleVideoObj = null, silent = false) {
   const token = getGitHubToken();
   
   if (!token) {
-    alert('Para sincronizar com o site online giffu.com.br automaticamente sem usar o terminal:\n\nCole o seu GitHub Personal Access Token na aba "Configurar API Google"!');
+    if (!silent) {
+      alert('Para sincronizar com o site online giffu.com.br automaticamente sem usar o terminal:\n\nCole o seu GitHub Personal Access Token na aba "Configurar API Google"!');
+    }
     return false;
   }
 
@@ -792,8 +794,8 @@ async function syncPortfolioToGitHub(singleVideoObj = null) {
     const base64Content = btoa(unescape(encodeURIComponent(jsonStr)));
 
     const commitMsg = singleVideoObj 
-      ? `feat(portfolio): adicionar vídeo "${singleVideoObj.title}"`
-      : `feat(portfolio): atualizar lista do portfólio online`;
+      ? `feat(portfolio): atualizar vídeo "${singleVideoObj.title}"`
+      : `feat(portfolio): atualizar lista e ordem do portfólio online`;
 
     const putRes = await fetch(apiUrl, {
       method: 'PUT',
@@ -810,7 +812,11 @@ async function syncPortfolioToGitHub(singleVideoObj = null) {
     });
 
     if (putRes.ok) {
-      alert('🎉 Portfólio publicado online com sucesso! O site giffu.com.br foi atualizado e os vídeos estão visíveis em todos os dispositivos.');
+      if (!silent) {
+        alert('🎉 Portfólio publicado online com sucesso! O site giffu.com.br foi atualizado e os vídeos estão sincronizados em todos os dispositivos.');
+      } else {
+        console.info('✅ Portfólio sincronizado automaticamente no GitHub.');
+      }
       return true;
     } else {
       const errJson = await putRes.json();
@@ -819,7 +825,9 @@ async function syncPortfolioToGitHub(singleVideoObj = null) {
 
   } catch (err) {
     console.error('Erro na sincronização online via GitHub API:', err);
-    alert(`Erro ao sincronizar online: ${err.message}`);
+    if (!silent) {
+      alert(`Erro ao sincronizar online: ${err.message}`);
+    }
     return false;
   }
 }
@@ -1263,6 +1271,10 @@ function saveReorderedList() {
   }
 
   filterManagedVideos();
+
+  if (getGitHubToken()) {
+    syncPortfolioToGitHub(null, true);
+  }
 }
 
 window.handleCardDragStart = handleCardDragStart;
@@ -1386,13 +1398,16 @@ function deletePortfolioVideo(id) {
 
   stored = stored.filter(v => v.id !== id);
   localStorage.setItem('giffu_videos', JSON.stringify(stored));
-  localStorage.setItem('giffu_videos_initialized', 'true');
 
   // 3. Atualizar em memória e re-renderizar diretamente
   if (window.adminVideosList) {
     window.adminVideosList = window.adminVideosList.filter(v => v.id !== id);
   }
   filterManagedVideos();
+
+  if (getGitHubToken()) {
+    syncPortfolioToGitHub(null, true);
+  }
 }
 
 function escapeHtml(str) {
