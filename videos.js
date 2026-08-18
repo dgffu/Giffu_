@@ -2,6 +2,35 @@
  * videos.js - Dynamic Video Sync, Card Enhancement & Navigation for Giffú Portfolio
  */
 (function() {
+  // Limpar a barra de endereços (remover .html e index.html) sem recarregar a página
+  function cleanBrowserUrl() {
+    if (typeof window === 'undefined' || !window.location || window.location.protocol === 'file:') return;
+    const path = window.location.pathname;
+    if (path.endsWith('.html') || path.includes('.html')) {
+      let clean = path.replace(/\/index\.html$/i, '/').replace(/\.html$/i, '');
+      if (clean === '') clean = '/';
+      const target = clean + window.location.search + window.location.hash;
+      if (target !== path + window.location.search + window.location.hash) {
+        try {
+          window.history.replaceState(null, '', target);
+        } catch (e) {}
+      }
+    }
+  }
+  cleanBrowserUrl();
+
+  function initCleanLinks() {
+    if (typeof window === 'undefined' || !window.location || window.location.protocol === 'file:') return;
+    document.querySelectorAll('a[href]').forEach(a => {
+      const href = a.getAttribute('href');
+      if (!href) return;
+      if (href.endsWith('.html') && !href.startsWith('http://') && !href.startsWith('https://') && !href.startsWith('//') && !href.startsWith('#')) {
+        let clean = href.replace(/^index\.html$/i, './').replace(/\/index\.html$/i, '/').replace(/\.html$/i, '');
+        a.setAttribute('href', clean);
+      }
+    });
+  }
+
   function getPageCategory() {
     const path = window.location.pathname.toLowerCase();
     if (path.includes('motion')) return 'motion';
@@ -567,6 +596,8 @@
   }
 
   function initApp() {
+    cleanBrowserUrl();
+    initCleanLinks();
     initTheme();
     initMobileMenu();
     initLanguageToggle();
