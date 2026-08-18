@@ -1,11 +1,11 @@
 [
   {
-    "id": "WGQDH3Idb9M",
-    "title": "Paloma + João",
-    "subtitle": "Caravita Filmes, Same-Day Edit (2025)",
-    "thumb": "source/thumbs/0016.png",
+    "id": "ENuuEvtgswM",
+    "title": "Giovana + Gustavo",
+    "subtitle": "Farinelli Film (2026)",
+    "thumb": "https://img.youtube.com/vi/ENuuEvtgswM/hq720.jpg",
     "page": "eventos",
-    "youtubeUrl": "https://www.youtube.com/watch?v=WGQDH3Idb9M"
+    "youtubeUrl": "https://www.youtube.com/watch?v=ENuuEvtgswM"
   },
   {
     "id": "N1Y9d4e9oSM",
@@ -18,26 +18,10 @@
   {
     "id": "F_yfs3oPZ6s",
     "title": "Campanha by Dimitrow + GUT",
-    "subtitle": "Drewz Films, Dimitrow (2026)",
+    "subtitle": "Drewz Films (2026)",
     "thumb": "https://img.youtube.com/vi/F_yfs3oPZ6s/hq720.jpg",
     "page": "marcas",
     "youtubeUrl": "https://www.youtube.com/watch?v=F_yfs3oPZ6s"
-  },
-  {
-    "id": "ENuuEvtgswM",
-    "title": "Giovana + Gustavo",
-    "subtitle": "Farinelli Film, Mini (2026)",
-    "thumb": "https://img.youtube.com/vi/ENuuEvtgswM/hq720.jpg",
-    "page": "eventos",
-    "youtubeUrl": "https://www.youtube.com/watch?v=ENuuEvtgswM"
-  },
-  {
-    "id": "YpasIgk3vPE",
-    "title": "Leilão de Veículos BV 2026",
-    "subtitle": "ELO & Co., Banco BV (2026)",
-    "thumb": "https://img.youtube.com/vi/YpasIgk3vPE/hq720.jpg",
-    "page": "marcas",
-    "youtubeUrl": "https://www.youtube.com/watch?v=YpasIgk3vPE"
   },
   {
     "id": "4_D9v2UouJ8",
@@ -54,6 +38,14 @@
     "thumb": "source/thumbs/C0000.jpg",
     "page": "marcas",
     "youtubeUrl": "https://www.youtube.com/watch?v=7ihaPVzhgJs"
+  },
+  {
+    "id": "YpasIgk3vPE",
+    "title": "Leilão de Veículos BV 2026",
+    "subtitle": "ELO & Co. Audiovisual (2026)",
+    "thumb": "https://img.youtube.com/vi/YpasIgk3vPE/hq720.jpg",
+    "page": "marcas",
+    "youtubeUrl": "https://www.youtube.com/watch?v=YpasIgk3vPE"
   },
   {
     "id": "jKV0vrUENZs",
@@ -262,6 +254,14 @@
     "thumb": "source/thumbs/0015.png",
     "page": "eventos",
     "youtubeUrl": "https://www.youtube.com/watch?v=QMv8C126NhQ"
+  },
+  {
+    "id": "WGQDH3Idb9M",
+    "title": "Paloma + João",
+    "subtitle": "Caravita Filmes, Save The Date (2025)",
+    "thumb": "source/thumbs/0016.png",
+    "page": "eventos",
+    "youtubeUrl": "https://www.youtube.com/watch?v=WGQDH3Idb9M"
   },
   {
     "id": "Zlj8SIv1b-k",
