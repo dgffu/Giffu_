@@ -694,6 +694,62 @@ function cleanupLocalStorageVideos() {
   }
 }
 
+async function persistVideosUniversally(videosList, singleVideoObj = null) {
+  const cleanList = (videosList || window.adminVideosList || []).map(sanitizeVideoObj);
+  
+  // 1. Atualizar localStorage como cache de sessão
+  try {
+    localStorage.setItem('giffu_videos', JSON.stringify(cleanList));
+  } catch(e) {}
+
+  // 2. Se estiver rodando localmente (localhost:5173), salvar direto no arquivo videos.json no disco
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    try {
+      await fetch('/api/save-videos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cleanList)
+      });
+      console.info('✅ videos.json gravado diretamente no disco local.');
+    } catch(e) {
+      console.warn('Erro ao salvar localmente via /api/save-videos:', e);
+    }
+  }
+
+  // 3. Sincronizar com GitHub API se o token estiver configurado
+  if (getGitHubToken()) {
+    await syncPortfolioToGitHub(singleVideoObj, true);
+  }
+}
+
+async function persistDownloadsUniversally(downloadsList) {
+  const cleanList = downloadsList || adminDownloads || [];
+
+  // 1. Atualizar localStorage como cache de sessão
+  try {
+    localStorage.setItem('giffu_downloads', JSON.stringify(cleanList));
+  } catch(e) {}
+
+  // 2. Se estiver rodando localmente (localhost:5173), salvar direto no arquivo downloads.json no disco
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    try {
+      await fetch('/api/save-downloads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cleanList)
+      });
+      console.info('✅ downloads.json gravado diretamente no disco local.');
+    } catch(e) {
+      console.warn('Erro ao salvar localmente via /api/save-downloads:', e);
+    }
+  }
+
+  // 3. Sincronizar com GitHub API se o token estiver configurado
+  if (getGitHubToken()) {
+    await syncDownloadsToGitHub(true);
+  }
+}
+
 function saveVideoToPortfolio(videoObj) {
   let stored = cleanupLocalStorageVideos();
   const cleanObj = sanitizeVideoObj(videoObj);
@@ -702,33 +758,8 @@ function saveVideoToPortfolio(videoObj) {
   stored = stored.filter(v => v.id !== cleanObj.id);
   stored.unshift(cleanObj); // prepend new video
 
-  try {
-    localStorage.setItem('giffu_videos', JSON.stringify(stored));
-  } catch (e) {
-    if (e.name === 'QuotaExceededError' || e.code === 22) {
-      console.error('QuotaExceededError ao salvar no localStorage. Tentando minificar dados...');
-      const minified = stored.map(v => ({
-        id: v.id,
-        title: v.title,
-        subtitle: v.subtitle,
-        thumb: `https://img.youtube.com/vi/${v.id}/hq720.jpg`,
-        page: v.page,
-        youtubeUrl: v.youtubeUrl || `https://www.youtube.com/watch?v=${v.id}`
-      }));
-      try {
-        localStorage.setItem('giffu_videos', JSON.stringify(minified));
-      } catch (err2) {
-        alert('Atenção: O limite de armazenamento do localStorage foi excedido. Vídeo mantido nesta sessão.');
-      }
-    } else {
-      console.error('Erro ao salvar no localStorage:', e);
-    }
-  }
-
-  // Attempt automatic online sync if GitHub token configured
-  if (getGitHubToken()) {
-    syncPortfolioToGitHub(cleanObj);
-  }
+  window.adminVideosList = stored;
+  persistVideosUniversally(stored, cleanObj);
 }
 
 // --- GITHUB ONLINE PORTFOLIO SYNC ---
@@ -1017,25 +1048,10 @@ async function saveEditedVideo() {
       }
     }
 
-    localStorage.setItem('giffu_videos', JSON.stringify(stored));
-
-    // Also update in-memory array window.adminVideosList
-    if (window.adminVideosList) {
-      const memIndex = window.adminVideosList.findIndex(v => v.id === editingVideoId);
-      if (memIndex !== -1) {
-        window.adminVideosList[memIndex].title = newTitle;
-        window.adminVideosList[memIndex].subtitle = newSubtitle;
-        window.adminVideosList[memIndex].page = newPage;
-        window.adminVideosList[memIndex].thumb = newThumbUrl;
-      }
-    }
-
     if (statusEl) statusEl.textContent = 'Alterações salvas com sucesso!';
 
-    // Automatic GitHub sync if GitHub token is present
-    if (getGitHubToken() && updatedVideoObj) {
-      syncPortfolioToGitHub(updatedVideoObj);
-    }
+    // Persistência universal (Disco Local + GitHub API + LocalStorage)
+    persistVideosUniversally(stored, updatedVideoObj);
 
     setTimeout(() => {
       closeVideoEditor();
@@ -1263,18 +1279,9 @@ function moveVideoOrder(videoId, direction) {
 }
 
 function saveReorderedList() {
-  try {
-    const cleanList = (window.adminVideosList || []).map(sanitizeVideoObj);
-    localStorage.setItem('giffu_videos', JSON.stringify(cleanList));
-  } catch (e) {
-    console.error('Erro ao salvar nova ordem no localStorage:', e);
-  }
-
+  const cleanList = (window.adminVideosList || []).map(sanitizeVideoObj);
+  persistVideosUniversally(cleanList, null);
   filterManagedVideos();
-
-  if (getGitHubToken()) {
-    syncPortfolioToGitHub(null, true);
-  }
 }
 
 window.handleCardDragStart = handleCardDragStart;
@@ -1389,7 +1396,7 @@ function deletePortfolioVideo(id) {
   // 1. Registrar na lista de IDs excluídos
   addDeletedVideoId(id);
 
-  // 2. Atualizar localStorage
+  // 2. Atualizar memória e lista
   let stored = [];
   try {
     const raw = localStorage.getItem('giffu_videos');
@@ -1397,17 +1404,13 @@ function deletePortfolioVideo(id) {
   } catch (e) {}
 
   stored = stored.filter(v => v.id !== id);
-  localStorage.setItem('giffu_videos', JSON.stringify(stored));
-
-  // 3. Atualizar em memória e re-renderizar diretamente
   if (window.adminVideosList) {
     window.adminVideosList = window.adminVideosList.filter(v => v.id !== id);
   }
-  filterManagedVideos();
 
-  if (getGitHubToken()) {
-    syncPortfolioToGitHub(null, true);
-  }
+  // 3. Persistência Universal
+  persistVideosUniversally(stored, null);
+  filterManagedVideos();
 }
 
 function escapeHtml(str) {
@@ -1789,16 +1792,10 @@ function saveDownloadResource(e) {
     adminDownloads.unshift(newObj);
   }
 
-  localStorage.setItem('giffu_downloads', JSON.stringify(adminDownloads));
+  persistDownloadsUniversally(adminDownloads);
   closeDownloadModal();
   renderAdminDownloadsGrid();
-
-  if (getGitHubToken()) {
-    syncDownloadsToGitHub(true);
-    alert('Recurso salvo e sincronizado com o banco de dados online no GitHub!');
-  } else {
-    alert('Recurso salvo localmente! Para atualizar todos os dispositivos online, clique no botão "Sincronizar com GitHub" ou use o token.');
-  }
+  alert('Recurso salvo com sucesso!');
 }
 
 function deleteDownloadResource(id) {
@@ -1808,19 +1805,10 @@ function deleteDownloadResource(id) {
     return;
   }
 
-  // 1. Marcar como excluído
   addDeletedDownloadId(id);
-
-  // 2. Atualizar lista e salvar
   adminDownloads = adminDownloads.filter(d => d.id !== id);
-  localStorage.setItem('giffu_downloads', JSON.stringify(adminDownloads));
-
-  // 3. Re-renderizar
+  persistDownloadsUniversally(adminDownloads);
   renderAdminDownloadsGrid();
-
-  if (getGitHubToken()) {
-    syncDownloadsToGitHub(true);
-  }
 }
 
 function moveDownloadResource(index, direction) {
@@ -1831,7 +1819,7 @@ function moveDownloadResource(index, direction) {
   adminDownloads[index] = adminDownloads[targetIndex];
   adminDownloads[targetIndex] = temp;
 
-  localStorage.setItem('giffu_downloads', JSON.stringify(adminDownloads));
+  persistDownloadsUniversally(adminDownloads);
   renderAdminDownloadsGrid();
 }
 
@@ -1878,7 +1866,7 @@ function setupDownloadDragAndDrop() {
       const itemToMove = adminDownloads.splice(fromIndex, 1)[0];
       adminDownloads.splice(toIndex, 0, itemToMove);
 
-      localStorage.setItem('giffu_downloads', JSON.stringify(adminDownloads));
+      persistDownloadsUniversally(adminDownloads);
       renderAdminDownloadsGrid();
     });
   });
