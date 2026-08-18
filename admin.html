@@ -272,11 +272,13 @@
           <!-- Filtro de Categoria no Admin -->
           <div style="display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;">
             <button class="lib-filter-btn active" data-admin-filter="all" onclick="filterAdminDownloads('all', this)">Todos</button>
-            <button class="lib-filter-btn" data-admin-filter="presets" onclick="filterAdminDownloads('presets', this)">Presets &amp; MOGRTs</button>
-            <button class="lib-filter-btn" data-admin-filter="luts" onclick="filterAdminDownloads('luts', this)">LUTs &amp; Cores</button>
-            <button class="lib-filter-btn" data-admin-filter="sfx" onclick="filterAdminDownloads('sfx', this)">Áudio &amp; SFX</button>
-            <button class="lib-filter-btn" data-admin-filter="scripts" onclick="filterAdminDownloads('scripts', this)">Scripts &amp; Automação</button>
-            <button class="lib-filter-btn" data-admin-filter="workspace" onclick="filterAdminDownloads('workspace', this)">Atalhos &amp; Workspaces</button>
+            <button class="lib-filter-btn" data-admin-filter="premiere-templates" onclick="filterAdminDownloads('premiere-templates', this)">Premiere Pro Templates</button>
+            <button class="lib-filter-btn" data-admin-filter="ae-templates" onclick="filterAdminDownloads('ae-templates', this)">After Effects Templates</button>
+            <button class="lib-filter-btn" data-admin-filter="premiere-tools" onclick="filterAdminDownloads('premiere-tools', this)">Premiere Pro Tools</button>
+            <button class="lib-filter-btn" data-admin-filter="ae-tools" onclick="filterAdminDownloads('ae-tools', this)">After Effects Tools</button>
+            <button class="lib-filter-btn" data-admin-filter="music" onclick="filterAdminDownloads('music', this)">Royalty Free Music</button>
+            <button class="lib-filter-btn" data-admin-filter="sfx" onclick="filterAdminDownloads('sfx', this)">Sound Effects</button>
+            <button class="lib-filter-btn" data-admin-filter="apps" onclick="filterAdminDownloads('apps', this)">Apps &amp; Ferramentas</button>
           </div>
 
           <!-- Ações de Sincronização Online para Downloads -->
@@ -440,11 +442,13 @@
           <div class="form-group" style="margin-bottom: 0;">
             <label style="font-size: 13px; font-weight: 500; color: var(--text-primary);">Categoria <span style="color: #FE5E00;">*</span></label>
             <select id="downloadCategorySelect" class="form-select" required>
-              <option value="presets">Presets &amp; MOGRTs</option>
-              <option value="luts">LUTs &amp; Cores</option>
-              <option value="sfx">Áudio &amp; SFX</option>
-              <option value="scripts">Scripts &amp; Automação</option>
-              <option value="workspace">Atalhos &amp; Workspaces</option>
+              <option value="premiere-templates">Premiere Pro Templates</option>
+              <option value="ae-templates">After Effects Templates</option>
+              <option value="premiere-tools">Premiere Pro Tools</option>
+              <option value="ae-tools">After Effects Tools</option>
+              <option value="music">Royalty Free Music</option>
+              <option value="sfx">Sound Effects</option>
+              <option value="apps">Apps &amp; Ferramentas</option>
             </select>
           </div>
 

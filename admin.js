@@ -1539,11 +1539,18 @@ function renderAdminDownloadsGrid() {
 
     const iconClass = item.icon || 'fas fa-download';
     const categoryLabels = {
-      'presets': 'Presets & MOGRTs',
-      'luts': 'LUTs & Cores',
-      'sfx': 'Áudio & SFX',
-      'scripts': 'Scripts & Automação',
-      'workspace': 'Atalhos & Workspaces'
+      'premiere-templates': 'Premiere Pro Templates',
+      'ae-templates': 'After Effects Templates',
+      'premiere-tools': 'Premiere Pro Tools',
+      'ae-tools': 'After Effects Tools',
+      'music': 'Royalty Free Music',
+      'sfx': 'Sound Effects',
+      'apps': 'Apps & Ferramentas',
+      // Aliases para compatibilidade com versões anteriores
+      'presets': 'Premiere Pro Templates',
+      'luts': 'Premiere Pro Tools',
+      'scripts': 'After Effects Tools',
+      'workspace': 'Apps & Ferramentas'
     };
     const catLabel = categoryLabels[item.category] || item.category || 'Recurso';
 
@@ -1618,12 +1625,12 @@ function openDownloadModal(idOrNew) {
     heading.textContent = 'Novo Recurso para Download';
     document.getElementById('downloadIdInput').value = `down-${Date.now()}`;
     document.getElementById('downloadTitleInput').value = '';
-    document.getElementById('downloadCategorySelect').value = 'presets';
+    document.getElementById('downloadCategorySelect').value = 'premiere-templates';
     document.getElementById('downloadSoftwareInput').value = 'Premiere Pro';
-    document.getElementById('downloadBadgeInput').value = 'Preset';
+    document.getElementById('downloadBadgeInput').value = 'MOGRT';
     document.getElementById('downloadIconSelect').value = 'fas fa-bolt';
     document.getElementById('downloadDescInput').value = '';
-    document.getElementById('downloadFormatInput').value = '.prfpset';
+    document.getElementById('downloadFormatInput').value = '.mogrt';
     document.getElementById('downloadSizeInput').value = '10 MB';
     document.getElementById('downloadCompatInput').value = 'Premiere 2022+';
     document.getElementById('downloadDetailsDescInput').value = '';
@@ -1636,7 +1643,7 @@ function openDownloadModal(idOrNew) {
     heading.textContent = 'Editar Recurso de Download';
     document.getElementById('downloadIdInput').value = item.id;
     document.getElementById('downloadTitleInput').value = item.title || '';
-    document.getElementById('downloadCategorySelect').value = item.category || 'presets';
+    document.getElementById('downloadCategorySelect').value = item.category || 'premiere-templates';
     document.getElementById('downloadSoftwareInput').value = item.software || '';
     document.getElementById('downloadBadgeInput').value = item.badgeText || '';
     document.getElementById('downloadIconSelect').value = item.icon || 'fas fa-bolt';
