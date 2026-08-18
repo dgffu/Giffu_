@@ -587,6 +587,19 @@ async function uploadCustomThumbnail(videoId, imageFile) {
 }
 
 
+function parseVideoId(url) {
+  if (!url || typeof url !== 'string') return '';
+  url = url.trim();
+  if (url.match(/^[a-zA-Z0-9_-]{11}$/)) return url;
+  const matchV = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+  if (matchV) return matchV[1];
+  const matchShort = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+  if (matchShort) return matchShort[1];
+  const matchEmbed = url.match(/youtube\.com\/(?:embed|shorts|live)\/([a-zA-Z0-9_-]{11})/);
+  if (matchEmbed) return matchEmbed[1];
+  return url;
+}
+
 // --- INDEXEDDB HELPER FOR HEAVY LOCAL MEDIA (TESTS / OFFLINE BLOBS) ---
 const GiffuDB = {
   dbName: 'GiffuMediaDB',
@@ -751,15 +764,87 @@ async function persistDownloadsUniversally(downloadsList) {
 }
 
 function saveVideoToPortfolio(videoObj) {
-  let stored = cleanupLocalStorageVideos();
   const cleanObj = sanitizeVideoObj(videoObj);
+  let list = window.adminVideosList || [];
+  list = list.filter(v => v.id !== cleanObj.id);
+  list.unshift(cleanObj);
+  window.adminVideosList = list;
+  persistVideosUniversally(list, cleanObj);
+  filterManagedVideos();
+}
 
-  // Avoid duplicates
-  stored = stored.filter(v => v.id !== cleanObj.id);
-  stored.unshift(cleanObj); // prepend new video
+// --- MODAL DE ADICIONAR VÍDEO DO YOUTUBE MANUALMENTE ---
+function openAddManualVideoModal() {
+  const modal = document.getElementById('addManualVideoModal');
+  const form = document.getElementById('manualVideoForm');
+  if (form) form.reset();
+  const preview = document.getElementById('manualVideoThumbPreview');
+  if (preview) preview.src = '';
+  if (modal) modal.classList.add('active');
+}
 
-  window.adminVideosList = stored;
-  persistVideosUniversally(stored, cleanObj);
+function closeAddManualVideoModal() {
+  const modal = document.getElementById('addManualVideoModal');
+  if (modal) modal.classList.remove('active');
+}
+
+function handleManualVideoUrlChange(input) {
+  const val = input.value.trim();
+  const vId = parseVideoId(val) || val;
+  const customThumb = document.getElementById('manualVideoCustomThumbInput')?.value.trim();
+  const preview = document.getElementById('manualVideoThumbPreview');
+  if (preview) {
+    if (customThumb) {
+      preview.src = customThumb;
+    } else if (vId && vId.length >= 6) {
+      preview.src = `https://img.youtube.com/vi/${vId}/hq720.jpg`;
+    }
+  }
+}
+
+function handleManualCustomThumbChange(input) {
+  const val = input.value.trim();
+  const preview = document.getElementById('manualVideoThumbPreview');
+  if (preview && val) {
+    preview.src = val;
+  } else {
+    const urlInput = document.getElementById('manualVideoUrlInput');
+    if (urlInput) handleManualVideoUrlChange(urlInput);
+  }
+}
+
+async function saveManualVideo(e) {
+  if (e) e.preventDefault();
+  const urlVal = document.getElementById('manualVideoUrlInput').value.trim();
+  const title = document.getElementById('manualVideoTitleInput').value.trim();
+  const subtitle = document.getElementById('manualVideoSubtitleInput').value.trim();
+  const page = document.getElementById('manualVideoPageSelect').value;
+  const customThumb = document.getElementById('manualVideoCustomThumbInput')?.value.trim();
+
+  const vId = parseVideoId(urlVal) || urlVal;
+  if (!vId) {
+    alert('Por favor, informe um Link ou ID válido do YouTube.');
+    return;
+  }
+  if (!title || !subtitle) {
+    alert('Por favor, preencha o Título e o Subtítulo.');
+    return;
+  }
+
+  const thumbUrl = customThumb || `https://img.youtube.com/vi/${vId}/hq720.jpg`;
+
+  const newVideoObj = {
+    id: vId,
+    title: title,
+    subtitle: subtitle,
+    thumb: thumbUrl,
+    page: page,
+    youtubeUrl: `https://www.youtube.com/watch?v=${vId}`
+  };
+
+  saveVideoToPortfolio(newVideoObj);
+  closeAddManualVideoModal();
+  alert(`🎉 Vídeo "${title}" adicionado com sucesso ao portfólio na página "${getPageLabel(page)}"!`);
 }
 
 // --- GITHUB ONLINE PORTFOLIO SYNC ---
@@ -787,13 +872,21 @@ function saveGitHubToken() {
 }
 
 async function syncPortfolioToGitHub(singleVideoObj = null, silent = false) {
-  const token = getGitHubToken();
+  let token = getGitHubToken();
   
   if (!token) {
     if (!silent) {
-      alert('Para sincronizar com o site online giffu.com.br automaticamente sem usar o terminal:\n\nCole o seu GitHub Personal Access Token na aba "Configurar API Google"!');
+      const entered = prompt('Para sincronizar com o site online giffu.com.br e todos os dispositivos do mundo:\n\nCole o seu GitHub Personal Access Token (com escopo repo):');
+      if (entered && entered.trim()) {
+        localStorage.setItem('giffu_github_token', entered.trim());
+        token = entered.trim();
+        loadSavedGitHubToken();
+      } else {
+        return false;
+      }
+    } else {
+      return false;
     }
-    return false;
   }
 
   const repoPath = 'dgffu/Giffu_';
@@ -1023,40 +1116,35 @@ async function saveEditedVideo() {
       }
     }
 
-    // 3. Update localStorage video record
-    let stored = cleanupLocalStorageVideos();
-    const videoIndex = stored.findIndex(v => v.id === editingVideoId);
+    // 3. Update in-memory video array directly
+    if (!window.adminVideosList) window.adminVideosList = [];
+    const videoIndex = window.adminVideosList.findIndex(v => v.id === editingVideoId);
     let updatedVideoObj = null;
 
     if (videoIndex !== -1) {
-      stored[videoIndex].title = newTitle;
-      stored[videoIndex].subtitle = newSubtitle;
-      stored[videoIndex].page = newPage;
-      stored[videoIndex].thumb = newThumbUrl;
-      updatedVideoObj = stored[videoIndex];
+      window.adminVideosList[videoIndex].title = newTitle;
+      window.adminVideosList[videoIndex].subtitle = newSubtitle;
+      window.adminVideosList[videoIndex].page = newPage;
+      window.adminVideosList[videoIndex].thumb = newThumbUrl;
+      updatedVideoObj = window.adminVideosList[videoIndex];
     } else {
-      const video = (window.adminVideosList || []).find(v => v.id === editingVideoId);
-      if (video) {
-        updatedVideoObj = { 
-          ...video, 
-          title: newTitle, 
-          subtitle: newSubtitle, 
-          page: newPage, 
-          thumb: newThumbUrl 
-        };
-        stored.unshift(updatedVideoObj);
-      }
+      updatedVideoObj = { 
+        id: editingVideoId, 
+        title: newTitle, 
+        subtitle: newSubtitle, 
+        page: newPage, 
+        thumb: newThumbUrl,
+        youtubeUrl: `https://www.youtube.com/watch?v=${editingVideoId}`
+      };
+      window.adminVideosList.unshift(updatedVideoObj);
     }
 
     if (statusEl) statusEl.textContent = 'Alterações salvas com sucesso!';
 
     // Persistência universal (Disco Local + GitHub API + LocalStorage)
-    persistVideosUniversally(stored, updatedVideoObj);
-
-    setTimeout(() => {
-      closeVideoEditor();
-      loadAdminVideos();
-    }, 600);
+    await persistVideosUniversally(window.adminVideosList, updatedVideoObj);
+    filterManagedVideos();
+    closeVideoEditor();
 
   } catch (err) {
     console.error('Erro ao salvar vídeo:', err);
@@ -1897,12 +1985,20 @@ async function resetDefaultDownloads() {
 
 // --- DOWNLOADS SYNC & EXPORT TOOLS ---
 async function syncDownloadsToGitHub(silent = false) {
-  const token = getGitHubToken();
+  let token = getGitHubToken();
   if (!token) {
     if (!silent) {
-      alert('Para sincronizar com o site online giffu.com.br e todos os dispositivos:\n\nCole o seu GitHub Personal Access Token na aba "Configurar API Google"!');
+      const entered = prompt('Para sincronizar os Downloads com o site online giffu.com.br e todos os dispositivos do mundo:\n\nCole o seu GitHub Personal Access Token (com escopo repo):');
+      if (entered && entered.trim()) {
+        localStorage.setItem('giffu_github_token', entered.trim());
+        token = entered.trim();
+        loadSavedGitHubToken();
+      } else {
+        return false;
+      }
+    } else {
+      return false;
     }
-    return false;
   }
 
   const repoPath = 'dgffu/Giffu_';

@@ -230,6 +230,9 @@
                 <i class="fas fa-globe" style="color: #FE5E00;"></i> <strong>Publicar Portfólio Online (giffu.com.br)</strong>
               </div>
               <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button type="button" class="btn-primary" style="padding: 8px 14px; font-size: 13px; background: #22c55e; border-color: #22c55e;" onclick="openAddManualVideoModal()">
+                  <i class="fas fa-plus-circle"></i> Adicionar Vídeo do YouTube
+                </button>
                 <button type="button" class="btn-primary" style="padding: 8px 14px; font-size: 13px;" onclick="syncPortfolioToGitHub()">
                   <i class="fas fa-cloud-upload-alt"></i> Sincronizar com GitHub
                 </button>
@@ -420,6 +423,68 @@
           </button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE ADICIONAR VÍDEO DO YOUTUBE MANUALMENTE (LINK/URL) -->
+  <div id="addManualVideoModal" class="modal-backdrop">
+    <div class="modal-container" style="max-width: 580px; max-height: 90vh; overflow-y: auto;">
+      <div class="modal-header">
+        <h3><i class="fab fa-youtube" style="color: #FE5E00;"></i> Adicionar Vídeo do YouTube</h3>
+        <button type="button" class="modal-close-btn" onclick="closeAddManualVideoModal()">&times;</button>
+      </div>
+
+      <form id="manualVideoForm" onsubmit="saveManualVideo(event);" style="display: flex; flex-direction: column; gap: 14px;">
+        <!-- Link ou ID do YouTube -->
+        <div class="form-group" style="margin-bottom: 0;">
+          <label style="font-size: 13px; font-weight: 500; color: var(--text-primary);">Link ou ID do Vídeo no YouTube <span style="color: #FE5E00;">*</span></label>
+          <input type="text" id="manualVideoUrlInput" class="form-input" placeholder="Ex: https://www.youtube.com/watch?v=4_D9v2UouJ8 ou 4_D9v2UouJ8" required oninput="handleManualVideoUrlChange(this)">
+          <span style="font-size: 11px; color: var(--text-secondary); margin-top: 4px; display: block;">Cole o link do vídeo do YouTube para importar automaticamente a capa em alta resolução.</span>
+        </div>
+
+        <!-- Título do Vídeo -->
+        <div class="form-group" style="margin-bottom: 0;">
+          <label style="font-size: 13px; font-weight: 500; color: var(--text-primary);">Título do Vídeo <span style="color: #FE5E00;">*</span></label>
+          <input type="text" id="manualVideoTitleInput" class="form-input" placeholder="Ex: Connected Innovation Center" required>
+        </div>
+
+        <!-- Subtítulo / Créditos & Ano -->
+        <div class="form-group" style="margin-bottom: 0;">
+          <label style="font-size: 13px; font-weight: 500; color: var(--text-primary);">Subtítulo / Créditos & Ano <span style="color: #FE5E00;">*</span></label>
+          <input type="text" id="manualVideoSubtitleInput" class="form-input" placeholder="Ex: Lamídia, Accenture (2025)" required>
+        </div>
+
+        <!-- Página no Site -->
+        <div class="form-group" style="margin-bottom: 0;">
+          <label style="font-size: 13px; font-weight: 500; color: var(--text-primary);">Página do Site onde será exibido <span style="color: #FE5E00;">*</span></label>
+          <select id="manualVideoPageSelect" class="form-select" required>
+            <option value="marcas">Para Marcas (marcas.html)</option>
+            <option value="motion">Motion Design (motion.html)</option>
+            <option value="eventos">Edição de Eventos (eventos.html)</option>
+          </select>
+        </div>
+
+        <!-- Capa Preview -->
+        <div style="border-top: 1px solid var(--border-medium); padding-top: 14px;">
+          <label style="font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 8px; display: block;">
+            <i class="fas fa-image" style="color: #FE5E00;"></i> Capa / Thumbnail Preview
+          </label>
+          <div class="thumb-edit-preview" style="margin-bottom: 12px;">
+            <img id="manualVideoThumbPreview" src="source/thumbs/C0009.jpeg" alt="Preview Capa">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-size: 12px; color: var(--text-secondary);">URL customizada de Thumbnail (opcional):</label>
+            <input type="url" id="manualVideoCustomThumbInput" class="form-input" placeholder="https://exemplo.com/capa.jpg" oninput="handleManualCustomThumbChange(this)">
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 10px; gap: 10px;">
+          <button type="button" class="btn-secondary" onclick="closeAddManualVideoModal()">Cancelar</button>
+          <button type="submit" class="btn-primary" style="padding: 10px 20px; font-size: 14px; background: #22c55e; border-color: #22c55e;">
+            <i class="fas fa-plus"></i> Adicionar ao Portfólio
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
