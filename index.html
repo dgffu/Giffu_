@@ -6,7 +6,9 @@
   <script>if (localStorage.getItem('giffu_theme') === 'light') document.documentElement.classList.add('light-mode');</script>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Para Marcas · Dilan Giffú</title>
+  <title>Dilan Giffú · Filmmaker &amp; Motion Artist</title>
+  <meta name="description"
+    content="Portfólio oficial de Dilan Giffú. Edição comercial para marcas, motion design, filmes de eventos e biblioteca de downloads para editores.">
   <link rel="icon" type="image/x-icon" href="source/favico.ico">
 
   <link rel="stylesheet" href="style.css">
@@ -17,23 +19,11 @@
 </head>
 
 <body>
+
   <!-- Overlay Vídeo Lightbox -->
   <div id="video-overlay">
     <span class="close" onclick="closeVideo()">&times;</span>
     <iframe id="video-frame" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-  </div>
-
-  <!-- AVISO LEGAL - Overlay -->
-  <div id="overlay-aviso-dilan" style="display: none;">
-    <div id="mensagem-overlay-dilan">
-      <h2>⚠️</h2>
-      <p>
-        Todos os vídeos aqui contidos são propriedade de seus respectivos contratantes.<br><br>
-        Este é o portfólio pessoal de pós-produção do Dilan, mas todos os créditos pertencem exclusivamente às marcas
-        citadas.
-      </p>
-      <button id="fechar-overlay-dilan">Entendi</button>
-    </div>
   </div>
 
   <!-- Header Fixo Glassmorphic -->
@@ -43,7 +33,9 @@
     </a>
 
     <nav class="menu">
-      <a href="index.html" class="active">Para Marcas</a>
+      <a href="index.html" class="active">Home</a>
+      <a href="downloads.html">Downloads</a>
+      <a href="marcas.html">Para Marcas</a>
       <a href="motion.html">Motion Design</a>
       <a href="eventos.html">Edição de Eventos</a>
       <a href="about.html">Sobre</a>
@@ -60,6 +52,15 @@
         <a href="https://www.youtube.com/dilangiffu" target="_blank" rel="noopener" title="YouTube">
           <i class="fab fa-youtube"></i>
         </a>
+        <button class="lang-toggle-btn" data-lang="pt" title="Mudar Idioma (PT / EN)" aria-label="Mudar Idioma">
+          <svg class="flag-icon flag-br" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2L1 12L12 22L23 12L12 2ZM12 6.2C15.2 6.2 17.8 8.8 17.8 12C17.8 15.2 15.2 17.8 12 17.8C8.8 17.8 6.2 15.2 6.2 12C6.2 8.8 8.8 6.2 12 6.2Z"/>
+            <path d="M6.4 11.2C7.8 10 9.8 9.3 12 9.3C14.2 9.3 16.2 10 17.6 11.2C17.8 11.6 17.8 12 17.6 12.4C16.2 11.2 14.2 10.5 12 10.5C9.8 10.5 7.8 11.2 6.4 12.4C6.2 12 6.2 11.6 6.4 11.2Z"/>
+          </svg>
+          <svg class="flag-icon flag-us" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M2 3H11.5V12H2V3ZM4.2 4.8C4.5 4.8 4.7 5 4.7 5.3C4.7 5.6 4.5 5.8 4.2 5.8C3.9 5.8 3.7 5.6 3.7 5.3C3.7 5 3.9 4.8 4.2 4.8ZM6.7 4.8C7 4.8 7.2 5 7.2 5.3C7.2 5.6 7 5.8 6.7 5.8C6.4 5.8 6.2 5.6 6.2 5.3C6.2 5 6.4 4.8 6.7 4.8ZM9.2 4.8C9.5 4.8 9.7 5 9.7 5.3C9.7 5.6 9.5 5.8 9.2 5.8C8.9 5.8 8.7 5.6 8.7 5.3C8.7 5 8.9 4.8 9.2 4.8ZM5.45 7C5.75 7 5.95 7.2 5.95 7.5C5.95 7.8 5.75 8 5.45 8C5.15 8 4.95 7.8 4.95 7.5C4.95 7.2 5.15 7 5.45 7ZM7.95 7C8.25 7 8.45 7.2 8.45 7.5C8.45 7.8 8.25 8 7.95 8C7.65 8 7.45 7.8 7.45 7.5C7.45 7.2 7.65 7 7.95 7ZM4.2 9.2C4.5 9.2 4.7 9.4 4.7 9.7C4.7 10 4.5 10.2 4.2 10.2C3.9 10.2 3.7 10 3.7 9.7C3.7 9.4 3.9 9.2 4.2 9.2ZM6.7 9.2C7 9.2 7.2 9.4 7.2 9.7C7.2 10 7 10.2 6.7 10.2C6.4 10.2 6.2 10 6.2 9.7C6.2 9.4 6.4 9.2 6.7 9.2ZM9.2 9.2C9.5 9.2 9.7 9.4 9.7 9.7C9.7 10 9.5 10.2 9.2 10.2C8.9 10.2 8.7 10 8.7 9.7C8.7 9.4 8.9 9.2 9.2 9.2Z M12.5 3H22V4.6H12.5V3ZM12.5 6.7H22V8.3H12.5V6.7ZM12.5 10.4H22V12H12.5V10.4ZM2 14.1H22V15.7H2V14.1ZM2 17.8H22V19.4H2V17.8ZM2 21.4H22V23H2V21.4Z"/>
+          </svg>
+        </button>
       </div>
       <button class="mobile-nav-toggle" aria-label="Abrir Menu">
         <i class="fas fa-bars"></i>
@@ -68,128 +69,141 @@
   </header>
 
   <main>
-    <!-- Seção Intro / Hero -->
-    <section class="hero-intro">
-      <div class="hero-badge"><i class="fas fa-briefcase"></i> Portfólio Comercial</div>
-      <h1 class="hero-title">Edição & Pós-Produção para Marcas</h1>
-      <p class="hero-subtitle">Projetos comerciais, campanhas e conteúdos audiovisuais produzidos com ritmo
-        cinematográfico e padrão de transmissão para marcas de destaque.</p>
+    <!-- HERO SECTION -->
+    <section class="home-hero-wrapper">
+      <div class="home-hero-glow"></div>
+      <div class="home-hero-content">
+        <h1 class="home-hero-title">
+          <span class="hero-name-text">Dilan Giffú</span> <span class="hero-divider">/</span> <span class="hero-role-text">Filmmaker &amp; Motion <span class="highlight">Artist</span></span>
+        </h1>
+        <p class="home-hero-subtitle">
+          Transformando conceitos em narrativas audiovisuais de alto padrão. Edição comercial para marcas, identidades
+          visuais dinâmicas, filmes cinematográficos e ferramentas para quem cria com audiovisual.
+        </p>
+        <div class="home-hero-actions">
+          <a href="marcas.html" class="home-btn-primary">
+            <i class="fas fa-play"></i> Ver Portfólio Comercial
+          </a>
+          <a href="downloads.html" class="home-btn-secondary">
+            <i class="fas fa-download"></i> Biblioteca do Editor
+          </a>
+        </div>
+      </div>
     </section>
 
-    <!-- Grid de Vídeos -->
-    <div class="video-grid-container">
-      <div class="video-grid">
+    <!-- PILARES DO SITE / BENTO GRID -->
+    <section class="home-section">
+      <div class="home-section-header">
+        <span class="home-section-tag">O que você procura?</span>
+        <h2 class="home-section-title">Explore as Áreas do Portfólio</h2>
+      </div>
 
-        <a class="video-card" href="https://www.youtube.com/watch?v=4_D9v2UouJ8" target="_blank">
-          <img src="source/thumbs/C0009.jpeg" alt="Connected Innovation Center">
-          <div class="play-icon-badge"><i class="fas fa-play"></i></div>
-          <div class="video-info">
-            <h3 class="video-title">Connected Innovation Center</h3>
-            <p class="video-subtitle">Lamídia, Accenture (2025)</p>
+      <div class="home-pillars-grid">
+
+        <!-- Card 1: Para Marcas -->
+        <a href="marcas.html" class="home-pillar-card">
+          <div class="home-pillar-bg" style="background-image: url('source/thumbs/C0009.jpeg');"></div>
+          <div class="home-pillar-top">
+            <div class="home-pillar-icon">
+              <i class="fas fa-briefcase"></i>
+            </div>
+            <h3 class="home-pillar-title">Para Marcas</h3>
+            <p class="home-pillar-desc">Comerciais, campanhas corporativas e projetos audiovisuais produzidos com ritmo
+              cinematográfico e padrão de transmissão para marcas de destaque.</p>
+          </div>
+          <div class="home-pillar-bottom">
+            <span>Acessar Portfólio Comercial</span>
+            <i class="fas fa-arrow-right"></i>
           </div>
         </a>
 
-        <a class="video-card" href="https://www.youtube.com/watch?v=7ihaPVzhgJs" target="_blank">
-          <img src="source/thumbs/C0000.jpg" alt="Leaders Academy">
-          <div class="play-icon-badge"><i class="fas fa-play"></i></div>
-          <div class="video-info">
-            <h3 class="video-title">Leaders Academy</h3>
-            <p class="video-subtitle">Lamídia, S.I.N. Implant System (2025)</p>
+        <!-- Card 2: Motion Design -->
+        <a href="motion.html" class="home-pillar-card">
+          <div class="home-pillar-bg" style="background-image: url('source/thumbs/M0004.jpeg');"></div>
+          <div class="home-pillar-top">
+            <div class="home-pillar-icon">
+              <i class="fas fa-shapes"></i>
+            </div>
+            <h3 class="home-pillar-title">Motion Design</h3>
+            <p class="home-pillar-desc">Identidades visuais animadas, vinhetas 2D/3D, idents de marca, broadcast design
+              refinado e sincronismo sonoro imersivo.</p>
+          </div>
+          <div class="home-pillar-bottom">
+            <span>Acessar Motion Design</span>
+            <i class="fas fa-arrow-right"></i>
           </div>
         </a>
 
-        <a class="video-card" href="https://www.youtube.com/watch?v=jKV0vrUENZs" target="_blank">
-          <img src="source/thumbs/C0001.jpeg" alt="PHZin na Tuzzy">
-          <div class="play-icon-badge"><i class="fas fa-play"></i></div>
-          <div class="video-info">
-            <h3 class="video-title">PHZin na Tuzzy</h3>
-            <p class="video-subtitle">Lamídia, Tuzzy E-Sports (2025)</p>
+        <!-- Card 3: Edição de Eventos -->
+        <a href="eventos.html" class="home-pillar-card">
+          <div class="home-pillar-bg" style="background-image: url('source/thumbs/0010.jpg');"></div>
+          <div class="home-pillar-top">
+            <div class="home-pillar-icon">
+              <i class="fas fa-video"></i>
+            </div>
+            <h3 class="home-pillar-title">Edição de Eventos</h3>
+            <p class="home-pillar-desc">Same-Day Edits e filmes de eventos montados com sensibilidade
+              narrativa, ritmo dinâmico e tratamento de cor personalizado.</p>
+          </div>
+          <div class="home-pillar-bottom">
+            <span>Acessar Filmes de Eventos</span>
+            <i class="fas fa-arrow-right"></i>
           </div>
         </a>
 
-        <a class="video-card" href="https://www.youtube.com/watch?v=CUAhYbEv8YQ" target="_blank">
-          <img src="source/thumbs/C0010.jpeg" alt="Feedzai Fusion Brasil">
-          <div class="play-icon-badge"><i class="fas fa-play"></i></div>
-          <div class="video-info">
-            <h3 class="video-title">Feedzai Fusion Brasil</h3>
-            <p class="video-subtitle">Jhou Alves, Feedzai (2025)</p>
+        <!-- Card 4: Downloads / Biblioteca -->
+        <a href="downloads.html" class="home-pillar-card">
+          <div class="home-pillar-bg"
+            style="background-image: radial-gradient(rgba(254, 94, 0, 0.4) 1px, transparent 1px); background-size: 20px 20px;">
           </div>
-        </a>
-
-        <a class="video-card" href="https://www.youtube.com/watch?v=KQOwsIB8oyQ" target="_blank">
-          <img src="source/thumbs/C0003.jpg" alt="MUB + Tardezinha">
-          <div class="play-icon-badge"><i class="fas fa-play"></i></div>
-          <div class="video-info">
-            <h3 class="video-title">MUB + Tardezinha</h3>
-            <p class="video-subtitle">Lamídia, EletroLab (2025)</p>
+          <div class="home-pillar-top">
+            <div class="home-pillar-icon">
+              <i class="fas fa-layer-group"></i>
+            </div>
+            <h3 class="home-pillar-title">Bibioteca do Editor</h3>
+            <p class="home-pillar-desc">Recursos práticos para editores baseados na experiência <i>Giffú</i> de
+              audiovisual, como templates e ferramentas de produtividade.</p>
           </div>
-        </a>
-
-        <a class="video-card" href="https://www.youtube.com/watch?v=cHb1WKNsXQ8" target="_blank">
-          <img src="source/thumbs/C0011.jpeg" alt="Techops 2025">
-          <div class="play-icon-badge"><i class="fas fa-play"></i></div>
-          <div class="video-info">
-            <h3 class="video-title">Techops 2025</h3>
-            <p class="video-subtitle">Produtora Studio 32, Zurich (2025)</p>
-          </div>
-        </a>
-
-        <a class="video-card" href="https://www.youtube.com/watch?v=bc3rQenOo3s" target="_blank">
-          <img src="source/thumbs/C0002.jpg" alt="GoldeN Krypto Fan Fest">
-          <div class="play-icon-badge"><i class="fas fa-play"></i></div>
-          <div class="video-info">
-            <h3 class="video-title">GoldeN Krypto Fan Fest</h3>
-            <p class="video-subtitle">Lamídia, PremieRPet + Warner Bros. (2025)</p>
-          </div>
-        </a>
-
-        <a class="video-card" href="https://www.youtube.com/watch?v=Y2Tq8arePZo" target="_blank">
-          <img src="source/thumbs/C0008.png" alt="Seja AP Fortaleza">
-          <div class="play-icon-badge"><i class="fas fa-play"></i></div>
-          <div class="video-info">
-            <h3 class="video-title">Seja AP Fortaleza</h3>
-            <p class="video-subtitle">W88 Audiovisual, Seja AP (2025)</p>
-          </div>
-        </a>
-
-        <a class="video-card" href="https://www.youtube.com/watch?v=jpPGKWp2MtU" target="_blank">
-          <img src="source/thumbs/C0006.jpeg" alt="6º Congresso de Gestão em Saúde">
-          <div class="play-icon-badge"><i class="fas fa-play"></i></div>
-          <div class="video-info">
-            <h3 class="video-title">6º Congresso de Gestão em Saúde (CBIGS)</h3>
-            <p class="video-subtitle">Pericles Frazão, SBA (2025)</p>
-          </div>
-        </a>
-
-        <a class="video-card" href="https://www.youtube.com/watch?v=TQ88EMZXT7U" target="_blank">
-          <img src="source/thumbs/C0007.jpeg" alt="Carta de Valores AVICZA">
-          <div class="play-icon-badge"><i class="fas fa-play"></i></div>
-          <div class="video-info">
-            <h3 class="video-title">Carta de Valores AVICZA</h3>
-            <p class="video-subtitle">Alves Veiga, AVICZA (2025)</p>
-          </div>
-        </a>
-
-        <a class="video-card" href="https://www.youtube.com/watch?v=uQCYxcs5tg8" target="_blank">
-          <img src="source/thumbs/C0005.jpg" alt="Showreel Dilan Giffú">
-          <div class="play-icon-badge"><i class="fas fa-play"></i></div>
-          <div class="video-info">
-            <h3 class="video-title">Showreel Dilan Giffú + Brandão</h3>
-            <p class="video-subtitle">Brandão Foto & Filmes (2021)</p>
-          </div>
-        </a>
-
-        <a class="video-card" href="https://www.youtube.com/watch?v=ZwFBS2I9k8c" target="_blank">
-          <img src="source/thumbs/C0004.jpg" alt="Mil Folhas Campinas">
-          <div class="play-icon-badge"><i class="fas fa-play"></i></div>
-          <div class="video-info">
-            <h3 class="video-title">Mil Folhas Campinas + Dani Bolina</h3>
-            <p class="video-subtitle">Suzan, Mil Folhas (2019)</p>
+          <div class="home-pillar-bottom">
+            <span>Acessar Biblioteca de Downloads</span>
+            <i class="fas fa-arrow-right"></i>
           </div>
         </a>
 
       </div>
-    </div>
+    </section>
+
+    <!-- SNAPSHOT SOBRE / CTA FINAL -->
+    <section class="home-section">
+      <div
+        style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 40px; display: flex; align-items: center; justify-content: space-between; gap: 32px; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+          <div
+            style="width: 72px; height: 72px; border-radius: 50%; overflow: hidden; border: 2px solid var(--accent-orange); flex-shrink: 0;">
+            <img src="source/profile.jpeg" alt="Dilan Giffú" style="width: 100%; height: 100%; object-fit: cover; object-position: center 18%;">
+          </div>
+          <div>
+            <h3 style="font-size: 22px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">Dilan Giffú
+            </h3>
+            <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.5; max-width: 500px;">
+              14 anos no audiovisual e 8 anos atuando profissionalmente na montagem de narrativas visuais com ritmo,
+              precisão técnica e identidade única.
+            </p>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+          <a href="about.html" class="home-btn-secondary" style="padding: 12px 20px; font-size: 14px;">
+            <i class="fas fa-user"></i> Conhecer Mais
+          </a>
+          <a href="https://www.instagram.com/giffu.mov" target="_blank" rel="noopener" class="home-btn-primary"
+            style="padding: 12px 22px; font-size: 14px;">
+            <i class="fab fa-instagram"></i> Falar no Instagram
+          </a>
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <!-- Rodapé Unificado -->
@@ -209,69 +223,43 @@
         <a href="https://www.youtube.com/dilangiffu" target="_blank" rel="noopener" title="YouTube">
           <i class="fab fa-youtube"></i>
         </a>
+        <button class="lang-toggle-btn" data-lang="pt" title="Mudar Idioma (PT / EN)" aria-label="Mudar Idioma">
+          <svg class="flag-icon flag-br" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2L1 12L12 22L23 12L12 2ZM12 6.2C15.2 6.2 17.8 8.8 17.8 12C17.8 15.2 15.2 17.8 12 17.8C8.8 17.8 6.2 15.2 6.2 12C6.2 8.8 8.8 6.2 12 6.2Z"/>
+            <path d="M6.4 11.2C7.8 10 9.8 9.3 12 9.3C14.2 9.3 16.2 10 17.6 11.2C17.8 11.6 17.8 12 17.6 12.4C16.2 11.2 14.2 10.5 12 10.5C9.8 10.5 7.8 11.2 6.4 12.4C6.2 12 6.2 11.6 6.4 11.2Z"/>
+          </svg>
+          <svg class="flag-icon flag-us" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M2 3H11.5V12H2V3ZM4.2 4.8C4.5 4.8 4.7 5 4.7 5.3C4.7 5.6 4.5 5.8 4.2 5.8C3.9 5.8 3.7 5.6 3.7 5.3C3.7 5 3.9 4.8 4.2 4.8ZM6.7 4.8C7 4.8 7.2 5 7.2 5.3C7.2 5.6 7 5.8 6.7 5.8C6.4 5.8 6.2 5.6 6.2 5.3C6.2 5 6.4 4.8 6.7 4.8ZM9.2 4.8C9.5 4.8 9.7 5 9.7 5.3C9.7 5.6 9.5 5.8 9.2 5.8C8.9 5.8 8.7 5.6 8.7 5.3C8.7 5 8.9 4.8 9.2 4.8ZM5.45 7C5.75 7 5.95 7.2 5.95 7.5C5.95 7.8 5.75 8 5.45 8C5.15 8 4.95 7.8 4.95 7.5C4.95 7.2 5.15 7 5.45 7ZM7.95 7C8.25 7 8.45 7.2 8.45 7.5C8.45 7.8 8.25 8 7.95 8C7.65 8 7.45 7.8 7.45 7.5C7.45 7.2 7.65 7 7.95 7ZM4.2 9.2C4.5 9.2 4.7 9.4 4.7 9.7C4.7 10 4.5 10.2 4.2 10.2C3.9 10.2 3.7 10 3.7 9.7C3.7 9.4 3.9 9.2 4.2 9.2ZM6.7 9.2C7 9.2 7.2 9.4 7.2 9.7C7.2 10 7 10.2 6.7 10.2C6.4 10.2 6.2 10 6.2 9.7C6.2 9.4 6.4 9.2 6.7 9.2ZM9.2 9.2C9.5 9.2 9.7 9.4 9.7 9.7C9.7 10 9.5 10.2 9.2 10.2C8.9 10.2 8.7 10 8.7 9.7C8.7 9.4 8.9 9.2 9.2 9.2Z M12.5 3H22V4.6H12.5V3ZM12.5 6.7H22V8.3H12.5V6.7ZM12.5 10.4H22V12H12.5V10.4ZM2 14.1H22V15.7H2V14.1ZM2 17.8H22V19.4H2V17.8ZM2 21.4H22V23H2V21.4Z"/>
+          </svg>
+        </button>
       </div>
     </div>
   </footer>
 
+  <script src="videos.js"></script>
   <script>
-    // Overlay Aviso Legal
-    function esconderOverlayDilan() {
-      document.getElementById('overlay-aviso-dilan').style.display = 'none';
-      localStorage.setItem('avisoDilanExibido', 'sim');
+    function closeVideo() {
+      const overlay = document.getElementById('video-overlay');
+      const frame = document.getElementById('video-frame');
+      if (overlay) overlay.style.display = 'none';
+      if (frame) frame.src = '';
     }
-
-    document.getElementById('fechar-overlay-dilan').onclick = esconderOverlayDilan;
 
     window.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') {
-        if (document.getElementById('overlay-aviso-dilan').style.display !== 'none') {
-          esconderOverlayDilan();
+        closeVideo();
+      }
+    });
+
+    const overlay = document.getElementById('video-overlay');
+    if (overlay) {
+      overlay.addEventListener('click', function (e) {
+        if (e.target === overlay) {
+          closeVideo();
         }
-      }
-    });
-
-    window.onload = function () {
-      if (!localStorage.getItem('avisoDilanExibido')) {
-        document.getElementById('overlay-aviso-dilan').style.display = 'flex';
-      }
-    };
-  </script>
-
-  <script>
-    // Overlay VÍDEO
-    function openVideo(videoId) {
-      if (typeof window.handleVideoClick === 'function' && window.handleVideoClick !== openVideo) {
-        window.handleVideoClick(videoId);
-        return;
-      }
-      const overlay = document.getElementById('video-overlay');
-      const iframe = document.getElementById('video-frame');
-      if (overlay && iframe) {
-        iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&vq=hd3840`;
-        overlay.style.display = 'flex';
-      }
+      });
     }
-
-    function closeVideo() {
-      const overlay = document.getElementById('video-overlay');
-      const iframe = document.getElementById('video-frame');
-      iframe.src = '';
-      overlay.style.display = 'none';
-    }
-
-    document.getElementById('video-overlay').addEventListener('click', function (e) {
-      if (e.target === this) {
-        closeVideo();
-      }
-    });
-
-    document.addEventListener('keydown', function (event) {
-      if (event.key === 'Escape') {
-        closeVideo();
-      }
-    });
   </script>
-  <script src="videos.js"></script>
 </body>
 
 </html>

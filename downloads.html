@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <script>if (localStorage.getItem('giffu_theme') === 'light') document.documentElement.classList.add('light-mode');</script>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Biblioteca do Editor · Giffú</title>
+  <meta name="description"
+    content="Downloads para otimizar seu fluxo de edição. Mais produtividade para seus projetos de vídeo e pós-produção.">
+  <link rel="icon" type="image/x-icon" href="source/favico.ico">
+
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://use.typekit.net/tco5ixw.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+</head>
+
+<body>
+
+  <!-- Header Fixo Glassmorphic -->
+  <header>
+    <a class="logo" href="index.html" title="Giffú Home">
+      <img src="source/W_404040SVG.svg" alt="Giffú Logo">
+    </a>
+
+    <nav class="menu">
+      <a href="index.html">Home</a>
+      <a href="downloads.html" class="active">Downloads</a>
+      <a href="marcas.html">Para Marcas</a>
+      <a href="motion.html">Motion Design</a>
+      <a href="eventos.html">Edição de Eventos</a>
+      <a href="about.html">Sobre</a>
+    </nav>
+
+    <div class="header-right">
+      <div class="social">
+        <button class="theme-toggle-btn" title="Modo Claro" aria-label="Alternar modo claro e escuro">
+          <i class="fas fa-sun"></i>
+        </button>
+        <a href="https://www.instagram.com/giffu.mov" target="_blank" rel="noopener" title="Instagram">
+          <i class="fab fa-instagram"></i>
+        </a>
+        <a href="https://www.youtube.com/dilangiffu" target="_blank" rel="noopener" title="YouTube">
+          <i class="fab fa-youtube"></i>
+        </a>
+        <button class="lang-toggle-btn" data-lang="pt" title="Mudar Idioma (PT / EN)" aria-label="Mudar Idioma">
+          <svg class="flag-icon flag-br" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2L1 12L12 22L23 12L12 2ZM12 6.2C15.2 6.2 17.8 8.8 17.8 12C17.8 15.2 15.2 17.8 12 17.8C8.8 17.8 6.2 15.2 6.2 12C6.2 8.8 8.8 6.2 12 6.2Z"/>
+            <path d="M6.4 11.2C7.8 10 9.8 9.3 12 9.3C14.2 9.3 16.2 10 17.6 11.2C17.8 11.6 17.8 12 17.6 12.4C16.2 11.2 14.2 10.5 12 10.5C9.8 10.5 7.8 11.2 6.4 12.4C6.2 12 6.2 11.6 6.4 11.2Z"/>
+          </svg>
+          <svg class="flag-icon flag-us" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M2 3H11.5V12H2V3ZM4.2 4.8C4.5 4.8 4.7 5 4.7 5.3C4.7 5.6 4.5 5.8 4.2 5.8C3.9 5.8 3.7 5.6 3.7 5.3C3.7 5 3.9 4.8 4.2 4.8ZM6.7 4.8C7 4.8 7.2 5 7.2 5.3C7.2 5.6 7 5.8 6.7 5.8C6.4 5.8 6.2 5.6 6.2 5.3C6.2 5 6.4 4.8 6.7 4.8ZM9.2 4.8C9.5 4.8 9.7 5 9.7 5.3C9.7 5.6 9.5 5.8 9.2 5.8C8.9 5.8 8.7 5.6 8.7 5.3C8.7 5 8.9 4.8 9.2 4.8ZM5.45 7C5.75 7 5.95 7.2 5.95 7.5C5.95 7.8 5.75 8 5.45 8C5.15 8 4.95 7.8 4.95 7.5C4.95 7.2 5.15 7 5.45 7ZM7.95 7C8.25 7 8.45 7.2 8.45 7.5C8.45 7.8 8.25 8 7.95 8C7.65 8 7.45 7.8 7.45 7.5C7.45 7.2 7.65 7 7.95 7ZM4.2 9.2C4.5 9.2 4.7 9.4 4.7 9.7C4.7 10 4.5 10.2 4.2 10.2C3.9 10.2 3.7 10 3.7 9.7C3.7 9.4 3.9 9.2 4.2 9.2ZM6.7 9.2C7 9.2 7.2 9.4 7.2 9.7C7.2 10 7 10.2 6.7 10.2C6.4 10.2 6.2 10 6.2 9.7C6.2 9.4 6.4 9.2 6.7 9.2ZM9.2 9.2C9.5 9.2 9.7 9.4 9.7 9.7C9.7 10 9.5 10.2 9.2 10.2C8.9 10.2 8.7 10 8.7 9.7C8.7 9.4 8.9 9.2 9.2 9.2Z M12.5 3H22V4.6H12.5V3ZM12.5 6.7H22V8.3H12.5V6.7ZM12.5 10.4H22V12H12.5V10.4ZM2 14.1H22V15.7H2V14.1ZM2 17.8H22V19.4H2V17.8ZM2 21.4H22V23H2V21.4Z"/>
+          </svg>
+        </button>
+      </div>
+      <button class="mobile-nav-toggle" aria-label="Abrir Menu">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Seção Intro / Hero -->
+    <section class="hero-intro">
+      <div class="hero-badge"><i class="fas fa-layer-group"></i> Recursos &amp; Ferramentas</div>
+      <h1 class="hero-title">Biblioteca do Editor</h1>
+      <p class="hero-subtitle">Downloads para otimizar seu fluxo de edição. Mais produtividade para seus projetos.</p>
+    </section>
+
+    <!-- Seção da Biblioteca -->
+    <section class="library-container">
+
+      <!-- Toolbar: Filtros de Categoria + Barra de Busca -->
+      <div class="library-toolbar">
+        <div class="library-filters">
+          <button class="lib-filter-btn active" data-filter="all">Todos</button>
+          <button class="lib-filter-btn" data-filter="presets">Presets &amp; MOGRTs</button>
+          <button class="lib-filter-btn" data-filter="luts">LUTs &amp; Cores</button>
+          <button class="lib-filter-btn" data-filter="sfx">Áudio &amp; SFX</button>
+          <button class="lib-filter-btn" data-filter="scripts">Scripts &amp; Automação</button>
+          <button class="lib-filter-btn" data-filter="workspace">Atalhos &amp; Workspaces</button>
+        </div>
+
+        <div class="library-search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" id="librarySearch" class="library-search-input"
+            placeholder="Buscar recursos, presets, scripts...">
+        </div>
+      </div>
+
+      <!-- Grid de Recursos Dinâmico -->
+      <div class="library-grid" id="libraryGrid">
+        <!-- Renderizado dinamicamente via JS -->
+      </div>
+
+      <!-- Feedback de Busca Vazia -->
+      <div id="noResultsNotice"
+        style="display: none; text-align: center; padding: 60px 20px; color: var(--text-secondary);">
+        <i class="fas fa-search"
+          style="font-size: 36px; color: var(--accent-orange); margin-bottom: 16px; opacity: 0.8;"></i>
+        <h3 style="font-size: 20px; color: var(--text-primary); margin-bottom: 8px;">Nenhum recurso encontrado</h3>
+        <p style="font-size: 14px; max-width: 400px; margin: 0 auto;">Tente buscar com outros termos ou selecione outra
+          categoria acima.</p>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- MODAL DE DETALHES DO RECURSO -->
+  <div id="resourceModal" class="modal-backdrop">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="modalResourceTitle"><i class="fas fa-box-open" style="color: var(--accent-orange);"></i> Detalhes do
+          Recurso</h3>
+        <button type="button" class="modal-close-btn" onclick="closeResourceModal()">&times;</button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 16px; font-size: 14px; line-height: 1.6;">
+        <p id="modalResourceDesc" style="color: var(--text-secondary);"></p>
+
+        <div
+          style="background: var(--bg-card); padding: 14px; border-radius: 8px; border: 1px solid var(--border-subtle); display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div><strong style="color:var(--text-primary);">Compatibilidade:</strong> <span id="modalResourceCompat"
+              style="color:var(--text-secondary);"></span></div>
+          <div><strong style="color:var(--text-primary);">Formato:</strong> <span id="modalResourceFormat"
+              style="color:var(--text-secondary);"></span></div>
+          <div><strong style="color:var(--text-primary);">Tamanho:</strong> <span id="modalResourceSize"
+              style="color:var(--text-secondary);"></span></div>
+          <div><strong style="color:var(--text-primary);">Licença:</strong> <span
+              style="color:var(--accent-orange); font-weight:600;">Uso Livre</span></div>
+        </div>
+
+        <div style="margin-top: 10px; display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" class="btn-secondary" onclick="closeResourceModal()">Fechar</button>
+          <a id="modalDownloadBtn" href="#" class="btn-primary" style="padding: 10px 20px;">
+            <i class="fas fa-download"></i> Baixar Agora
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="videos.js"></script>
+  <script>
+    let allDownloads = [];
+
+    // Carregar Downloads
+    async function loadDownloads() {
+      const grid = document.getElementById('libraryGrid');
+      if (!grid) return;
+
+      // 1. Tentar ler do LocalStorage
+      try {
+        const stored = localStorage.getItem('giffu_downloads');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            allDownloads = parsed;
+          }
+        }
+      } catch (e) {
+        console.warn('Erro ao ler giffu_downloads do localStorage:', e);
+      }
+
+      // 2. Se vazio, carregar do downloads.json
+      if (allDownloads.length === 0) {
+        try {
+          const res = await fetch('downloads.json');
+          if (res.ok) {
+            const json = await res.json();
+            if (Array.isArray(json)) {
+              allDownloads = json;
+              localStorage.setItem('giffu_downloads', JSON.stringify(allDownloads));
+            }
+          }
+        } catch (e) {
+          console.warn('Erro ao carregar downloads.json:', e);
+        }
+      }
+
+      renderLibraryCards();
+    }
+
+    function renderLibraryCards() {
+      const grid = document.getElementById('libraryGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      allDownloads.forEach(item => {
+        const card = createResourceCard(item);
+        grid.appendChild(card);
+      });
+
+      applyLibraryFilters();
+    }
+
+    function createResourceCard(item) {
+      const div = document.createElement('div');
+      div.className = 'resource-card';
+      div.dataset.category = item.category || 'presets';
+
+      const iconClass = item.icon || 'fas fa-download';
+      const software = item.software || 'Universal';
+      const badgeText = item.badgeText || 'Recurso';
+      const title = item.title || 'Sem título';
+      const desc = item.description || '';
+      const format = item.format || '';
+      const size = item.fileSize || '';
+      const compat = item.compatibility || '';
+      const fileName = item.fileName || `${title.replace(/\s+/g, '-')}.zip`;
+      const downloadUrl = item.downloadUrl || '#';
+
+      div.innerHTML = `
+        <div class="resource-header">
+          <div class="resource-header-pattern"></div>
+          <span class="software-badge"><i class="fas fa-cube"></i> ${escapeHtml(software)}</span>
+          <span class="category-tag">${escapeHtml(badgeText)}</span>
+          <div class="resource-icon-wrap">
+            <i class="${escapeHtml(iconClass)}"></i>
+          </div>
+        </div>
+        <div class="resource-body">
+          <h3 class="resource-title">${escapeHtml(title)}</h3>
+          <p class="resource-desc">${escapeHtml(desc)}</p>
+          <div class="resource-meta">
+            ${format ? `<span class="meta-pill"><i class="fas fa-file-code"></i> ${escapeHtml(format)}</span>` : ''}
+            ${size ? `<span class="meta-pill"><i class="fas fa-hdd"></i> ${escapeHtml(size)}</span>` : ''}
+            ${compat ? `<span class="meta-pill"><i class="fas fa-check-circle"></i> ${escapeHtml(compat)}</span>` : ''}
+          </div>
+          <div class="resource-actions">
+            <a href="${escapeHtml(downloadUrl)}" class="btn-lib-download" onclick="handleCardDownload(this, '${escapeHtml(fileName)}', event)">
+              <i class="fas fa-download"></i> Baixar
+            </a>
+            <button class="btn-lib-details" onclick="openResourceModalById('${escapeHtml(item.id)}')">
+              <i class="fas fa-info-circle"></i>
+            </button>
+          </div>
+        </div>
+      `;
+
+      return div;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    function convertToDirectGoogleDriveLink(url) {
+      if (!url || typeof url !== 'string') return url;
+      url = url.trim();
+      if (!url.includes('drive.google.com')) return url;
+
+      let fileId = null;
+      const matchFileD = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+      if (matchFileD) fileId = matchFileD[1];
+
+      if (!fileId) {
+        const matchIdParam = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+        if (matchIdParam) fileId = matchIdParam[1];
+      }
+
+      if (!fileId) {
+        const matchUc = url.match(/\/uc\?.*id=([a-zA-Z0-9_-]+)/);
+        if (matchUc) fileId = matchUc[1];
+      }
+
+      if (!fileId) {
+        const matchD = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        if (matchD) fileId = matchD[1];
+      }
+
+      if (fileId) {
+        return `https://drive.google.com/uc?export=download&id=${fileId}`;
+      }
+      return url;
+    }
+
+    function handleCardDownload(linkElem, fileName, e) {
+      let url = linkElem.getAttribute('href');
+      if (!url || url === '#' || url === 'https://github.com/dgffu/Giffu_') {
+        if (e) e.preventDefault();
+        alert(`📦 Preparando download de: "${fileName}"\n\nEm breve o link direto estará conectado pelo painel de administração!`);
+        return;
+      }
+
+      const directUrl = convertToDirectGoogleDriveLink(url);
+      linkElem.setAttribute('href', directUrl);
+      linkElem.setAttribute('target', '_blank');
+      linkElem.setAttribute('rel', 'noopener');
+    }
+
+    // Filtros de Categoria
+    function applyLibraryFilters() {
+      const activeFilter = document.querySelector('.lib-filter-btn.active')?.dataset.filter || 'all';
+      const searchInput = document.getElementById('librarySearch');
+      const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+      const resourceCards = document.querySelectorAll('.resource-card');
+      const noResults = document.getElementById('noResultsNotice');
+      let visibleCount = 0;
+
+      resourceCards.forEach(card => {
+        const category = card.dataset.category || '';
+        const title = card.querySelector('.resource-title')?.textContent.toLowerCase() || '';
+        const desc = card.querySelector('.resource-desc')?.textContent.toLowerCase() || '';
+
+        const matchesCategory = (activeFilter === 'all' || category === activeFilter);
+        const matchesSearch = (!searchTerm || title.includes(searchTerm) || desc.includes(searchTerm));
+
+        if (matchesCategory && matchesSearch) {
+          card.style.display = 'flex';
+          visibleCount++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      if (noResults) {
+        noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+      }
+    }
+
+    const filterBtns = document.querySelectorAll('.lib-filter-btn');
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        applyLibraryFilters();
+      });
+    });
+
+    const searchInput = document.getElementById('librarySearch');
+    if (searchInput) {
+      searchInput.addEventListener('input', applyLibraryFilters);
+    }
+
+    // Modal de Detalhes
+    function openResourceModalById(id) {
+      const item = allDownloads.find(d => d.id === id);
+      if (!item) return;
+
+      document.getElementById('modalResourceTitle').innerHTML = `<i class="${escapeHtml(item.icon || 'fas fa-box-open')}" style="color: var(--accent-orange);"></i> ${escapeHtml(item.title)}`;
+      document.getElementById('modalResourceDesc').textContent = item.detailsDesc || item.description || '';
+      document.getElementById('modalResourceCompat').textContent = item.compatibility || item.software || '-';
+      document.getElementById('modalResourceSize').textContent = item.fileSize || '-';
+      document.getElementById('modalResourceFormat').textContent = item.format || '-';
+
+      const downloadBtn = document.getElementById('modalDownloadBtn');
+      if (downloadBtn) {
+        downloadBtn.href = item.downloadUrl || '#';
+        downloadBtn.onclick = function (e) {
+          handleCardDownload(downloadBtn, item.fileName || `${item.title}.zip`, e);
+        };
+      }
+
+      const modal = document.getElementById('resourceModal');
+      if (modal) modal.classList.add('active');
+    }
+
+    function closeResourceModal() {
+      const modal = document.getElementById('resourceModal');
+      if (modal) modal.classList.remove('active');
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeResourceModal();
+    });
+
+    const modalBackdrop = document.getElementById('resourceModal');
+    if (modalBackdrop) {
+      modalBackdrop.addEventListener('click', (e) => {
+        if (e.target === modalBackdrop) closeResourceModal();
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', loadDownloads);
+  </script>
+</body>
+
+</html>

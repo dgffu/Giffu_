@@ -6,7 +6,8 @@
     const path = window.location.pathname.toLowerCase();
     if (path.includes('motion')) return 'motion';
     if (path.includes('eventos')) return 'eventos';
-    return 'marcas'; // default for index.html / main page
+    if (path.includes('marcas')) return 'marcas';
+    return null;
   }
 
   function parseVideoId(url) {
@@ -21,6 +22,7 @@
 
   async function loadVideos() {
     const category = getPageCategory();
+    if (!category) return;
     let allVideos = [];
 
     // Load custom saved videos from localStorage if available
@@ -134,19 +136,33 @@
   }
 
   function renderGrid(category, videos) {
-    const grid = document.querySelector('.video-grid');
-    if (!grid) return;
-
-    // Filter videos matching current page category
-    const categoryVideos = videos.filter(v => v.page === category);
-
-    if (categoryVideos.length > 0) {
-      // Rebuild the grid in the exact manual order from the manager
-      grid.innerHTML = '';
-      categoryVideos.forEach(v => {
-        const cardElem = createCardElement(v);
-        grid.appendChild(cardElem);
+    if (category === 'home') {
+      const categories = ['marcas', 'motion', 'eventos'];
+      categories.forEach(cat => {
+        const grid = document.querySelector(`#grid-${cat}`);
+        if (grid) {
+          const catVideos = videos.filter(v => v.page === cat);
+          if (catVideos.length > 0) {
+            grid.innerHTML = '';
+            catVideos.forEach(v => {
+              const cardElem = createCardElement(v);
+              grid.appendChild(cardElem);
+            });
+          }
+        }
       });
+    } else {
+      const grid = document.querySelector('.video-grid');
+      if (grid) {
+        const categoryVideos = videos.filter(v => v.page === category);
+        if (categoryVideos.length > 0) {
+          grid.innerHTML = '';
+          categoryVideos.forEach(v => {
+            const cardElem = createCardElement(v);
+            grid.appendChild(cardElem);
+          });
+        }
+      }
     }
 
     enhanceStaticCards();
@@ -328,9 +344,33 @@
     }
   }
 
+  function initLanguageToggle() {
+    const saved = localStorage.getItem('giffu_lang') || 'pt';
+    updateAllLangButtons(saved);
+
+    document.querySelectorAll('.lang-toggle-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const curr = btn.getAttribute('data-lang') || 'pt';
+        const next = curr === 'pt' ? 'en' : 'pt';
+        localStorage.setItem('giffu_lang', next);
+        updateAllLangButtons(next);
+      });
+    });
+  }
+
+  function updateAllLangButtons(lang) {
+    document.querySelectorAll('.lang-toggle-btn').forEach(btn => {
+      btn.setAttribute('data-lang', lang);
+      btn.setAttribute('title', lang === 'pt' ? 'Mudar para Inglês (EN)' : 'Mudar para Português (PT)');
+      btn.setAttribute('aria-label', lang === 'pt' ? 'Mudar para Inglês' : 'Switch to English');
+    });
+  }
+
   function initApp() {
     initTheme();
     initMobileMenu();
+    initLanguageToggle();
     loadVideos();
     autoCropAllThumbs();
   }

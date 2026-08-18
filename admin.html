@@ -22,7 +22,9 @@
     </a>
 
     <nav class="menu">
-      <a href="index.html">Para Marcas</a>
+      <a href="index.html">Home</a>
+      <a href="downloads.html">Downloads</a>
+      <a href="marcas.html">Para Marcas</a>
       <a href="motion.html">Motion Design</a>
       <a href="eventos.html">Edição de Eventos</a>
       <a href="about.html">Sobre</a>
@@ -70,6 +72,9 @@
         </button>
         <button class="tab-btn" onclick="switchTab('manage')">
           <i class="fas fa-tasks"></i> Gerenciar Vídeos
+        </button>
+        <button class="tab-btn" onclick="switchTab('downloads')">
+          <i class="fas fa-layer-group"></i> Gerenciar Downloads
         </button>
         <button class="tab-btn" onclick="switchTab('config')">
           <i class="fas fa-cog"></i> Configurar API Google
@@ -248,7 +253,45 @@
         </div>
       </div>
 
-      <!-- ABA 3: CONFIGURAÇÃO GOOGLE OAUTH -->
+      <!-- ABA 3: GERENCIAR DOWNLOADS / BIBLIOTECA DO EDITOR -->
+      <div id="tab-downloads" class="admin-tab-content" style="display: none;">
+        <div class="admin-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+            <h3 style="font-size: 20px; margin: 0;"><i class="fas fa-layer-group" style="color: #FE5E00;"></i> Gerenciar Recursos de Downloads</h3>
+            
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button class="btn-primary" onclick="openDownloadModal('new')">
+                <i class="fas fa-plus"></i> Novo Recurso
+              </button>
+              <button class="btn-secondary" onclick="resetDefaultDownloads()">
+                <i class="fas fa-undo"></i> Restaurar Padrões
+              </button>
+            </div>
+          </div>
+
+          <!-- Filtro de Categoria no Admin -->
+          <div style="display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;">
+            <button class="lib-filter-btn active" data-admin-filter="all" onclick="filterAdminDownloads('all', this)">Todos</button>
+            <button class="lib-filter-btn" data-admin-filter="presets" onclick="filterAdminDownloads('presets', this)">Presets &amp; MOGRTs</button>
+            <button class="lib-filter-btn" data-admin-filter="luts" onclick="filterAdminDownloads('luts', this)">LUTs &amp; Cores</button>
+            <button class="lib-filter-btn" data-admin-filter="sfx" onclick="filterAdminDownloads('sfx', this)">Áudio &amp; SFX</button>
+            <button class="lib-filter-btn" data-admin-filter="scripts" onclick="filterAdminDownloads('scripts', this)">Scripts &amp; Automação</button>
+            <button class="lib-filter-btn" data-admin-filter="workspace" onclick="filterAdminDownloads('workspace', this)">Atalhos &amp; Workspaces</button>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; font-size: 13px; color: var(--text-secondary); background: rgba(254, 94, 0, 0.06); padding: 10px 14px; border-radius: 8px; border: 1px solid rgba(254, 94, 0, 0.2);">
+            <div>
+              <i class="fas fa-arrows-alt" style="color: #FE5E00; margin-right: 6px;"></i> <strong>Reordenar Recursos:</strong> Arraste os cards ou use as setas <strong>↑ ↓</strong> para definir a ordem na biblioteca. As alterações são salvas automaticamente.
+            </div>
+          </div>
+
+          <div id="adminDownloadsGrid" class="admin-video-grid">
+            <!-- Renderizado dinamicamente pelo admin.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ABA 4: CONFIGURAÇÃO GOOGLE OAUTH -->
       <div id="tab-config" class="admin-tab-content" style="display: none;">
         <div class="admin-card">
           <h3 style="margin-bottom: 20px; font-size: 20px;"><i class="fas fa-key"></i> Configuração da API do Google / YouTube</h3>
@@ -354,6 +397,134 @@
           </button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE EDIÇÃO/CRIAÇÃO DE RECURSO DE DOWNLOAD -->
+  <div id="downloadEditModal" class="modal-backdrop">
+    <div class="modal-container" style="max-width: 620px; max-height: 90vh; overflow-y: auto;">
+      <div class="modal-header">
+        <h3><i class="fas fa-layer-group" style="color: #FE5E00;"></i> <span id="downloadModalHeading">Novo Recurso</span></h3>
+        <button type="button" class="modal-close-btn" onclick="closeDownloadModal()">&times;</button>
+      </div>
+
+      <form id="downloadForm" onsubmit="saveDownloadResource(event);" style="display: flex; flex-direction: column; gap: 14px;">
+        <input type="hidden" id="downloadIdInput">
+
+        <!-- Título -->
+        <div class="form-group" style="margin-bottom: 0;">
+          <label style="font-size: 13px; font-weight: 500; color: var(--text-primary);">Título do Recurso <span style="color: #FE5E00;">*</span></label>
+          <input type="text" id="downloadTitleInput" class="form-input" placeholder="Ex: Dynamic Cut &amp; Whip Transitions" required>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <!-- Categoria -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-size: 13px; font-weight: 500; color: var(--text-primary);">Categoria <span style="color: #FE5E00;">*</span></label>
+            <select id="downloadCategorySelect" class="form-select" required>
+              <option value="presets">Presets &amp; MOGRTs</option>
+              <option value="luts">LUTs &amp; Cores</option>
+              <option value="sfx">Áudio &amp; SFX</option>
+              <option value="scripts">Scripts &amp; Automação</option>
+              <option value="workspace">Atalhos &amp; Workspaces</option>
+            </select>
+          </div>
+
+          <!-- Software / Aplicação -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-size: 13px; font-weight: 500; color: var(--text-primary);">Software / Aplicação <span style="color: #FE5E00;">*</span></label>
+            <input type="text" id="downloadSoftwareInput" class="form-input" placeholder="Ex: Premiere Pro, Universal, After Effects" required>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <!-- Tag Badge -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-size: 13px; font-weight: 500; color: var(--text-primary);">Tag do Card (Badge)</label>
+            <input type="text" id="downloadBadgeInput" class="form-input" placeholder="Ex: Preset, SFX, LUTs, MOGRT, Script">
+          </div>
+
+          <!-- Ícone -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-size: 13px; font-weight: 500; color: var(--text-primary);">Ícone do Card</label>
+            <select id="downloadIconSelect" class="form-select">
+              <option value="fas fa-bolt">⚡ Raio / Transições (fas fa-bolt)</option>
+              <option value="fas fa-volume-up">🔊 Som / SFX (fas fa-volume-up)</option>
+              <option value="fas fa-sliders-h">🎚️ LUTs / Cores (fas fa-sliders-h)</option>
+              <option value="fas fa-heading">🔤 Títulos / MOGRT (fas fa-heading)</option>
+              <option value="fas fa-folder-tree">📁 Pastas / Projeto (fas fa-folder-tree)</option>
+              <option value="fas fa-keyboard">⌨️ Atalhos (fas fa-keyboard)</option>
+              <option value="fas fa-film">🎬 Filme / Vídeo (fas fa-film)</option>
+              <option value="fas fa-palette">🎨 Cores / Grading (fas fa-palette)</option>
+              <option value="fas fa-code">💻 Código / Script (fas fa-code)</option>
+              <option value="fas fa-sparkles">✨ Efeitos Especiais (fas fa-sparkles)</option>
+              <option value="fas fa-layer-group">📚 Biblioteca (fas fa-layer-group)</option>
+              <option value="fas fa-download">📥 Download Geral (fas fa-download)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Descrição Curta -->
+        <div class="form-group" style="margin-bottom: 0;">
+          <label style="font-size: 13px; font-weight: 500; color: var(--text-primary);">Descrição Curta (Exibida no Card) <span style="color: #FE5E00;">*</span></label>
+          <textarea id="downloadDescInput" class="form-input" rows="2" placeholder="Resumo do que o pack contém e para quem serve..." required></textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+          <!-- Formato -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-size: 12px; font-weight: 500; color: var(--text-primary);">Formato</label>
+            <input type="text" id="downloadFormatInput" class="form-input" placeholder="Ex: .prfpset, .WAV">
+          </div>
+
+          <!-- Tamanho -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-size: 12px; font-weight: 500; color: var(--text-primary);">Tamanho</label>
+            <input type="text" id="downloadSizeInput" class="form-input" placeholder="Ex: 14 MB">
+          </div>
+
+          <!-- Compatibilidade -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-size: 12px; font-weight: 500; color: var(--text-primary);">Destaque / Versão</label>
+            <input type="text" id="downloadCompatInput" class="form-input" placeholder="Ex: Premiere 2022+">
+          </div>
+        </div>
+
+        <!-- Instruções Detalhadas / Como Instalar -->
+        <div class="form-group" style="margin-bottom: 0;">
+          <label style="font-size: 13px; font-weight: 500; color: var(--text-primary);">Instruções Detalhadas / Como Usar (Modal)</label>
+          <textarea id="downloadDetailsDescInput" class="form-input" rows="3" placeholder="Explique como instalar, importar ou utilizar o arquivo..."></textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <!-- Nome do Arquivo -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-size: 13px; font-weight: 500; color: var(--text-primary);">Nome do Arquivo ZIP</label>
+            <input type="text" id="downloadFileNameInput" class="form-input" placeholder="Ex: Meu-Pack-Giffu.zip">
+          </div>
+
+          <!-- Link de Download -->
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-size: 13px; font-weight: 500; color: var(--text-primary); display: flex; justify-content: space-between; align-items: center;">
+              <span>Link de Download (Google Drive, etc.)</span>
+              <span id="driveDirectStatus" style="font-size: 11px; color: #2ecc71; display: none; font-weight: 600;">
+                <i class="fas fa-bolt"></i> Download Direto Ativado
+              </span>
+            </label>
+            <input type="url" id="downloadUrlInput" class="form-input" placeholder="Cole o link do Google Drive (ex: https://drive.google.com/file/d/...)" oninput="handleDriveLinkInput(this)">
+            <span style="font-size: 11px; color: var(--text-secondary); margin-top: 4px; display: block; line-height: 1.4;">
+              ⚡ <strong>Download Direto Inteligente:</strong> Ao colar qualquer link de visualização ou compartilhamento do Google Drive, ele é convertido instantaneamente para download direto (clicou no site, o arquivo baixa na hora).
+            </span>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 10px; gap: 10px;">
+          <button type="button" class="btn-secondary" onclick="closeDownloadModal()">Cancelar</button>
+          <button type="submit" class="btn-primary" style="padding: 10px 20px; font-size: 14px;">
+            <i class="fas fa-save"></i> Salvar Recurso
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 

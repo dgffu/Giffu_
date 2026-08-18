@@ -298,8 +298,12 @@ function switchTab(tabName) {
     document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
     document.getElementById('tab-manage').style.display = 'block';
     loadAdminVideos();
-  } else if (tabName === 'config') {
+  } else if (tabName === 'downloads') {
     document.querySelector('.tab-btn:nth-child(3)').classList.add('active');
+    document.getElementById('tab-downloads').style.display = 'block';
+    loadAdminDownloads();
+  } else if (tabName === 'config') {
+    document.querySelector('.tab-btn:nth-child(4)').classList.add('active');
     document.getElementById('tab-config').style.display = 'block';
   }
 }
@@ -1400,4 +1404,419 @@ if (typeof window.handleThumbError === 'undefined') {
       img.src = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
     }
   };
+}
+
+// ==========================================================================
+// GERENCIADOR DE DOWNLOADS (BIBLIOTECA DO EDITOR) NO PAINEL ADMIN
+// ==========================================================================
+
+let adminDownloads = [];
+let adminDownloadsFilter = 'all';
+
+async function loadAdminDownloads() {
+  const container = document.getElementById('adminDownloadsGrid');
+  if (!container) return;
+
+  // 1. Carregar do localStorage
+  try {
+    const raw = localStorage.getItem('giffu_downloads');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        adminDownloads = parsed;
+      }
+    }
+  } catch (e) {
+    console.warn('Erro ao ler giffu_downloads do localStorage:', e);
+  }
+
+  // 2. Se vazio, carregar do downloads.json
+  if (adminDownloads.length === 0) {
+    try {
+      const res = await fetch('downloads.json');
+      if (res.ok) {
+        const json = await res.json();
+        if (Array.isArray(json)) {
+          adminDownloads = json;
+          localStorage.setItem('giffu_downloads', JSON.stringify(adminDownloads));
+        }
+      }
+    } catch (e) {
+      console.warn('Erro ao carregar downloads.json no admin:', e);
+    }
+  }
+
+  renderAdminDownloadsGrid();
+}
+
+function filterAdminDownloads(category, btnElem) {
+  adminDownloadsFilter = category;
+  document.querySelectorAll('#tab-downloads .lib-filter-btn').forEach(b => b.classList.remove('active'));
+  if (btnElem) btnElem.classList.add('active');
+  renderAdminDownloadsGrid();
+}
+
+function renderAdminDownloadsGrid() {
+  const container = document.getElementById('adminDownloadsGrid');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const filtered = adminDownloads.filter((item) => {
+    if (adminDownloadsFilter === 'all') return true;
+    return item.category === adminDownloadsFilter;
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; padding: 50px 20px; color: var(--text-secondary);">
+        <i class="fas fa-box-open" style="font-size: 36px; color: #FE5E00; margin-bottom: 12px; display: block;"></i>
+        <h4 style="color: var(--text-primary); font-size: 16px; margin-bottom: 6px;">Nenhum recurso nesta categoria</h4>
+        <p style="font-size: 13px;">Clique em <strong>"Novo Recurso"</strong> para cadastrar novos arquivos.</p>
+      </div>
+    `;
+    return;
+  }
+
+  filtered.forEach((item) => {
+    const globalIndex = adminDownloads.findIndex(d => d.id === item.id);
+    const card = document.createElement('div');
+    card.className = 'admin-download-card';
+    card.setAttribute('draggable', 'true');
+    card.dataset.index = globalIndex;
+    card.dataset.id = item.id;
+
+    const iconClass = item.icon || 'fas fa-download';
+    const categoryLabels = {
+      'presets': 'Presets & MOGRTs',
+      'luts': 'LUTs & Cores',
+      'sfx': 'Áudio & SFX',
+      'scripts': 'Scripts & Automação',
+      'workspace': 'Atalhos & Workspaces'
+    };
+    const catLabel = categoryLabels[item.category] || item.category || 'Recurso';
+
+    card.innerHTML = `
+      <!-- Alça de arrastar e Botões de Reordenação -->
+      <div class="drag-handle-bar">
+        <div class="drag-handle-info">
+          <i class="fas fa-grip-vertical"></i>
+          <span>#${globalIndex + 1}</span>
+        </div>
+        <div class="reorder-btn-group">
+          <button type="button" class="reorder-btn" title="Mover para Cima" onclick="moveDownloadResource(${globalIndex}, -1)">
+            <i class="fas fa-arrow-up"></i>
+          </button>
+          <button type="button" class="reorder-btn" title="Mover para Baixo" onclick="moveDownloadResource(${globalIndex}, 1)">
+            <i class="fas fa-arrow-down"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="admin-download-header">
+        <span class="order-badge">#${globalIndex + 1}</span>
+        <span class="page-badge">${escapeHtml(item.badgeText || 'Recurso')}</span>
+        <div class="admin-download-icon-wrap">
+          <i class="${escapeHtml(iconClass)}"></i>
+        </div>
+      </div>
+
+      <div class="admin-download-content">
+        <div>
+          <span style="font-size: 11px; text-transform: uppercase; color: #FE5E00; font-weight: 700; letter-spacing: 0.5px; display: block; margin-bottom: 4px;">
+            ${escapeHtml(catLabel)} · ${escapeHtml(item.software || 'Universal')}
+          </span>
+          <h4>${escapeHtml(item.title)}</h4>
+          <p class="admin-download-desc">${escapeHtml(item.description || '')}</p>
+          
+          <div class="admin-download-meta">
+            ${item.format ? `<span><i class="fas fa-file-code"></i> ${escapeHtml(item.format)}</span>` : ''}
+            ${item.fileSize ? `<span><i class="fas fa-hdd"></i> ${escapeHtml(item.fileSize)}</span>` : ''}
+            ${item.compatibility ? `<span><i class="fas fa-check-circle"></i> ${escapeHtml(item.compatibility)}</span>` : ''}
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 12px; margin-top: 4px; gap: 8px;">
+          <div style="font-size: 11.5px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px;">
+            ${item.downloadUrl && item.downloadUrl !== '#' && item.downloadUrl !== 'https://github.com/dgffu/Giffu_' ? '<i class="fas fa-link" style="color:#2ecc71;"></i> Link Ativo' : '<i class="fas fa-unlink" style="color:#aaa;"></i> Link Padrão'}
+          </div>
+          <div style="display: flex; gap: 6px;">
+            <button type="button" class="btn-secondary" style="font-size: 12px; padding: 5px 10px;" onclick="openDownloadModal('${escapeHtml(item.id)}')">
+              <i class="fas fa-edit"></i> Editar
+            </button>
+            <button type="button" class="btn-secondary" style="font-size: 12px; padding: 5px 8px; color: #ff5252; border-color: rgba(255, 82, 82, 0.3);" onclick="deleteDownloadResource('${escapeHtml(item.id)}')">
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    container.appendChild(card);
+  });
+
+  setupDownloadDragAndDrop();
+}
+
+function openDownloadModal(idOrNew) {
+  const modal = document.getElementById('downloadEditModal');
+  const heading = document.getElementById('downloadModalHeading');
+  if (!modal) return;
+
+  if (idOrNew === 'new') {
+    heading.textContent = 'Novo Recurso para Download';
+    document.getElementById('downloadIdInput').value = `down-${Date.now()}`;
+    document.getElementById('downloadTitleInput').value = '';
+    document.getElementById('downloadCategorySelect').value = 'presets';
+    document.getElementById('downloadSoftwareInput').value = 'Premiere Pro';
+    document.getElementById('downloadBadgeInput').value = 'Preset';
+    document.getElementById('downloadIconSelect').value = 'fas fa-bolt';
+    document.getElementById('downloadDescInput').value = '';
+    document.getElementById('downloadFormatInput').value = '.prfpset';
+    document.getElementById('downloadSizeInput').value = '10 MB';
+    document.getElementById('downloadCompatInput').value = 'Premiere 2022+';
+    document.getElementById('downloadDetailsDescInput').value = '';
+    document.getElementById('downloadFileNameInput').value = '';
+    document.getElementById('downloadUrlInput').value = '';
+  } else {
+    const item = adminDownloads.find(d => d.id === idOrNew);
+    if (!item) return;
+
+    heading.textContent = 'Editar Recurso de Download';
+    document.getElementById('downloadIdInput').value = item.id;
+    document.getElementById('downloadTitleInput').value = item.title || '';
+    document.getElementById('downloadCategorySelect').value = item.category || 'presets';
+    document.getElementById('downloadSoftwareInput').value = item.software || '';
+    document.getElementById('downloadBadgeInput').value = item.badgeText || '';
+    document.getElementById('downloadIconSelect').value = item.icon || 'fas fa-bolt';
+    document.getElementById('downloadDescInput').value = item.description || '';
+    document.getElementById('downloadFormatInput').value = item.format || '';
+    document.getElementById('downloadSizeInput').value = item.fileSize || '';
+    document.getElementById('downloadCompatInput').value = item.compatibility || '';
+    document.getElementById('downloadDetailsDescInput').value = item.detailsDesc || '';
+    document.getElementById('downloadFileNameInput').value = item.fileName || '';
+    document.getElementById('downloadUrlInput').value = (item.downloadUrl && item.downloadUrl !== '#') ? item.downloadUrl : '';
+  }
+
+  // Atualizar badge de link direto
+  handleDriveLinkInput(document.getElementById('downloadUrlInput'));
+
+  modal.classList.add('active');
+}
+
+function closeDownloadModal() {
+  const modal = document.getElementById('downloadEditModal');
+  if (modal) modal.classList.remove('active');
+}
+
+// Conversor inteligente de links do Google Drive para Download Direto (Clicou, Baixou)
+function convertToDirectGoogleDriveLink(url) {
+  if (!url || typeof url !== 'string') return url;
+  url = url.trim();
+
+  // Verifica se é link do Google Drive
+  if (!url.includes('drive.google.com')) return url;
+
+  let fileId = null;
+
+  // Formato 1: drive.google.com/file/d/FILE_ID/view... ou /edit... ou /preview...
+  const matchFileD = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (matchFileD) {
+    fileId = matchFileD[1];
+  }
+
+  // Formato 2: drive.google.com/open?id=FILE_ID ou ?id=FILE_ID ou &id=FILE_ID
+  if (!fileId) {
+    const matchIdParam = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (matchIdParam) {
+      fileId = matchIdParam[1];
+    }
+  }
+
+  // Formato 3: drive.google.com/uc?id=FILE_ID
+  if (!fileId) {
+    const matchUc = url.match(/\/uc\?.*id=([a-zA-Z0-9_-]+)/);
+    if (matchUc) {
+      fileId = matchUc[1];
+    }
+  }
+
+  // Formato 4: drive.google.com/d/FILE_ID
+  if (!fileId) {
+    const matchD = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (matchD) {
+      fileId = matchD[1];
+    }
+  }
+
+  if (fileId) {
+    return `https://drive.google.com/uc?export=download&id=${fileId}`;
+  }
+
+  return url;
+}
+
+function handleDriveLinkInput(inputElem) {
+  if (!inputElem) return;
+  const original = inputElem.value.trim();
+  const converted = convertToDirectGoogleDriveLink(original);
+  const statusBadge = document.getElementById('driveDirectStatus');
+
+  if (converted && converted.includes('drive.google.com/uc?export=download&id=')) {
+    if (original !== converted) {
+      inputElem.value = converted;
+    }
+    if (statusBadge) statusBadge.style.display = 'inline-block';
+  } else {
+    if (statusBadge) statusBadge.style.display = 'none';
+  }
+}
+
+function saveDownloadResource(e) {
+  if (e) e.preventDefault();
+
+  const id = document.getElementById('downloadIdInput').value;
+  const title = document.getElementById('downloadTitleInput').value.trim();
+  const category = document.getElementById('downloadCategorySelect').value;
+  const software = document.getElementById('downloadSoftwareInput').value.trim();
+  const badgeText = document.getElementById('downloadBadgeInput').value.trim() || 'Recurso';
+  const icon = document.getElementById('downloadIconSelect').value;
+  const description = document.getElementById('downloadDescInput').value.trim();
+  const format = document.getElementById('downloadFormatInput').value.trim();
+  const fileSize = document.getElementById('downloadSizeInput').value.trim();
+  const compatibility = document.getElementById('downloadCompatInput').value.trim();
+  const detailsDesc = document.getElementById('downloadDetailsDescInput').value.trim() || description;
+  const fileName = document.getElementById('downloadFileNameInput').value.trim() || `${title.replace(/\s+/g, '-')}.zip`;
+  
+  let rawUrl = document.getElementById('downloadUrlInput').value.trim();
+  let downloadUrl = 'https://github.com/dgffu/Giffu_';
+  if (rawUrl) {
+    downloadUrl = convertToDirectGoogleDriveLink(rawUrl);
+  }
+
+  if (!title || !description) {
+    alert('Por favor, preencha pelo menos o título e a descrição do recurso.');
+    return;
+  }
+
+  const newObj = {
+    id: id || `down-${Date.now()}`,
+    title,
+    category,
+    software,
+    badgeText,
+    icon,
+    description,
+    format,
+    fileSize,
+    compatibility,
+    detailsDesc,
+    fileName,
+    downloadUrl
+  };
+
+  const existingIdx = adminDownloads.findIndex(d => d.id === id);
+  if (existingIdx !== -1) {
+    adminDownloads[existingIdx] = newObj;
+  } else {
+    adminDownloads.unshift(newObj);
+  }
+
+  localStorage.setItem('giffu_downloads', JSON.stringify(adminDownloads));
+  closeDownloadModal();
+  renderAdminDownloadsGrid();
+  alert('Recurso salvo com sucesso!');
+}
+
+function deleteDownloadResource(id) {
+  const item = adminDownloads.find(d => d.id === id);
+  const title = item ? item.title : 'este item';
+  if (!confirm(`Deseja realmente excluir "${title}" da Biblioteca de Downloads?`)) {
+    return;
+  }
+
+  adminDownloads = adminDownloads.filter(d => d.id !== id);
+  localStorage.setItem('giffu_downloads', JSON.stringify(adminDownloads));
+  renderAdminDownloadsGrid();
+}
+
+function moveDownloadResource(index, direction) {
+  const targetIndex = index + direction;
+  if (targetIndex < 0 || targetIndex >= adminDownloads.length) return;
+
+  const temp = adminDownloads[index];
+  adminDownloads[index] = adminDownloads[targetIndex];
+  adminDownloads[targetIndex] = temp;
+
+  localStorage.setItem('giffu_downloads', JSON.stringify(adminDownloads));
+  renderAdminDownloadsGrid();
+}
+
+function setupDownloadDragAndDrop() {
+  const cards = document.querySelectorAll('#adminDownloadsGrid .admin-download-card');
+  let draggedCard = null;
+
+  cards.forEach(card => {
+    card.addEventListener('dragstart', function(e) {
+      draggedCard = this;
+      this.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', this.dataset.index);
+    });
+
+    card.addEventListener('dragend', function() {
+      this.classList.remove('dragging');
+      cards.forEach(c => c.classList.remove('drag-over'));
+      draggedCard = null;
+    });
+
+    card.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if (this !== draggedCard) {
+        this.classList.add('drag-over');
+      }
+    });
+
+    card.addEventListener('dragleave', function() {
+      this.classList.remove('drag-over');
+    });
+
+    card.addEventListener('drop', function(e) {
+      e.preventDefault();
+      this.classList.remove('drag-over');
+      if (!draggedCard || draggedCard === this) return;
+
+      const fromIndex = parseInt(draggedCard.dataset.index, 10);
+      const toIndex = parseInt(this.dataset.index, 10);
+
+      if (isNaN(fromIndex) || isNaN(toIndex) || fromIndex === toIndex) return;
+
+      const itemToMove = adminDownloads.splice(fromIndex, 1)[0];
+      adminDownloads.splice(toIndex, 0, itemToMove);
+
+      localStorage.setItem('giffu_downloads', JSON.stringify(adminDownloads));
+      renderAdminDownloadsGrid();
+    });
+  });
+}
+
+async function resetDefaultDownloads() {
+  if (!confirm('Deseja restaurar a lista padrão de 6 recursos da Biblioteca do Editor?')) {
+    return;
+  }
+
+  try {
+    const res = await fetch('downloads.json');
+    if (res.ok) {
+      const json = await res.json();
+      if (Array.isArray(json)) {
+        adminDownloads = json;
+        localStorage.setItem('giffu_downloads', JSON.stringify(adminDownloads));
+        renderAdminDownloadsGrid();
+        alert('Recursos restaurados para os padrões com sucesso!');
+      }
+    }
+  } catch (e) {
+    alert('Erro ao carregar dados padrão.');
+  }
 }
