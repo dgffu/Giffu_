@@ -221,16 +221,26 @@ function disconnectGoogleAuth() {
 function handleAuthButtonClick() {
   if (accessToken) {
     disconnectGoogleAuth();
+    return;
+  }
+
+  const clientId = getClientId();
+  if (!clientId || clientId === DEFAULT_CLIENT_ID) {
+    alert('Para conectar sua conta do Google, configure seu Google Client ID na aba "Configurar API Google".\n\nRedirecionando para a aba de configuração...');
+    switchTab('config');
+    const input = document.getElementById('googleClientId');
+    if (input) input.focus();
+    return;
+  }
+
+  if (tokenClient) {
+    tokenClient.requestAccessToken({ prompt: 'select_account' });
   } else {
+    initGoogleAuth();
     if (tokenClient) {
       tokenClient.requestAccessToken({ prompt: 'select_account' });
     } else {
-      initGoogleAuth();
-      if (tokenClient) {
-        tokenClient.requestAccessToken({ prompt: 'select_account' });
-      } else {
-        alert('Carregando biblioteca do Google. Por favor, tente novamente em alguns segundos.');
-      }
+      alert('Aguardando carregamento da biblioteca do Google ou verificação do Client ID. Por favor, tente novamente em instantes.');
     }
   }
 }
@@ -249,6 +259,10 @@ function updateAuthUI(isConnected, text) {
   const manageContent = document.getElementById('manageProtectedContent');
   const manageLock = document.getElementById('manageLockNotice');
 
+  // Gerenciar Vídeos fica sempre acessível para reordenação e edição
+  if (manageContent) manageContent.style.display = 'block';
+  if (manageLock) manageLock.style.display = 'none';
+
   if (isConnected) {
     dot.classList.add('connected');
     txt.textContent = text || 'Conectado';
@@ -259,8 +273,6 @@ function updateAuthUI(isConnected, text) {
 
     if (uploadForm) uploadForm.style.display = 'block';
     if (uploadLock) uploadLock.style.display = 'none';
-    if (manageContent) manageContent.style.display = 'block';
-    if (manageLock) manageLock.style.display = 'none';
   } else {
     dot.classList.remove('connected');
     txt.textContent = text || 'Não conectado';
@@ -271,8 +283,6 @@ function updateAuthUI(isConnected, text) {
 
     if (uploadForm) uploadForm.style.display = 'none';
     if (uploadLock) uploadLock.style.display = 'block';
-    if (manageContent) manageContent.style.display = 'none';
-    if (manageLock) manageLock.style.display = 'block';
   }
 }
 
@@ -1085,7 +1095,7 @@ async function loadAdminVideos() {
     const raw = localStorage.getItem('giffu_videos');
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) allVideos = parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) allVideos = parsed;
     }
   } catch (e) {}
 
@@ -1101,23 +1111,33 @@ async function loadAdminVideos() {
     }
   } catch (e) {}
 
-  const existingIds = new Set(allVideos.map(v => v.id));
-  staticList.forEach(v => {
-    if (!existingIds.has(v.id)) {
-      allVideos.push(v);
-    }
-  });
+  if (allVideos.length === 0) {
+    allVideos = [...staticList];
+  } else {
+    // Keep existing order in allVideos, append any missing from staticList
+    const existingIds = new Set(allVideos.map(v => v.id));
+    staticList.forEach(v => {
+      if (!existingIds.has(v.id)) {
+        allVideos.push(v);
+      }
+    });
+  }
 
   window.adminVideosList = allVideos;
-  renderAdminVideoGrid(allVideos);
+  try {
+    localStorage.setItem('giffu_videos', JSON.stringify(allVideos.map(sanitizeVideoObj)));
+  } catch (e) {}
+
+  filterManagedVideos();
 }
 
-function filterManagedVideos() {
-  const search = document.getElementById('manageSearch').value.toLowerCase();
-  const category = document.getElementById('manageCategory').value;
+function getCurrentlyFilteredList() {
+  const searchEl = document.getElementById('manageSearch');
+  const categoryEl = document.getElementById('manageCategory');
+  const search = searchEl ? searchEl.value.toLowerCase().trim() : '';
+  const category = categoryEl ? categoryEl.value : 'all';
 
   let filtered = window.adminVideosList || [];
-
   if (category !== 'all') {
     filtered = filtered.filter(v => v.page === category);
   }
@@ -1127,9 +1147,112 @@ function filterManagedVideos() {
       (v.subtitle && v.subtitle.toLowerCase().includes(search))
     );
   }
+  return filtered;
+}
 
+function filterManagedVideos() {
+  const filtered = getCurrentlyFilteredList();
   renderAdminVideoGrid(filtered);
 }
+
+// --- VIDEO REORDERING & DRAG-AND-DROP ---
+let draggedVideoId = null;
+
+function handleCardDragStart(e, id) {
+  draggedVideoId = id;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', id);
+  const card = e.currentTarget;
+  setTimeout(() => {
+    if (card) card.classList.add('dragging');
+  }, 0);
+}
+
+function handleCardDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+}
+
+function handleCardDragEnter(e) {
+  e.preventDefault();
+  const card = e.currentTarget;
+  if (card && !card.classList.contains('dragging')) {
+    card.classList.add('drag-over');
+  }
+}
+
+function handleCardDragLeave(e) {
+  const card = e.currentTarget;
+  if (card) {
+    card.classList.remove('drag-over');
+  }
+}
+
+function handleCardDrop(e, targetId) {
+  e.preventDefault();
+  const card = e.currentTarget;
+  if (card) card.classList.remove('drag-over');
+
+  const sourceId = draggedVideoId || e.dataTransfer.getData('text/plain');
+  if (!sourceId || sourceId === targetId) return;
+
+  reorderVideos(sourceId, targetId);
+}
+
+function handleCardDragEnd(e) {
+  draggedVideoId = null;
+  document.querySelectorAll('.admin-video-card').forEach(c => {
+    c.classList.remove('dragging', 'drag-over');
+  });
+}
+
+function reorderVideos(sourceId, targetId) {
+  if (!window.adminVideosList) return;
+  const fromIndex = window.adminVideosList.findIndex(v => v.id === sourceId);
+  const toIndex = window.adminVideosList.findIndex(v => v.id === targetId);
+
+  if (fromIndex === -1 || toIndex === -1) return;
+
+  const [movedItem] = window.adminVideosList.splice(fromIndex, 1);
+  window.adminVideosList.splice(toIndex, 0, movedItem);
+
+  saveReorderedList();
+}
+
+function moveVideoOrder(videoId, direction) {
+  if (!window.adminVideosList) return;
+
+  const filteredList = getCurrentlyFilteredList();
+  const filteredIndex = filteredList.findIndex(v => v.id === videoId);
+  if (filteredIndex === -1) return;
+
+  const targetFilteredIndex = filteredIndex + direction;
+  if (targetFilteredIndex < 0 || targetFilteredIndex >= filteredList.length) return;
+
+  const targetVideo = filteredList[targetFilteredIndex];
+  if (!targetVideo) return;
+
+  reorderVideos(videoId, targetVideo.id);
+}
+
+function saveReorderedList() {
+  try {
+    const cleanList = (window.adminVideosList || []).map(sanitizeVideoObj);
+    localStorage.setItem('giffu_videos', JSON.stringify(cleanList));
+  } catch (e) {
+    console.error('Erro ao salvar nova ordem no localStorage:', e);
+  }
+
+  filterManagedVideos();
+}
+
+window.handleCardDragStart = handleCardDragStart;
+window.handleCardDragOver = handleCardDragOver;
+window.handleCardDragEnter = handleCardDragEnter;
+window.handleCardDragLeave = handleCardDragLeave;
+window.handleCardDrop = handleCardDrop;
+window.handleCardDragEnd = handleCardDragEnd;
+window.moveVideoOrder = moveVideoOrder;
 
 function renderAdminVideoGrid(videos) {
   const container = document.getElementById('adminVideoGrid');
@@ -1140,14 +1263,42 @@ function renderAdminVideoGrid(videos) {
     return;
   }
 
-  container.innerHTML = videos.map(v => {
+  container.innerHTML = videos.map((v, index) => {
     const thumbUrl = getHighResThumb(v.thumb, v.id);
+    const isFirst = index === 0;
+    const isLast = index === videos.length - 1;
     return `
-      <div class="admin-video-card">
+      <div class="admin-video-card" 
+           draggable="true" 
+           data-video-id="${v.id}"
+           ondragstart="handleCardDragStart(event, '${v.id}')"
+           ondragover="handleCardDragOver(event)"
+           ondragenter="handleCardDragEnter(event)"
+           ondragleave="handleCardDragLeave(event)"
+           ondrop="handleCardDrop(event, '${v.id}')"
+           ondragend="handleCardDragEnd(event)">
+        
+        <div class="drag-handle-bar" title="Arraste para reposicionar">
+          <div class="drag-handle-info">
+            <i class="fas fa-grip-vertical"></i>
+            <span>#${index + 1} &bull; ${getPageLabel(v.page)}</span>
+          </div>
+          <div class="reorder-btn-group">
+            <button type="button" class="reorder-btn" onclick="event.stopPropagation(); moveVideoOrder('${v.id}', -1)" title="Mover para cima" ${isFirst ? 'disabled style="opacity:0.3; cursor:not-allowed;"' : ''}>
+              <i class="fas fa-arrow-up"></i>
+            </button>
+            <button type="button" class="reorder-btn" onclick="event.stopPropagation(); moveVideoOrder('${v.id}', 1)" title="Mover para baixo" ${isLast ? 'disabled style="opacity:0.3; cursor:not-allowed;"' : ''}>
+              <i class="fas fa-arrow-down"></i>
+            </button>
+          </div>
+        </div>
+
         <div class="admin-video-thumb">
           <img src="${thumbUrl}" alt="${escapeHtml(v.title)}" loading="lazy" onerror="handleThumbError(this, '${v.id}')">
+          <span class="order-badge">#${index + 1}</span>
           <span class="page-badge">${getPageLabel(v.page)}</span>
         </div>
+        
         <div class="admin-video-content">
           <div>
             <h4>${escapeHtml(v.title)}</h4>
@@ -1157,13 +1308,13 @@ function renderAdminVideoGrid(videos) {
             <a href="https://www.youtube.com/watch?v=${v.id}" target="_blank" class="btn-secondary" style="font-size:12px; padding:6px 10px;">
               <i class="fab fa-youtube"></i> Ver
             </a>
-            <button class="btn-secondary" style="font-size:12px; padding:6px 10px;" onclick="openVideoEditor('${v.id}')" title="Editar Título, Subtítulo, Página e Capa">
+            <button type="button" class="btn-secondary" style="font-size:12px; padding:6px 10px;" onclick="openVideoEditor('${v.id}')" title="Editar Título, Subtítulo, Página e Capa">
               <i class="fas fa-edit"></i> Editar
             </button>
-            <button class="btn-secondary" style="font-size:12px; padding:6px 10px;" onclick="copyCardHtml('${v.id}')" title="Copiar HTML">
+            <button type="button" class="btn-secondary" style="font-size:12px; padding:6px 10px;" onclick="copyCardHtml('${v.id}')" title="Copiar HTML">
               <i class="fas fa-code"></i> HTML
             </button>
-            <button class="btn-danger" onclick="deletePortfolioVideo('${v.id}')" title="Excluir">
+            <button type="button" class="btn-danger" onclick="deletePortfolioVideo('${v.id}')" title="Excluir">
               <i class="fas fa-trash"></i>
             </button>
           </div>

@@ -137,30 +137,19 @@
     const grid = document.querySelector('.video-grid');
     if (!grid) return;
 
-    enhanceStaticCards();
-
-    // Identify already rendered cards in the DOM to avoid duplication
-    const existingCards = Array.from(grid.querySelectorAll('.video-card'));
-    const renderedIds = new Set();
-
-    existingCards.forEach(card => {
-      const href = card.getAttribute('href') || '';
-      const vId = parseVideoId(href);
-      if (vId) renderedIds.add(vId);
-    });
-
     // Filter videos matching current page category
     const categoryVideos = videos.filter(v => v.page === category);
 
-    // Prepend videos that aren't in the static HTML grid yet
-    categoryVideos.reverse().forEach(v => {
-      if (!renderedIds.has(v.id)) {
+    if (categoryVideos.length > 0) {
+      // Rebuild the grid in the exact manual order from the manager
+      grid.innerHTML = '';
+      categoryVideos.forEach(v => {
         const cardElem = createCardElement(v);
-        grid.insertBefore(cardElem, grid.firstChild);
-        renderedIds.add(v.id);
-      }
-    });
+        grid.appendChild(cardElem);
+      });
+    }
 
+    enhanceStaticCards();
     // Re-bind overlay click handlers for all cards
     bindOverlayEvents();
     autoCropAllThumbs();

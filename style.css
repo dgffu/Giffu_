@@ -1273,6 +1273,101 @@ main {
   border: 1px solid #333;
   display: flex;
   flex-direction: column;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  position: relative;
+}
+
+.admin-video-card.dragging {
+  opacity: 0.4;
+  border: 2px dashed var(--accent-orange);
+  transform: scale(0.97);
+}
+
+.admin-video-card.drag-over {
+  border: 2px solid var(--accent-orange);
+  box-shadow: 0 0 16px rgba(254, 94, 0, 0.45);
+  transform: scale(1.02);
+}
+
+.order-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  z-index: 2;
+  letter-spacing: 0.5px;
+}
+
+.drag-handle-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #aaa;
+  cursor: grab;
+  user-select: none;
+}
+
+.drag-handle-bar:active {
+  cursor: grabbing;
+}
+
+.drag-handle-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.reorder-btn-group {
+  display: flex;
+  gap: 4px;
+}
+
+.reorder-btn {
+  padding: 3px 8px !important;
+  font-size: 11px !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #eee !important;
+  cursor: pointer;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.reorder-btn:hover {
+  background: var(--accent-orange) !important;
+  color: #fff !important;
+  border-color: var(--accent-orange) !important;
+}
+
+body.light-mode .drag-handle-bar {
+  background: rgba(0, 0, 0, 0.03);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+  color: #666;
+}
+
+body.light-mode .reorder-btn {
+  background: rgba(0, 0, 0, 0.05) !important;
+  border-color: rgba(0, 0, 0, 0.15) !important;
+  color: #333 !important;
+}
+
+body.light-mode .order-badge {
+  background: rgba(0, 0, 0, 0.85);
+  color: #fff;
 }
 
 .admin-video-thumb {
