@@ -1,20 +1,5 @@
 [
   {
-    "id": "down-1",
-    "title": "Clean Lower Thirds & Titles MOGRT",
-    "category": "premiere-templates",
-    "software": "Premiere Pro",
-    "badgeText": "MOGRT",
-    "icon": "fas fa-heading",
-    "description": "Templates de títulos e créditos em MOGRT com controles rápidos de cor, tipografia, animação de entrada e saída automática e responsiva.",
-    "format": ".mogrt",
-    "fileSize": "25 MB",
-    "compatibility": "Premiere 2022+",
-    "detailsDesc": "8 Templates MOGRT elegantes e minimalistas para entrevistas, podcasts e vídeos institucionais. Arraste direto para a timeline do Premiere pelo painel Essential Graphics.",
-    "fileName": "Clean-Titles-Mogrt-Giffu.zip",
-    "downloadUrl": "https://github.com/dgffu/Giffu_"
-  },
-  {
     "id": "down-2",
     "title": "Cinematic 3D Logo Reveal",
     "category": "ae-templates",
