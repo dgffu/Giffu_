@@ -247,11 +247,71 @@
     return overlay;
   }
 
+  let ytPlayerInstance = null;
+  let qualityInterval = null;
+
+  function loadYouTubeIframeApi() {
+    if (!window.YT && !document.getElementById('youtube-iframe-api-script')) {
+      const tag = document.createElement('script');
+      tag.id = 'youtube-iframe-api-script';
+      tag.src = 'https://www.youtube.com/iframe_api';
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      if (firstScriptTag && firstScriptTag.parentNode) {
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+      } else {
+        document.head.appendChild(tag);
+      }
+    }
+  }
+
+  function applyHighestQuality(player) {
+    if (!player) return;
+    try {
+      if (typeof player.getAvailableQualityLevels === 'function') {
+        const levels = player.getAvailableQualityLevels();
+        if (Array.isArray(levels) && levels.length > 0) {
+          // O primeiro elemento de getAvailableQualityLevels é a resolução máxima suportada (ex: 'highres', 'hd2160' 4K, 'hd1440' 2K, 'hd1080')
+          player.setPlaybackQuality(levels[0]);
+          player.setSuggestedQuality(levels[0]);
+        } else {
+          player.setPlaybackQuality('highres');
+          player.setSuggestedQuality('highres');
+        }
+      } else {
+        if (typeof player.setPlaybackQuality === 'function') player.setPlaybackQuality('highres');
+        if (typeof player.setSuggestedQuality === 'function') player.setSuggestedQuality('highres');
+      }
+    } catch (e) {}
+  }
+
+  function sendPostMessageMaxQuality(iframe) {
+    if (!iframe || !iframe.contentWindow) return;
+    try {
+      iframe.contentWindow.postMessage(JSON.stringify({
+        event: 'command',
+        func: 'setPlaybackQuality',
+        args: ['highres']
+      }), '*');
+      iframe.contentWindow.postMessage(JSON.stringify({
+        event: 'command',
+        func: 'setSuggestedQuality',
+        args: ['highres']
+      }), '*');
+    } catch (e) {}
+  }
+
   function closeVideo() {
+    if (qualityInterval) {
+      clearInterval(qualityInterval);
+      qualityInterval = null;
+    }
     const overlay = document.getElementById('video-overlay');
     const iframe = document.getElementById('video-frame');
     if (overlay) {
       overlay.style.display = 'none';
+    }
+    if (ytPlayerInstance && typeof ytPlayerInstance.stopVideo === 'function') {
+      try { ytPlayerInstance.stopVideo(); } catch(e) {}
     }
     if (iframe) {
       iframe.src = '';
@@ -297,12 +357,62 @@
     const overlay = ensureVideoOverlayExists();
     const iframe = document.getElementById('video-frame');
     initOverlayEvents();
-    if (overlay && iframe) {
-      iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&vq=hd3840`;
-      overlay.style.display = 'flex';
-    } else {
+
+    if (!overlay || !iframe) {
       window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank');
+      return;
     }
+
+    if (qualityInterval) {
+      clearInterval(qualityInterval);
+      qualityInterval = null;
+    }
+
+    // Parâmetro vq=highres para requisitar resolução nativa máxima (8K/4K/2160p/1440p/1080p)
+    const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&vq=highres&enablejsapi=1&origin=${encodeURIComponent(window.location.origin || '*')}&rel=0&modestbranding=1&playsinline=1`;
+    iframe.src = embedUrl;
+    overlay.style.display = 'flex';
+
+    // Integração direta com a API YT.Player para forçar qualidade máxima
+    if (window.YT && window.YT.Player) {
+      try {
+        if (!ytPlayerInstance) {
+          ytPlayerInstance = new YT.Player('video-frame', {
+            events: {
+              onReady: (event) => {
+                applyHighestQuality(event.target);
+                event.target.playVideo();
+              },
+              onStateChange: (event) => {
+                if (event.data === (window.YT.PlayerState ? window.YT.PlayerState.PLAYING : 1)) {
+                  applyHighestQuality(event.target);
+                }
+              }
+            }
+          });
+        } else if (typeof ytPlayerInstance.loadVideoById === 'function') {
+          ytPlayerInstance.loadVideoById({
+            videoId: videoId,
+            suggestedQuality: 'highres'
+          });
+          applyHighestQuality(ytPlayerInstance);
+        }
+      } catch (e) {
+        console.warn('Erro ao inicializar YT Player:', e);
+      }
+    }
+
+    // Reforçar o comando de qualidade máxima durante o buffer inicial
+    let attempts = 0;
+    qualityInterval = setInterval(() => {
+      attempts++;
+      sendPostMessageMaxQuality(iframe);
+      if (ytPlayerInstance) applyHighestQuality(ytPlayerInstance);
+      if (attempts >= 8) {
+        clearInterval(qualityInterval);
+        qualityInterval = null;
+      }
+    }, 600);
   }
   window.playOverlayVideo = playOverlayVideo;
 
@@ -461,6 +571,7 @@
     initMobileMenu();
     initLanguageToggle();
     initOverlayEvents();
+    loadYouTubeIframeApi();
     loadVideos();
     autoCropAllThumbs();
   }
