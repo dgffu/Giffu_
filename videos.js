@@ -563,17 +563,377 @@
     }
   }
 
+  // --- INTELIGENT BILINGUAL TRANSLATION ENGINE ---
+  const I18N_DATA = {
+    pt: {
+      navHome: 'Home',
+      navDownloads: 'Downloads',
+      navMarcas: 'Para Marcas',
+      navMotion: 'Motion Design',
+      navEventos: 'Edição de Eventos',
+      navAbout: 'Sobre',
+
+      homeHeroSub: 'Transformando conceitos em narrativas audiovisuais de alto padrão. Edição comercial para marcas, identidades visuais dinâmicas, filmes cinematográficos e ferramentas para quem cria com audiovisual.',
+      homeBtnMarcas: '<i class="fas fa-play"></i> Ver Portfólio Comercial',
+      homeBtnDownloads: '<i class="fas fa-download"></i> Biblioteca do Editor',
+      homeSectionTag: 'O que você procura?',
+      homeSectionTitle: 'Explore as Áreas do Portfólio',
+      homePillarMarcasTitle: 'Para Marcas',
+      homePillarMarcasDesc: 'Comerciais, campanhas corporativas e projetos audiovisuais produzidos com ritmo cinematográfico e padrão de transmissão para marcas de destaque.',
+      homePillarMarcasBtn: 'Acessar Portfólio Comercial',
+      homePillarMotionTitle: 'Motion Design',
+      homePillarMotionDesc: 'Identidades visuais animadas, vinhetas 2D/3D, idents de marca, broadcast design refinado e sincronismo sonoro imersivo.',
+      homePillarMotionBtn: 'Acessar Motion Design',
+      homePillarEventosTitle: 'Edição de Eventos',
+      homePillarEventosDesc: 'Same-Day Edits e filmes de eventos montados com sensibilidade narrativa, ritmo dinâmico e tratamento de cor personalizado.',
+      homePillarEventosBtn: 'Acessar Filmes de Eventos',
+      homePillarDownloadsTitle: 'Biblioteca do Editor',
+      homePillarDownloadsDesc: 'Recursos práticos para editores baseados na experiência <i>Giffú</i> de audiovisual, como templates e ferramentas de produtividade.',
+      homePillarDownloadsBtn: 'Acessar Biblioteca de Downloads',
+      homeHighlightsTag: 'Destaques do Portfólio',
+      homeHighlightsTitle: 'Projetos em Destaque',
+      homeHighlightsSub: 'Trabalhos recentes selecionados que demonstram domínio técnico, ritmo narrativo e excelência visual.',
+      homeSeeAllMarcas: 'Ver Todos os Projetos Comerciais <i class="fas fa-arrow-right"></i>',
+
+      marcasBadge: '<i class="fas fa-briefcase"></i> Portfólio Comercial',
+      marcasTitle: 'Edição & Pós-Produção para Marcas',
+      marcasSub: 'Projetos comerciais, campanhas e conteúdos audiovisuais produzidos com ritmo cinematográfico e padrão de transmissão para marcas de destaque.',
+
+      motionBadge: '<i class="fas fa-cube"></i> Animação & VFX',
+      motionTitle: 'Motion Design & Identidades Visuais',
+      motionSub: 'Vinhetas 2D/3D, idents, animações de logo, elementos gráficos dinâmicos e aberturas para marcas e projetos autorais.',
+
+      eventosBadge: '<i class="fas fa-heart"></i> Filmes de Casamento & Eventos',
+      eventosTitle: 'Edição de Filmes & Eventos',
+      eventosSub: 'Same-Day Edits, Save The Date, Teasers e Filmes de Casamento produzidos com narrativa emocional e acabamento de cinema.',
+
+      downloadsBadge: '<i class="fas fa-layer-group"></i> Biblioteca do Editor',
+      downloadsTitle: 'Ferramentas, Presets & Recursos Audiovisuais',
+      downloadsSub: 'Coleção exclusiva de presets para Premiere Pro, templates de After Effects, sound design e utilitários criados para acelerar seu fluxo de pós-produção.',
+      downloadsSearchPlaceholder: 'Buscar recursos...',
+      downloadsBtnText: 'Baixar',
+      downloadsModalBtn: '<i class="fas fa-download"></i> Baixar Agora',
+      downloadsModalClose: 'Fechar',
+      downloadsFilterAll: 'Todos',
+      downloadsFilterApps: 'Apps & Ferramentas',
+      downloadsEmptyTitle: 'Em breve',
+      downloadsEmptyDesc: 'Novos recursos estão sendo preparados para a biblioteca.',
+      downloadsNoResults: 'Nenhum recurso encontrado com os filtros selecionados.',
+
+      aboutTitle: 'Sobre mim',
+      aboutServicesTitle: '<i class="fas fa-layer-group"></i> Serviços',
+      aboutToolsTitle: '<i class="fas fa-wrench"></i> Ferramentas',
+      aboutP1: 'Oi, sou o <b>Dilan Giffú</b>. Sou filmmaker, motion designer, edito vídeos e também escrevo <i>(mas não conta pra ninguém)</i>.',
+      aboutP2: 'Estou há <b>14 anos</b> envolvido no universo da edição de vídeo e há mais de <b>8 anos</b> trabalhando profissionalmente na área. Comecei criando conteúdo no YouTube, até que migrei para a área de eventos sociais e logo parti também para o motion design.',
+      aboutP3: 'Em 2019 fundei a <b>Novel</b>, minha produtora audiovisual de projetos autorais, mas continuo servindo a projetos incríveis aos quais sou apresentado constantemente — desde eventos corporativos a grandes produções, seja na idealização, captação ou pós-produção.',
+      aboutP4: 'Desenvolvi este espaço independente da minha marca para que o trabalho em que prestei serviços a outras empresas possa transmitir a excelência com a qual sempre busco realizar meu trabalho.',
+      aboutStat1Num: '14 anos',
+      aboutStat1Lbl: 'de Audiovisual',
+      aboutStat2Num: '8 anos',
+      aboutStat2Lbl: 'Profissionalmente',
+      aboutStat3Num: '2019',
+      aboutStat3Lbl: 'Fundação da Novel',
+      aboutQuoteText: '"Assim resplandeça a vossa luz diante dos homens, para que vejam as vossas boas obras e glorifiquem a vosso Pai, que está nos céus."',
+      aboutQuoteRef: '— Mateus 5:16',
+
+      footerCopyright: '© 2026 Dilan Giffú · Todos os direitos reservados.',
+      emptyGridTitle: 'Em breve',
+      emptyGridSub: 'Novos vídeos e produções desta categoria serão adicionados em breve.',
+      themeLight: 'Modo Claro',
+      themeDark: 'Modo Escuro'
+    },
+    en: {
+      navHome: 'Home',
+      navDownloads: 'Downloads',
+      navMarcas: 'For Brands',
+      navMotion: 'Motion Design',
+      navEventos: 'Event Editing',
+      navAbout: 'About',
+
+      homeHeroSub: 'Transforming concepts into high-end audiovisual narratives. Commercial editing for brands, dynamic visual identities, cinematic films, and tools for creators.',
+      homeBtnMarcas: '<i class="fas fa-play"></i> View Commercial Portfolio',
+      homeBtnDownloads: '<i class="fas fa-download"></i> Editor\'s Library',
+      homeSectionTag: 'What are you looking for?',
+      homeSectionTitle: 'Explore Portfolio Categories',
+      homePillarMarcasTitle: 'For Brands',
+      homePillarMarcasDesc: 'Commercials, corporate campaigns, and audiovisual projects crafted with cinematic pacing and broadcast standards for leading brands.',
+      homePillarMarcasBtn: 'Access Commercial Portfolio',
+      homePillarMotionTitle: 'Motion Design',
+      homePillarMotionDesc: 'Animated visual identities, 2D/3D openers, brand idents, refined broadcast design, and immersive sound sync.',
+      homePillarMotionBtn: 'Access Motion Design',
+      homePillarEventosTitle: 'Event Editing',
+      homePillarEventosDesc: 'Same-Day Edits and event films crafted with narrative sensitivity, dynamic pacing, and custom color grading.',
+      homePillarEventosBtn: 'Access Event Films',
+      homePillarDownloadsTitle: 'Editor\'s Library',
+      homePillarDownloadsDesc: 'Practical tools and presets for editors based on the <i>Giffú</i> audiovisual experience, including templates and productivity utilities.',
+      homePillarDownloadsBtn: 'Access Downloads Library',
+      homeHighlightsTag: 'Portfolio Highlights',
+      homeHighlightsTitle: 'Featured Projects',
+      homeHighlightsSub: 'Selected recent projects showcasing technical mastery, narrative pacing, and visual excellence.',
+      homeSeeAllMarcas: 'View All Commercial Projects <i class="fas fa-arrow-right"></i>',
+
+      marcasBadge: '<i class="fas fa-briefcase"></i> Commercial Portfolio',
+      marcasTitle: 'Editing & Post-Production for Brands',
+      marcasSub: 'Commercial projects, campaigns, and audiovisual content produced with cinematic pacing and broadcast standards for standout brands.',
+
+      motionBadge: '<i class="fas fa-cube"></i> Animation & VFX',
+      motionTitle: 'Motion Design & Visual Identities',
+      motionSub: '2D/3D idents, logo animations, dynamic graphic elements, and title sequences for brands and original projects.',
+
+      eventosBadge: '<i class="fas fa-heart"></i> Wedding & Event Films',
+      eventosTitle: 'Film & Event Editing',
+      eventosSub: 'Same-Day Edits, Save The Date, Teasers, and Wedding Films produced with emotional storytelling and cinematic finish.',
+
+      downloadsBadge: '<i class="fas fa-layer-group"></i> Editor\'s Library',
+      downloadsTitle: 'Tools, Presets & Audiovisual Resources',
+      downloadsSub: 'Exclusive collection of Premiere Pro presets, After Effects templates, sound design, and utilities built to speed up your post-production workflow.',
+      downloadsSearchPlaceholder: 'Search resources...',
+      downloadsBtnText: 'Download',
+      downloadsModalBtn: '<i class="fas fa-download"></i> Download Now',
+      downloadsModalClose: 'Close',
+      downloadsFilterAll: 'All',
+      downloadsFilterApps: 'Apps & Tools',
+      downloadsEmptyTitle: 'Coming soon',
+      downloadsEmptyDesc: 'New resources are currently being prepared for the library.',
+      downloadsNoResults: 'No resources found matching the selected filters.',
+
+      aboutTitle: 'About Me',
+      aboutServicesTitle: '<i class="fas fa-layer-group"></i> Services',
+      aboutToolsTitle: '<i class="fas fa-wrench"></i> Tools',
+      aboutP1: 'Hi, I\'m <b>Dilan Giffú</b>. I\'m a filmmaker, motion designer, video editor, and writer <i>(don\'t tell anyone)</i>.',
+      aboutP2: 'I have been involved in the video editing universe for <b>14 years</b> and working professionally for over <b>8 years</b>. I started by creating content on YouTube, later transitioning to social events and motion design.',
+      aboutP3: 'In 2019, I founded <b>Novel</b>, my audiovisual studio for original projects. I continue contributing to remarkable productions — from corporate events to large-scale films, across concept, filming, and post-production.',
+      aboutP4: 'I built this independent portfolio space so that the projects I deliver for partner brands faithfully convey the excellence I strive for in every production.',
+      aboutStat1Num: '14 years',
+      aboutStat1Lbl: 'in Audiovisual',
+      aboutStat2Num: '8 years',
+      aboutStat2Lbl: 'Professionally',
+      aboutStat3Num: '2019',
+      aboutStat3Lbl: 'Novel Founded',
+      aboutQuoteText: '"Let your light so shine before men, that they may see your good works, and glorify your Father which is in heaven."',
+      aboutQuoteRef: '— Matthew 5:16',
+
+      footerCopyright: '© 2026 Dilan Giffú · All rights reserved.',
+      emptyGridTitle: 'Coming soon',
+      emptyGridSub: 'New videos and productions in this category will be added soon.',
+      themeLight: 'Light Mode',
+      themeDark: 'Dark Mode'
+    }
+  };
+
+  function getActiveLang() {
+    return localStorage.getItem('giffu_lang') || 'pt';
+  }
+
+  function applyLanguage(lang) {
+    if (!lang) lang = 'pt';
+    const dict = I18N_DATA[lang] || I18N_DATA.pt;
+
+    document.documentElement.lang = lang === 'en' ? 'en' : 'pt-br';
+
+    // 1. Atualizar Navegação
+    const navHome = document.querySelector('nav.menu a[href*="index"]');
+    if (navHome) navHome.textContent = dict.navHome;
+    const navDownloads = document.querySelector('nav.menu a[href*="downloads"]');
+    if (navDownloads) navDownloads.textContent = dict.navDownloads;
+    const navMarcas = document.querySelector('nav.menu a[href*="marcas"]');
+    if (navMarcas) navMarcas.textContent = dict.navMarcas;
+    const navMotion = document.querySelector('nav.menu a[href*="motion"]');
+    if (navMotion) navMotion.textContent = dict.navMotion;
+    const navEventos = document.querySelector('nav.menu a[href*="eventos"]');
+    if (navEventos) navEventos.textContent = dict.navEventos;
+    const navAbout = document.querySelector('nav.menu a[href*="about"]');
+    if (navAbout) navAbout.textContent = dict.navAbout;
+
+    // 2. Atualizar Hero Sections das páginas
+    const homeSub = document.querySelector('.home-hero-subtitle');
+    if (homeSub) homeSub.textContent = dict.homeHeroSub;
+
+    const homeBtnM = document.querySelector('.home-btn-primary');
+    if (homeBtnM) homeBtnM.innerHTML = dict.homeBtnMarcas;
+    const homeBtnD = document.querySelector('.home-btn-secondary');
+    if (homeBtnD) homeBtnD.innerHTML = dict.homeBtnDownloads;
+
+    const homeSecTag = document.querySelector('.home-section-tag');
+    if (homeSecTag) homeSecTag.textContent = dict.homeSectionTag;
+    const homeSecTitle = document.querySelector('.home-section-title');
+    if (homeSecTitle) homeSecTitle.textContent = dict.homeSectionTitle;
+
+    // Bento Pillars no index
+    const pillars = document.querySelectorAll('.home-pillar-card');
+    if (pillars.length >= 4) {
+      // 0: Marcas
+      const p0Title = pillars[0].querySelector('.home-pillar-title');
+      const p0Desc = pillars[0].querySelector('.home-pillar-desc');
+      const p0Btn = pillars[0].querySelector('.home-pillar-bottom span');
+      if (p0Title) p0Title.textContent = dict.homePillarMarcasTitle;
+      if (p0Desc) p0Desc.textContent = dict.homePillarMarcasDesc;
+      if (p0Btn) p0Btn.textContent = dict.homePillarMarcasBtn;
+
+      // 1: Motion
+      const p1Title = pillars[1].querySelector('.home-pillar-title');
+      const p1Desc = pillars[1].querySelector('.home-pillar-desc');
+      const p1Btn = pillars[1].querySelector('.home-pillar-bottom span');
+      if (p1Title) p1Title.textContent = dict.homePillarMotionTitle;
+      if (p1Desc) p1Desc.textContent = dict.homePillarMotionDesc;
+      if (p1Btn) p1Btn.textContent = dict.homePillarMotionBtn;
+
+      // 2: Eventos
+      const p2Title = pillars[2].querySelector('.home-pillar-title');
+      const p2Desc = pillars[2].querySelector('.home-pillar-desc');
+      const p2Btn = pillars[2].querySelector('.home-pillar-bottom span');
+      if (p2Title) p2Title.textContent = dict.homePillarEventosTitle;
+      if (p2Desc) p2Desc.textContent = dict.homePillarEventosDesc;
+      if (p2Btn) p2Btn.textContent = dict.homePillarEventosBtn;
+
+      // 3: Downloads
+      const p3Title = pillars[3].querySelector('.home-pillar-title');
+      const p3Desc = pillars[3].querySelector('.home-pillar-desc');
+      const p3Btn = pillars[3].querySelector('.home-pillar-bottom span');
+      if (p3Title) p3Title.textContent = dict.homePillarDownloadsTitle;
+      if (p3Desc) p3Desc.innerHTML = dict.homePillarDownloadsDesc;
+      if (p3Btn) p3Btn.textContent = dict.homePillarDownloadsBtn;
+    }
+
+    // Home Highlights
+    const hlTag = document.querySelector('.home-highlights-tag');
+    if (hlTag) hlTag.textContent = dict.homeHighlightsTag;
+    const hlTitle = document.querySelector('.home-highlights-title');
+    if (hlTitle) hlTitle.textContent = dict.homeHighlightsTitle;
+    const hlSub = document.querySelector('.home-highlights-sub');
+    if (hlSub) hlSub.textContent = dict.homeHighlightsSub;
+    const hlSeeAll = document.querySelector('.home-see-all-marcas');
+    if (hlSeeAll) hlSeeAll.innerHTML = dict.homeSeeAllMarcas;
+
+    // Páginas de Categorias (Marcas / Motion / Eventos / Downloads)
+    const pageCat = getPageCategory();
+    const heroBadge = document.querySelector('.hero-banner-tag') || document.querySelector('.hero-badge');
+    const heroTitle = document.querySelector('.hero-banner-title') || document.querySelector('.hero-title');
+    const heroSub = document.querySelector('.hero-banner-sub') || document.querySelector('.hero-subtitle');
+
+    if (pageCat === 'marcas') {
+      if (heroBadge) heroBadge.innerHTML = dict.marcasBadge;
+      if (heroTitle) heroTitle.textContent = dict.marcasTitle;
+      if (heroSub) heroSub.textContent = dict.marcasSub;
+    } else if (pageCat === 'motion') {
+      if (heroBadge) heroBadge.innerHTML = dict.motionBadge;
+      if (heroTitle) heroTitle.textContent = dict.motionTitle;
+      if (heroSub) heroSub.textContent = dict.motionSub;
+    } else if (pageCat === 'eventos') {
+      if (heroBadge) heroBadge.innerHTML = dict.eventosBadge;
+      if (heroTitle) heroTitle.textContent = dict.eventosTitle;
+      if (heroSub) heroSub.textContent = dict.eventosSub;
+    }
+
+    // Downloads page elements
+    const dlBadge = document.querySelector('.library-badge');
+    if (dlBadge) dlBadge.innerHTML = dict.downloadsBadge;
+    const dlTitle = document.querySelector('.library-title');
+    if (dlTitle) dlTitle.textContent = dict.downloadsTitle;
+    const dlSub = document.querySelector('.library-subtitle');
+    if (dlSub) dlSub.textContent = dict.downloadsSub;
+
+    const dlSearch = document.getElementById('librarySearch');
+    if (dlSearch) dlSearch.placeholder = dict.downloadsSearchPlaceholder;
+
+    // Filtros de Downloads
+    const filterAll = document.querySelector('.filter-chip[data-category="all"]');
+    if (filterAll) filterAll.textContent = dict.downloadsFilterAll;
+    const filterApps = document.querySelector('.filter-chip[data-category="apps"]');
+    if (filterApps) filterApps.textContent = dict.downloadsFilterApps;
+
+    // Textos de botões de download nos cards
+    document.querySelectorAll('.btn-download-text').forEach(el => {
+      el.textContent = dict.downloadsBtnText;
+    });
+
+    const dlModalBtn = document.getElementById('modalDownloadBtn');
+    if (dlModalBtn) dlModalBtn.innerHTML = dict.downloadsModalBtn;
+    const dlCloseBtns = document.querySelectorAll('.btn-secondary[onclick="closeResourceModal()"]');
+    dlCloseBtns.forEach(btn => btn.textContent = dict.downloadsModalClose);
+
+    const emptyNoticeTitle = document.querySelector('#emptyLibraryNotice h3');
+    if (emptyNoticeTitle) emptyNoticeTitle.textContent = dict.downloadsEmptyTitle;
+    const emptyNoticeDesc = document.querySelector('#emptyLibraryNotice p');
+    if (emptyNoticeDesc) emptyNoticeDesc.textContent = dict.downloadsEmptyDesc;
+
+    const noResultsTitle = document.querySelector('#noResultsNotice h3');
+    if (noResultsTitle) noResultsTitle.textContent = dict.downloadsNoResults;
+
+    // About Page
+    const aboutHeading = document.querySelector('.about-content-main h1');
+    if (aboutHeading) aboutHeading.textContent = dict.aboutTitle;
+
+    const skillTitles = document.querySelectorAll('.skills-title');
+    if (skillTitles.length >= 2) {
+      skillTitles[0].innerHTML = dict.aboutServicesTitle;
+      skillTitles[1].innerHTML = dict.aboutToolsTitle;
+    }
+
+    const skillBadges = document.querySelectorAll('.skill-badge');
+    skillBadges.forEach(badge => {
+      const text = badge.textContent.trim();
+      if (lang === 'en') {
+        if (text === 'Edição Comercial') badge.textContent = 'Commercial Editing';
+        if (text === '3D (em breve)') badge.textContent = '3D (coming soon)';
+      } else {
+        if (text === 'Commercial Editing') badge.textContent = 'Edição Comercial';
+        if (text === '3D (coming soon)') badge.textContent = '3D (em breve)';
+      }
+    });
+
+    const aboutParas = document.querySelectorAll('.about-content-main .about-text');
+    if (aboutParas.length >= 4) {
+      aboutParas[0].innerHTML = dict.aboutP1;
+      aboutParas[1].innerHTML = dict.aboutP2;
+      aboutParas[2].innerHTML = dict.aboutP3;
+      aboutParas[3].innerHTML = dict.aboutP4;
+    }
+
+    const statLabels = document.querySelectorAll('.stat-label');
+    const statNumbers = document.querySelectorAll('.stat-number');
+    if (statLabels.length >= 3 && statNumbers.length >= 3) {
+      statNumbers[0].textContent = dict.aboutStat1Num;
+      statLabels[0].textContent = dict.aboutStat1Lbl;
+      statNumbers[1].textContent = dict.aboutStat2Num;
+      statLabels[1].textContent = dict.aboutStat2Lbl;
+      statNumbers[2].textContent = dict.aboutStat3Num;
+      statLabels[2].textContent = dict.aboutStat3Lbl;
+    }
+
+    const quoteText = document.querySelector('.quote-text');
+    if (quoteText) quoteText.textContent = dict.aboutQuoteText;
+    const quoteRef = document.querySelector('.quote-ref');
+    if (quoteRef) quoteRef.textContent = dict.aboutQuoteRef;
+
+    // Footer
+    const footerText = document.querySelector('.footer-text');
+    if (footerText) footerText.textContent = dict.footerCopyright;
+
+    // Empty video notice
+    const emptyNotice = document.getElementById('emptyNotice');
+    if (emptyNotice) {
+      const h3 = emptyNotice.querySelector('h3');
+      const p = emptyNotice.querySelector('p');
+      if (h3) h3.textContent = dict.emptyGridTitle;
+      if (p) p.textContent = pageCat === 'home' ? dict.emptyHomeSub : dict.emptyGridSub;
+    }
+
+    // Botões de alternar idioma
+    updateAllLangButtons(lang);
+  }
+
   function initLanguageToggle() {
-    const saved = localStorage.getItem('giffu_lang') || 'pt';
-    updateAllLangButtons(saved);
+    const saved = getActiveLang();
+    applyLanguage(saved);
 
     document.querySelectorAll('.lang-toggle-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
-        const curr = btn.getAttribute('data-lang') || 'pt';
+        const curr = btn.getAttribute('data-lang') || getActiveLang();
         const next = curr === 'pt' ? 'en' : 'pt';
         localStorage.setItem('giffu_lang', next);
-        updateAllLangButtons(next);
+        applyLanguage(next);
       });
     });
   }
@@ -585,6 +945,19 @@
       btn.setAttribute('aria-label', lang === 'pt' ? 'Mudar para Inglês' : 'Switch to English');
     });
   }
+
+  // Sincronização de idioma entre abas
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'giffu_lang') {
+      applyLanguage(e.newValue || 'pt');
+    }
+  });
+
+  window.GiffuI18n = {
+    getActiveLang,
+    applyLanguage,
+    I18N_DATA
+  };
 
   function initApp() {
     cleanBrowserUrl();

@@ -282,6 +282,9 @@
       });
 
       applyLibraryFilters();
+      if (window.GiffuI18n) {
+        window.GiffuI18n.applyLanguage(window.GiffuI18n.getActiveLang());
+      }
     }
 
     function createResourceCard(item) {
@@ -319,7 +322,7 @@
           </div>
           <div class="resource-actions">
             <a href="${escapeHtml(downloadUrl)}" class="btn-lib-download" onclick="handleCardDownload(this, '${escapeHtml(fileName)}', event)">
-              <i class="fas fa-download"></i> Baixar
+              <i class="fas fa-download"></i> <span class="btn-download-text">Baixar</span>
             </a>
             <button class="btn-lib-details" onclick="openResourceModalById('${escapeHtml(item.id)}')">
               <i class="fas fa-info-circle"></i>
