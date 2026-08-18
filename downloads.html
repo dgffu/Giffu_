@@ -204,52 +204,41 @@
   <script>
     let allDownloads = [];
 
-    // Carregar Downloads
+    // Carregar Downloads (Banco de Dados Central Unificado)
     async function loadDownloads() {
       const grid = document.getElementById('libraryGrid');
       if (!grid) return;
 
-      // 1. Ler lista de excluídos
-      let deletedIds = [];
+      // 1. Sempre buscar o banco de dados oficial downloads.json com cache-busting para atualizar todos os dispositivos
       try {
-        const rawDel = localStorage.getItem('giffu_deleted_download_ids');
-        if (rawDel) {
-          const parsedDel = JSON.parse(rawDel);
-          if (Array.isArray(parsedDel)) deletedIds = parsedDel;
+        const res = await fetch(`downloads.json?_t=${Date.now()}`, { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          if (Array.isArray(json)) {
+            allDownloads = json;
+            // Salvar cache para uso offline
+            try {
+              localStorage.setItem('giffu_downloads', JSON.stringify(allDownloads));
+            } catch (e) {}
+            renderLibraryCards();
+            return;
+          }
         }
-      } catch (e) {}
+      } catch (err) {
+        console.warn('Rede indisponível, recorrendo ao cache local:', err);
+      }
 
-      let hasLocalData = false;
-
-      // 2. Tentar ler do LocalStorage
+      // 2. Fallback offline caso a rede falhe
       try {
         const stored = localStorage.getItem('giffu_downloads');
-        if (stored !== null) {
+        if (stored) {
           const parsed = JSON.parse(stored);
           if (Array.isArray(parsed)) {
-            allDownloads = parsed.filter(d => !deletedIds.includes(d.id));
-            hasLocalData = true;
+            allDownloads = parsed;
           }
         }
       } catch (e) {
-        console.warn('Erro ao ler giffu_downloads do localStorage:', e);
-      }
-
-      // 3. Se NUNCA foi inicializado no localStorage, carregar do downloads.json
-      if (!hasLocalData) {
-        try {
-          const res = await fetch('downloads.json');
-          if (res.ok) {
-            const json = await res.json();
-            if (Array.isArray(json)) {
-              allDownloads = json.filter(d => !deletedIds.includes(d.id));
-              localStorage.setItem('giffu_downloads', JSON.stringify(allDownloads));
-              localStorage.setItem('giffu_downloads_initialized', 'true');
-            }
-          }
-        } catch (e) {
-          console.warn('Erro ao carregar downloads.json:', e);
-        }
+        console.warn('Erro ao ler cache de downloads:', e);
       }
 
       renderLibraryCards();

@@ -54,55 +54,40 @@
     if (!category) return;
     let allVideos = [];
 
-    // 1. Ler lista de vídeos excluídos
-    let deletedVideoIds = [];
+    // 1. Buscar sempre o banco de dados oficial videos.json com cache-busting para atualizar todos os dispositivos
     try {
-      const rawDel = localStorage.getItem('giffu_deleted_video_ids');
-      if (rawDel) {
-        const parsedDel = JSON.parse(rawDel);
-        if (Array.isArray(parsedDel)) deletedVideoIds = parsedDel;
+      const res = await fetch(`videos.json?_t=${Date.now()}`, { cache: 'no-store' });
+      if (res.ok) {
+        const jsonVideos = await res.json();
+        if (Array.isArray(jsonVideos)) {
+          allVideos = jsonVideos.map(v => {
+            if (v.thumb && (v.thumb.startsWith('data:') || v.thumb.includes('hqdefault.jpg'))) {
+              return { ...v, thumb: `https://img.youtube.com/vi/${v.id}/maxresdefault.jpg` };
+            }
+            return v;
+          });
+          try {
+            localStorage.setItem('giffu_videos', JSON.stringify(allVideos));
+          } catch (e) {}
+          renderGrid(category, allVideos);
+          return;
+        }
       }
-    } catch (e) {}
+    } catch (e) {
+      console.warn('Rede indisponível, recorrendo ao cache de vídeos:', e);
+    }
 
-    let hasLocalVideos = false;
-
-    // 2. Carregar vídeos do localStorage se já inicializado
+    // 2. Fallback offline
     try {
       const stored = localStorage.getItem('giffu_videos');
-      if (stored !== null) {
+      if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {
-          allVideos = parsed
-            .filter(v => !deletedVideoIds.includes(v.id))
-            .map(v => {
-              if (v.thumb && (v.thumb.startsWith('data:') || v.thumb.includes('hqdefault.jpg'))) {
-                return {
-                  ...v,
-                  thumb: `https://img.youtube.com/vi/${v.id}/maxresdefault.jpg`
-                };
-              }
-              return v;
-            });
-          hasLocalVideos = true;
+          allVideos = parsed;
         }
       }
     } catch (e) {
       console.warn('Could not read local video storage:', e);
-    }
-
-    // 3. Se NUNCA foi inicializado no localStorage, carregar de videos.json
-    if (!hasLocalVideos) {
-      try {
-        const res = await fetch('videos.json');
-        if (res.ok) {
-          const jsonVideos = await res.json();
-          if (Array.isArray(jsonVideos)) {
-            allVideos = jsonVideos.filter(v => !deletedVideoIds.includes(v.id));
-          }
-        }
-      } catch (e) {
-        console.warn('Could not fetch videos.json:', e);
-      }
     }
 
     renderGrid(category, allVideos);
