@@ -54,35 +54,35 @@
     if (!category) return;
     let allVideos = [];
 
-    // 1. Buscar sempre o banco de dados oficial videos.json com cache-busting para atualizar todos os dispositivos
-    try {
-      const res = await fetch(`videos.json?_t=${Date.now()}`, { cache: 'no-store' });
-      if (res.ok) {
-        const jsonVideos = await res.json();
-        if (Array.isArray(jsonVideos)) {
-          allVideos = jsonVideos.map(v => {
-            if (v.thumb && (v.thumb.startsWith('data:') || v.thumb.includes('hqdefault.jpg'))) {
-              return { ...v, thumb: `https://img.youtube.com/vi/${v.id}/maxresdefault.jpg` };
-            }
-            return v;
-          });
-          try {
-            localStorage.setItem('giffu_videos', JSON.stringify(allVideos));
-          } catch (e) {}
-          renderGrid(category, allVideos);
-          return;
+    const endpoints = [
+      `videos.json?_t=${Date.now()}`,
+      `http://localhost:5173/videos.json?_t=${Date.now()}`,
+      `http://127.0.0.1:5173/videos.json?_t=${Date.now()}`
+    ];
+
+    for (const ep of endpoints) {
+      try {
+        const res = await fetch(ep, { cache: 'no-store' });
+        if (res.ok) {
+          const jsonVideos = await res.json();
+          if (Array.isArray(jsonVideos) && jsonVideos.length > 0) {
+            allVideos = jsonVideos;
+            try {
+              localStorage.setItem('giffu_videos', JSON.stringify(allVideos));
+            } catch (e) {}
+            renderGrid(category, allVideos);
+            return;
+          }
         }
-      }
-    } catch (e) {
-      console.warn('Rede indisponível, recorrendo ao cache de vídeos:', e);
+      } catch (e) {}
     }
 
-    // 2. Fallback offline
+    // Fallback offline
     try {
       const stored = localStorage.getItem('giffu_videos');
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
+        if (Array.isArray(parsed) && parsed.length > 0) {
           allVideos = parsed;
         }
       }

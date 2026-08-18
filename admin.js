@@ -715,18 +715,25 @@ async function persistVideosUniversally(videosList, singleVideoObj = null) {
     localStorage.setItem('giffu_videos', JSON.stringify(cleanList));
   } catch(e) {}
 
-  // 2. Se estiver rodando localmente (localhost:5173), salvar direto no arquivo videos.json no disco
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+  // 2. Gravar no servidor local (tenta rota relativa e localhost:5173 / 127.0.0.1:5173)
+  const localEndpoints = [
+    '/api/save-videos',
+    'http://localhost:5173/api/save-videos',
+    'http://127.0.0.1:5173/api/save-videos'
+  ];
+
+  for (const ep of localEndpoints) {
     try {
-      await fetch('/api/save-videos', {
+      const res = await fetch(ep, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(cleanList)
       });
-      console.info('✅ videos.json gravado diretamente no disco local.');
-    } catch(e) {
-      console.warn('Erro ao salvar localmente via /api/save-videos:', e);
-    }
+      if (res.ok) {
+        console.info(`✅ videos.json gravado com sucesso no disco via ${ep}`);
+        break;
+      }
+    } catch(e) {}
   }
 
   // 3. Sincronizar com GitHub API se o token estiver configurado
@@ -743,18 +750,25 @@ async function persistDownloadsUniversally(downloadsList) {
     localStorage.setItem('giffu_downloads', JSON.stringify(cleanList));
   } catch(e) {}
 
-  // 2. Se estiver rodando localmente (localhost:5173), salvar direto no arquivo downloads.json no disco
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+  // 2. Gravar no servidor local (tenta rota relativa e localhost:5173 / 127.0.0.1:5173)
+  const localEndpoints = [
+    '/api/save-downloads',
+    'http://localhost:5173/api/save-downloads',
+    'http://127.0.0.1:5173/api/save-downloads'
+  ];
+
+  for (const ep of localEndpoints) {
     try {
-      await fetch('/api/save-downloads', {
+      const res = await fetch(ep, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(cleanList)
       });
-      console.info('✅ downloads.json gravado diretamente no disco local.');
-    } catch(e) {
-      console.warn('Erro ao salvar localmente via /api/save-downloads:', e);
-    }
+      if (res.ok) {
+        console.info(`✅ downloads.json gravado com sucesso no disco via ${ep}`);
+        break;
+      }
+    } catch(e) {}
   }
 
   // 3. Sincronizar com GitHub API se o token estiver configurado

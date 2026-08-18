@@ -209,31 +209,35 @@
       const grid = document.getElementById('libraryGrid');
       if (!grid) return;
 
-      // 1. Sempre buscar o banco de dados oficial downloads.json com cache-busting para atualizar todos os dispositivos
-      try {
-        const res = await fetch(`downloads.json?_t=${Date.now()}`, { cache: 'no-store' });
-        if (res.ok) {
-          const json = await res.json();
-          if (Array.isArray(json)) {
-            allDownloads = json;
-            // Salvar cache para uso offline
-            try {
-              localStorage.setItem('giffu_downloads', JSON.stringify(allDownloads));
-            } catch (e) {}
-            renderLibraryCards();
-            return;
+      const endpoints = [
+        `downloads.json?_t=${Date.now()}`,
+        `http://localhost:5173/downloads.json?_t=${Date.now()}`,
+        `http://127.0.0.1:5173/downloads.json?_t=${Date.now()}`
+      ];
+
+      for (const ep of endpoints) {
+        try {
+          const res = await fetch(ep, { cache: 'no-store' });
+          if (res.ok) {
+            const json = await res.json();
+            if (Array.isArray(json) && json.length > 0) {
+              allDownloads = json;
+              try {
+                localStorage.setItem('giffu_downloads', JSON.stringify(allDownloads));
+              } catch (e) {}
+              renderLibraryCards();
+              return;
+            }
           }
-        }
-      } catch (err) {
-        console.warn('Rede indisponível, recorrendo ao cache local:', err);
+        } catch (e) {}
       }
 
-      // 2. Fallback offline caso a rede falhe
+      // Fallback offline caso a rede falhe
       try {
         const stored = localStorage.getItem('giffu_downloads');
         if (stored) {
           const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed)) {
+          if (Array.isArray(parsed) && parsed.length > 0) {
             allDownloads = parsed;
           }
         }
