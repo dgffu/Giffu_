@@ -594,8 +594,9 @@ main {
 }
 
 #video-overlay iframe {
-  width: 82vw;
-  max-width: 1200px;
+  width: min(84vw, calc(84vh * 16 / 9));
+  max-width: 1600px;
+  max-height: 84vh;
   aspect-ratio: 16 / 9;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
