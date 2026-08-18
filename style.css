@@ -407,6 +407,10 @@ body.light-mode .quote-card {
   gap: 10px;
 }
 
+.hero-intro.downloads-hero {
+  max-width: 1320px;
+}
+
 .hero-badge {
   display: inline-flex;
   align-items: center;
