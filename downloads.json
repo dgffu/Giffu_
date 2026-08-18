@@ -1,17 +1,1 @@
-[
-  {
-    "id": "down-8",
-    "title": "Estrutura de Pastas & Bins Pro",
-    "category": "apps",
-    "software": "Automação",
-    "badgeText": "App",
-    "icon": "fas fa-folder-tree",
-    "description": "Script e template de estrutura de pastas padronizadas (01_Footage, 02_Audio, 03_Gfx, 04_Exports) para criar novos projetos com 1 clique.",
-    "format": "macOS / Windows",
-    "fileSize": "1.2 MB",
-    "compatibility": "Economiza Tempo",
-    "detailsDesc": "Gere instantaneamente toda a árvore de pastas padrão de pós-produção comercial para seus discos de mídia e bins automáticos dentro do Premiere Pro.",
-    "fileName": "Project-Folder-Structure-Giffu.zip",
-    "downloadUrl": "https://github.com/dgffu/Giffu_"
-  }
-]
+[]
