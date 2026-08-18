@@ -32,20 +32,20 @@
     "youtubeUrl": "https://www.youtube.com/watch?v=7ihaPVzhgJs"
   },
   {
-    "id": "YpasIgk3vPE",
-    "title": "Leilão de Veículos BV 2026",
-    "subtitle": "ELO & Co. Audiovisual (2026)",
-    "thumb": "https://img.youtube.com/vi/YpasIgk3vPE/hq720.jpg",
-    "page": "marcas",
-    "youtubeUrl": "https://www.youtube.com/watch?v=YpasIgk3vPE"
-  },
-  {
     "id": "jKV0vrUENZs",
     "title": "PHZin na Tuzzy",
     "subtitle": "Lamídia, Tuzzy E-Sports (2025)",
     "thumb": "source/thumbs/C0001.jpeg",
     "page": "marcas",
     "youtubeUrl": "https://www.youtube.com/watch?v=jKV0vrUENZs"
+  },
+  {
+    "id": "YpasIgk3vPE",
+    "title": "Leilão de Veículos BV 2026",
+    "subtitle": "ELO & Co. Audiovisual (2026)",
+    "thumb": "https://img.youtube.com/vi/YpasIgk3vPE/hq720.jpg",
+    "page": "marcas",
+    "youtubeUrl": "https://www.youtube.com/watch?v=YpasIgk3vPE"
   },
   {
     "id": "CUAhYbEv8YQ",
