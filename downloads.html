@@ -457,7 +457,32 @@
       });
     }
 
-    document.addEventListener('DOMContentLoaded', loadDownloads);
+    // Sincronização em tempo real instantânea entre abas e mudanças no Admin
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'giffu_downloads') {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (Array.isArray(parsed)) {
+            allDownloads = parsed;
+            renderLibraryCards();
+            return;
+          }
+        } catch (err) {}
+        loadDownloads();
+      }
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        loadDownloads();
+      }
+    });
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadDownloads);
+    } else {
+      loadDownloads();
+    }
   </script>
 </body>
 

@@ -592,6 +592,27 @@
     autoCropAllThumbs();
   }
 
+  // Sincronização em tempo real instantânea entre abas e mudanças no Admin
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'giffu_videos') {
+      const category = getPageCategory();
+      if (!category) return;
+      try {
+        const parsed = JSON.parse(e.newValue);
+        if (Array.isArray(parsed)) {
+          renderGrid(category, parsed);
+          return;
+        }
+      } catch (err) {}
+      loadVideos();
+    }
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      loadVideos();
+    }
+  });
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initApp);

@@ -11,15 +11,22 @@ let selectedThumbFile = null;
 // Default or stored Client ID
 const DEFAULT_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID";
 
-// Initialize on DOM ready
-document.addEventListener('DOMContentLoaded', () => {
+// Initialize on DOM ready or immediately if already loaded
+function initAdminApp() {
   cleanupLocalStorageVideos();
   loadSavedClientId();
   loadSavedGitHubToken();
   initGoogleAuth();
   loadAdminVideos();
+  loadAdminDownloads();
   setupDragAndDrop();
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initAdminApp);
+} else {
+  initAdminApp();
+}
 
 // --- GOOGLE OAUTH 2.0 INTEGRATION ---
 function getClientId() {
