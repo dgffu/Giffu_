@@ -1,1 +1,17 @@
-[]
+[
+  {
+    "id": "down-1787163052632",
+    "title": "oi",
+    "category": "premiere-templates",
+    "software": "Premiere Pro",
+    "badgeText": "MOGRT",
+    "icon": "fas fa-bolt",
+    "description": "qualquer pessoa pode adicionar um download?",
+    "format": ".mogrt",
+    "fileSize": "10 MB",
+    "compatibility": "Premiere 2022+",
+    "detailsDesc": "qualquer pessoa pode adicionar um download?",
+    "fileName": "oi.zip",
+    "downloadUrl": "https://github.com/dgffu/Giffu_"
+  }
+]
