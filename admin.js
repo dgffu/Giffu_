@@ -162,17 +162,18 @@ async function submitAdminLogin() {
       attempts: 0
     }));
 
-    // Send 2FA email directly via Resend API
+    // Send 2FA email directly via Google Apps Script (from novelfilmes@gmail.com)
+    const GOOGLE_SCRIPT_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyVAeEcZW08W8w_UAkAzkUFhnUF9RR1OVJXlnlxfPREanohccteYbL5E6TvLI53ryv_Zw/exec";
+    
     try {
-      await fetch('https://api.resend.com/emails', {
+      await fetch(GOOGLE_SCRIPT_WEBAPP_URL, {
         method: 'POST',
+        mode: 'no-cors',
         headers: {
-          'Authorization': `Bearer ${RESEND_PUBLIC_KEY}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'text/plain;charset=utf-8'
         },
         body: JSON.stringify({
-          from: 'Giffú Admin <onboarding@resend.dev>',
-          to: [username],
+          to: username,
           subject: `[${otpCode}] Código de Verificação Giffú Admin`,
           html: `
             <div style="font-family: Arial, sans-serif; background: #0b0b0e; color: #ffffff; padding: 40px 20px; text-align: center;">
@@ -182,14 +183,14 @@ async function submitAdminLogin() {
                 <div style="font-size: 38px; font-weight: 800; letter-spacing: 10px; color: #ffffff; background: rgba(254,94,0,0.15); padding: 18px; border-radius: 12px; margin: 20px 0; border: 1px dashed #fe5e00;">
                   ${otpCode}
                 </div>
-                <p style="color: #6e6e7a; font-size: 12px;">Válido por 5 minutos.</p>
+                <p style="color: #6e6e7a; font-size: 12px;">Válido por 5 minutos. Enviado com segurança via Google.</p>
               </div>
             </div>
           `
         })
       });
     } catch (mailErr) {
-      console.warn('Erro na chamada da Resend API:', mailErr);
+      console.warn('Erro na chamada do Google Apps Script:', mailErr);
     }
 
     // Move to 2FA step
