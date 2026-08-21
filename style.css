@@ -2537,3 +2537,249 @@ body.light-mode .brand-pill {
   border-color: rgba(0, 0, 0, 0.1);
   color: #52525b;
 }
+
+/* ==========================================================================
+   ADMIN SECURE LOGIN & 2FA OVERLAY
+   ========================================================================== */
+#adminLoginOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 14, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 1;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+#adminLoginOverlay.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.admin-login-card {
+  width: 100%;
+  max-width: 440px;
+  background: rgba(20, 20, 28, 0.85);
+  border: 1px solid rgba(254, 94, 0, 0.25);
+  border-radius: 24px;
+  padding: 40px 32px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(254, 94, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+  animation: loginCardAppear 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes loginCardAppear {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.admin-login-glow {
+  position: absolute;
+  top: -80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, rgba(254, 94, 0, 0.25) 0%, transparent 70%);
+  filter: blur(50px);
+  pointer-events: none;
+}
+
+.admin-login-header {
+  text-align: center;
+  margin-bottom: 28px;
+  position: relative;
+  z-index: 1;
+}
+
+.admin-login-logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: rgba(254, 94, 0, 0.12);
+  border: 1px solid rgba(254, 94, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px auto;
+  color: var(--accent-orange);
+  font-size: 24px;
+  box-shadow: 0 8px 20px rgba(254, 94, 0, 0.2);
+}
+
+.admin-login-header h3 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 6px;
+}
+
+.admin-login-header p {
+  font-size: 13.5px;
+  color: #a0a0ab;
+}
+
+.login-form-step {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  position: relative;
+  z-index: 1;
+}
+
+.login-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.login-field-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #d1d1d6;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.login-input {
+  width: 100%;
+  background: rgba(28, 28, 40, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 13px 16px;
+  color: #ffffff;
+  font-family: var(--font-main);
+  font-size: 14.5px;
+  outline: none;
+  transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+}
+
+.login-input:focus {
+  border-color: var(--accent-orange);
+  box-shadow: 0 0 0 3px rgba(254, 94, 0, 0.25);
+  background: rgba(34, 34, 48, 0.95);
+}
+
+.btn-login-submit {
+  width: 100%;
+  background: var(--accent-orange);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--font-main);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 6px 20px rgba(254, 94, 0, 0.35);
+  margin-top: 6px;
+}
+
+.btn-login-submit:hover {
+  background: var(--accent-orange-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 25px rgba(254, 94, 0, 0.45);
+}
+
+.btn-login-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 2FA OTP Inputs */
+.otp-inputs-wrapper {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin: 12px 0 6px 0;
+}
+
+.otp-input-box {
+  width: 48px;
+  height: 58px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 800;
+  font-family: monospace;
+  background: rgba(28, 28, 40, 0.9);
+  border: 1.5px solid rgba(254, 94, 0, 0.35);
+  border-radius: 12px;
+  color: #ffffff;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.otp-input-box:focus {
+  border-color: var(--accent-orange);
+  box-shadow: 0 0 0 3px rgba(254, 94, 0, 0.3);
+  background: rgba(40, 40, 56, 1);
+}
+
+.login-error-msg {
+  background: rgba(255, 59, 48, 0.12);
+  border: 1px solid rgba(255, 59, 48, 0.35);
+  color: #ff453a;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.login-dev-hint {
+  background: rgba(254, 94, 0, 0.1);
+  border: 1px solid rgba(254, 94, 0, 0.25);
+  color: #ffaa66;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  text-align: center;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+/* Logout Button Style */
+.btn-admin-logout {
+  background: rgba(255, 59, 48, 0.12);
+  border: 1px solid rgba(255, 59, 48, 0.3);
+  color: #ff453a;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-main);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  margin-left: 10px;
+}
+
+.btn-admin-logout:hover {
+  background: rgba(255, 59, 48, 0.25);
+  color: #fff;
+  border-color: #ff453a;
+}

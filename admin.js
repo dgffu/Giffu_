@@ -1,18 +1,51 @@
 /**
  * admin.js - Giffú Admin Panel Controller
- * Handles Google OAuth, YouTube Data API v3 Resumable Uploads, Thumbnail setup, and Video Management.
+ * Handles System Authentication, 2FA verification, Google OAuth, YouTube Data API v3 Resumable Uploads, Thumbnail setup, and Video Management.
  */
 
 let accessToken = null;
 let tokenClient = null;
 let selectedVideoFile = null;
 let selectedThumbFile = null;
+let currentChallengeId = null;
 
 // Default or stored Client ID
 const DEFAULT_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID";
 
 // Initialize on DOM ready or immediately if already loaded
-function initAdminApp() {
+async function initAdminApp() {
+  setupOTPInputs();
+  setupLoginKeyEvents();
+  await checkAdminAuth();
+}
+
+async function checkAdminAuth() {
+  const overlay = document.getElementById('adminLoginOverlay');
+  const wrapper = document.getElementById('adminWrapperContent');
+
+  try {
+    const res = await fetch('/api/auth/status', {
+      headers: { 'Cache-Control': 'no-cache' }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.authenticated) {
+        if (overlay) overlay.classList.add('hidden');
+        if (wrapper) wrapper.style.display = 'block';
+        initAdminPanelContent();
+        return;
+      }
+    }
+  } catch (e) {
+    console.warn('Servidor sem endpoint de autenticação ou offline:', e);
+  }
+
+  // Not authenticated
+  if (overlay) overlay.classList.remove('hidden');
+  if (wrapper) wrapper.style.display = 'none';
+}
+
+function initAdminPanelContent() {
   cleanupLocalStorageVideos();
   loadSavedClientId();
   loadSavedGitHubToken();
@@ -22,11 +55,195 @@ function initAdminApp() {
   setupDragAndDrop();
 }
 
+// --- SECURE LOGIN & 2FA CONTROLLER ---
+async function submitAdminLogin() {
+  const usernameInput = document.getElementById('adminUsernameInput');
+  const passwordInput = document.getElementById('adminPasswordInput');
+  const errorBox = document.getElementById('loginErrorBox');
+  const btn = document.getElementById('btnSubmitLogin');
+
+  if (!usernameInput || !passwordInput) return;
+
+  const username = usernameInput.value.trim();
+  const password = passwordInput.value;
+
+  if (!username || !password) {
+    showLoginError(errorBox, 'Por favor, preencha o e-mail e a senha.');
+    return;
+  }
+
+  hideLoginError(errorBox);
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Autenticando...';
+
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      showLoginError(errorBox, data.error || 'Falha na autenticação.');
+      btn.disabled = false;
+      btn.innerHTML = '<span>Continuar</span> <i class="fas fa-arrow-right"></i>';
+      return;
+    }
+
+    // Step 1 Success! Move to Step 2 (2FA)
+    currentChallengeId = data.challengeId;
+    document.getElementById('sentEmailDisplay').textContent = username;
+    document.getElementById('loginStepCredentials').style.display = 'none';
+    document.getElementById('loginStep2FA').style.display = 'flex';
+
+    // Focus first OTP input
+    const firstOtp = document.getElementById('otp-0');
+    if (firstOtp) firstOtp.focus();
+
+  } catch (err) {
+    showLoginError(errorBox, 'Erro ao conectar ao servidor. Verifique se o server.py está em execução.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span>Continuar</span> <i class="fas fa-arrow-right"></i>';
+  }
+}
+
+async function submit2FACode() {
+  const errorBox = document.getElementById('twoFaErrorBox');
+  const btn = document.getElementById('btnSubmit2FA');
+
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    const box = document.getElementById(`otp-${i}`);
+    if (box) code += box.value.trim();
+  }
+
+  if (code.length !== 6 || !/^\d{6}$/.test(code)) {
+    showLoginError(errorBox, 'Por favor, informe os 6 dígitos do código de verificação.');
+    return;
+  }
+
+  hideLoginError(errorBox);
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Validando código...';
+
+  try {
+    const res = await fetch('/api/auth/verify-2fa', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ challengeId: currentChallengeId, code })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      showLoginError(errorBox, data.error || 'Código de 6 dígitos inválido ou expirado.');
+      btn.disabled = false;
+      btn.innerHTML = '<span>Verificar e Acessar Painel</span> <i class="fas fa-check-circle"></i>';
+      return;
+    }
+
+    // 2FA Verification Success! Unlock Admin Panel
+    const overlay = document.getElementById('adminLoginOverlay');
+    const wrapper = document.getElementById('adminWrapperContent');
+
+    if (overlay) overlay.classList.add('hidden');
+    if (wrapper) wrapper.style.display = 'block';
+
+    initAdminPanelContent();
+
+  } catch (err) {
+    showLoginError(errorBox, 'Erro de comunicação ao verificar 2FA.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span>Verificar e Acessar Painel</span> <i class="fas fa-check-circle"></i>';
+  }
+}
+
+async function logoutAdmin() {
+  try {
+    await fetch('/api/auth/logout', { method: 'POST' });
+  } catch (e) {}
+  window.location.reload();
+}
+
+function backToStep1() {
+  document.getElementById('loginStep2FA').style.display = 'none';
+  document.getElementById('loginStepCredentials').style.display = 'flex';
+  hideLoginError(document.getElementById('twoFaErrorBox'));
+}
+
+function showLoginError(el, msg) {
+  if (!el) return;
+  el.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${msg}`;
+  el.style.display = 'flex';
+}
+
+function hideLoginError(el) {
+  if (!el) return;
+  el.style.display = 'none';
+}
+
+function setupOTPInputs() {
+  for (let i = 0; i < 6; i++) {
+    const box = document.getElementById(`otp-${i}`);
+    if (!box) continue;
+
+    box.addEventListener('input', (e) => {
+      const val = e.target.value;
+      if (val.length === 1 && i < 5) {
+        const nextBox = document.getElementById(`otp-${i + 1}`);
+        if (nextBox) nextBox.focus();
+      }
+      // Auto submit when 6th digit entered
+      if (i === 5 && val.length === 1) {
+        submit2FACode();
+      }
+    });
+
+    box.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !box.value && i > 0) {
+        const prevBox = document.getElementById(`otp-${i - 1}`);
+        if (prevBox) {
+          prevBox.focus();
+          prevBox.value = '';
+        }
+      } else if (e.key === 'Enter') {
+        submit2FACode();
+      }
+    });
+
+    box.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const pasteData = (e.clipboardData || window.clipboardData).getData('text').trim();
+      if (/^\d{6}$/.test(pasteData)) {
+        for (let j = 0; j < 6; j++) {
+          const b = document.getElementById(`otp-${j}`);
+          if (b) b.value = pasteData[j];
+        }
+        submit2FACode();
+      }
+    });
+  }
+}
+
+function setupLoginKeyEvents() {
+  const passInput = document.getElementById('adminPasswordInput');
+  if (passInput) {
+    passInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') submitAdminLogin();
+    });
+  }
+}
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initAdminApp);
 } else {
   initAdminApp();
 }
+
 
 // --- GOOGLE OAUTH 2.0 INTEGRATION ---
 function getClientId() {
