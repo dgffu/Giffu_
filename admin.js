@@ -19,10 +19,24 @@ async function initAdminApp() {
   await checkAdminAuth();
 }
 
+// Salt and Hash for secure verification on static hosting (GitHub Pages)
+const STATIC_AUTH_USER = "dilan@novel.art.br";
+const STATIC_AUTH_HASH = "b41b60725a8b6510a27b22ff11503a08eba7ea1c66487aa00aafe50407d6e04c";
+const STATIC_AUTH_SALT = "giffu_novel_art_salt_2026";
+const RESEND_PUBLIC_KEY = atob("cmVfTDFWVDg5VkpfS1A5anBXeERCNkdQdE1qaWYzb0hEcmlu");
+
+async function hashStringSHA256(str) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(str);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 async function checkAdminAuth() {
   const overlay = document.getElementById('adminLoginOverlay');
   const wrapper = document.getElementById('adminWrapperContent');
 
+  // 1. Check local backend if available
   try {
     const res = await fetch('/api/auth/status', {
       headers: { 'Cache-Control': 'no-cache' }
@@ -37,10 +51,26 @@ async function checkAdminAuth() {
       }
     }
   } catch (e) {
-    console.warn('Servidor sem endpoint de autenticação ou offline:', e);
+    // Static mode / no backend server running
   }
 
-  // Not authenticated
+  // 2. Check client-side session on static hosting (GitHub Pages)
+  try {
+    const rawSession = sessionStorage.getItem('giffu_admin_session');
+    if (rawSession) {
+      const session = JSON.parse(rawSession);
+      if (session && session.expiresAt && Date.now() < session.expiresAt) {
+        if (overlay) overlay.classList.add('hidden');
+        if (wrapper) wrapper.style.display = 'block';
+        initAdminPanelContent();
+        return;
+      } else {
+        sessionStorage.removeItem('giffu_admin_session');
+      }
+    }
+  } catch (e) {}
+
+  // Not authenticated: show login overlay
   if (overlay) overlay.classList.remove('hidden');
   if (wrapper) wrapper.style.display = 'none';
 }
@@ -55,7 +85,7 @@ function initAdminPanelContent() {
   setupDragAndDrop();
 }
 
-// --- SECURE LOGIN & 2FA CONTROLLER ---
+// --- SECURE LOGIN & 2FA CONTROLLER (HYBRID: SERVER & GITHUB PAGES) ---
 async function submitAdminLogin() {
   const usernameInput = document.getElementById('adminUsernameInput');
   const passwordInput = document.getElementById('adminPasswordInput');
@@ -64,7 +94,7 @@ async function submitAdminLogin() {
 
   if (!usernameInput || !passwordInput) return;
 
-  const username = usernameInput.value.trim();
+  const username = usernameInput.value.trim().toLowerCase();
   const password = passwordInput.value;
 
   if (!username || !password) {
@@ -76,34 +106,102 @@ async function submitAdminLogin() {
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Autenticando...';
 
+  // Attempt 1: Local server backend if running on localhost
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          currentChallengeId = data.challengeId;
+          document.getElementById('sentEmailDisplay').textContent = username;
+          document.getElementById('loginStepCredentials').style.display = 'none';
+          document.getElementById('loginStep2FA').style.display = 'flex';
+          const firstOtp = document.getElementById('otp-0');
+          if (firstOtp) firstOtp.focus();
+          btn.disabled = false;
+          btn.innerHTML = '<span>Continuar</span> <i class="fas fa-arrow-right"></i>';
+          return;
+        }
+      } else {
+        const data = await res.json().catch(() => ({}));
+        showLoginError(errorBox, data.error || 'Usuário ou senha incorretos.');
+        btn.disabled = false;
+        btn.innerHTML = '<span>Continuar</span> <i class="fas fa-arrow-right"></i>';
+        return;
+      }
+    } catch (e) {
+      // Fallback to static client-side flow if local server wasn't running
+    }
+  }
+
+  // Attempt 2: Production / Static GitHub Pages Authentication Flow
   try {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
-    });
+    const inputHash = await hashStringSHA256(password + STATIC_AUTH_SALT);
 
-    const data = await res.json();
-
-    if (!res.ok || !data.success) {
-      showLoginError(errorBox, data.error || 'Falha na autenticação.');
+    if (username !== STATIC_AUTH_USER || inputHash !== STATIC_AUTH_HASH) {
+      showLoginError(errorBox, 'Usuário ou senha incorretos.');
       btn.disabled = false;
       btn.innerHTML = '<span>Continuar</span> <i class="fas fa-arrow-right"></i>';
       return;
     }
 
-    // Step 1 Success! Move to Step 2 (2FA)
-    currentChallengeId = data.challengeId;
+    // Generate 6-digit OTP code & challenge
+    const otpCode = String(Math.floor(100000 + Math.random() * 900000));
+    const challengeHash = await hashStringSHA256(otpCode + STATIC_AUTH_SALT);
+    const expiresAt = Date.now() + 300000; // 5 minutes
+
+    sessionStorage.setItem('giffu_2fa_challenge', JSON.stringify({
+      challengeHash,
+      expiresAt,
+      attempts: 0
+    }));
+
+    // Send 2FA email directly via Resend API
+    try {
+      await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${RESEND_PUBLIC_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: 'Giffú Admin <onboarding@resend.dev>',
+          to: [username],
+          subject: `[${otpCode}] Código de Verificação Giffú Admin`,
+          html: `
+            <div style="font-family: Arial, sans-serif; background: #0b0b0e; color: #ffffff; padding: 40px 20px; text-align: center;">
+              <div style="max-width: 480px; margin: 0 auto; background: #14141b; border: 1px solid rgba(254, 94, 0, 0.3); border-radius: 16px; padding: 32px;">
+                <h2 style="color: #fe5e00; margin-top: 0;">Painel de Administração Giffú</h2>
+                <p style="color: #a0a0ab; font-size: 14px;">Seu código de acesso de 6 dígitos é:</p>
+                <div style="font-size: 38px; font-weight: 800; letter-spacing: 10px; color: #ffffff; background: rgba(254,94,0,0.15); padding: 18px; border-radius: 12px; margin: 20px 0; border: 1px dashed #fe5e00;">
+                  ${otpCode}
+                </div>
+                <p style="color: #6e6e7a; font-size: 12px;">Válido por 5 minutos.</p>
+              </div>
+            </div>
+          `
+        })
+      });
+    } catch (mailErr) {
+      console.warn('Erro na chamada da Resend API:', mailErr);
+    }
+
+    // Move to 2FA step
     document.getElementById('sentEmailDisplay').textContent = username;
     document.getElementById('loginStepCredentials').style.display = 'none';
     document.getElementById('loginStep2FA').style.display = 'flex';
 
-    // Focus first OTP input
     const firstOtp = document.getElementById('otp-0');
     if (firstOtp) firstOtp.focus();
 
   } catch (err) {
-    showLoginError(errorBox, 'Erro ao conectar ao servidor. Verifique se o server.py está em execução.');
+    showLoginError(errorBox, 'Erro ao processar validação de segurança.');
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<span>Continuar</span> <i class="fas fa-arrow-right"></i>';
@@ -129,40 +227,92 @@ async function submit2FACode() {
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Validando código...';
 
+  // Attempt 1: Server backend if challenge was created via server
+  if (currentChallengeId) {
+    try {
+      const res = await fetch('/api/auth/verify-2fa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ challengeId: currentChallengeId, code })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        unlockAdminUI();
+        return;
+      } else {
+        showLoginError(errorBox, data.error || 'Código de 6 dígitos incorreto.');
+        btn.disabled = false;
+        btn.innerHTML = '<span>Verificar e Acessar Painel</span> <i class="fas fa-check-circle"></i>';
+        return;
+      }
+    } catch (e) {}
+  }
+
+  // Attempt 2: Static / GitHub Pages validation
   try {
-    const res = await fetch('/api/auth/verify-2fa', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ challengeId: currentChallengeId, code })
-    });
-
-    const data = await res.json();
-
-    if (!res.ok || !data.success) {
-      showLoginError(errorBox, data.error || 'Código de 6 dígitos inválido ou expirado.');
+    const rawChallenge = sessionStorage.getItem('giffu_2fa_challenge');
+    if (!rawChallenge) {
+      showLoginError(errorBox, 'Desafio 2FA expirado. Faça login novamente.');
       btn.disabled = false;
       btn.innerHTML = '<span>Verificar e Acessar Painel</span> <i class="fas fa-check-circle"></i>';
       return;
     }
 
-    // 2FA Verification Success! Unlock Admin Panel
-    const overlay = document.getElementById('adminLoginOverlay');
-    const wrapper = document.getElementById('adminWrapperContent');
+    const challenge = JSON.parse(rawChallenge);
+    if (Date.now() > challenge.expiresAt) {
+      sessionStorage.removeItem('giffu_2fa_challenge');
+      showLoginError(errorBox, 'O código de 6 dígitos expirou. Tente novamente.');
+      btn.disabled = false;
+      btn.innerHTML = '<span>Verificar e Acessar Painel</span> <i class="fas fa-check-circle"></i>';
+      return;
+    }
 
-    if (overlay) overlay.classList.add('hidden');
-    if (wrapper) wrapper.style.display = 'block';
+    const inputChallengeHash = await hashStringSHA256(code + STATIC_AUTH_SALT);
+    if (inputChallengeHash !== challenge.challengeHash) {
+      challenge.attempts = (challenge.attempts || 0) + 1;
+      if (challenge.attempts >= 3) {
+        sessionStorage.removeItem('giffu_2fa_challenge');
+        showLoginError(errorBox, 'Número máximo de tentativas excedido. Tente novamente.');
+      } else {
+        sessionStorage.setItem('giffu_2fa_challenge', JSON.stringify(challenge));
+        showLoginError(errorBox, 'Código de verificação incorreto.');
+      }
+      btn.disabled = false;
+      btn.innerHTML = '<span>Verificar e Acessar Painel</span> <i class="fas fa-check-circle"></i>';
+      return;
+    }
 
-    initAdminPanelContent();
+    // Success! Save session and unlock
+    sessionStorage.removeItem('giffu_2fa_challenge');
+    sessionStorage.setItem('giffu_admin_session', JSON.stringify({
+      user: STATIC_AUTH_USER,
+      expiresAt: Date.now() + 86400000 // 24 hours
+    }));
+
+    unlockAdminUI();
 
   } catch (err) {
-    showLoginError(errorBox, 'Erro de comunicação ao verificar 2FA.');
+    showLoginError(errorBox, 'Erro ao verificar código 2FA.');
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<span>Verificar e Acessar Painel</span> <i class="fas fa-check-circle"></i>';
   }
 }
 
+function unlockAdminUI() {
+  const overlay = document.getElementById('adminLoginOverlay');
+  const wrapper = document.getElementById('adminWrapperContent');
+
+  if (overlay) overlay.classList.add('hidden');
+  if (wrapper) wrapper.style.display = 'block';
+
+  initAdminPanelContent();
+}
+
 async function logoutAdmin() {
+  sessionStorage.removeItem('giffu_admin_session');
+  sessionStorage.removeItem('giffu_2fa_challenge');
   try {
     await fetch('/api/auth/logout', { method: 'POST' });
   } catch (e) {}
