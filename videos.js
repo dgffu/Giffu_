@@ -567,7 +567,7 @@
   const I18N_DATA = {
     pt: {
       navHome: 'Home',
-      navDownloads: 'Downloads',
+      navDownloads: 'Ferramentas',
       navMarcas: 'Para Marcas',
       navMotion: 'Motion Design',
       navEventos: 'Edição de Eventos',
@@ -575,7 +575,7 @@
 
       homeHeroSub: 'Transformando conceitos em narrativas audiovisuais de alto padrão. Edição comercial para marcas, identidades visuais dinâmicas, filmes cinematográficos e ferramentas para quem cria com audiovisual.',
       homeBtnMarcas: '<i class="fas fa-play"></i> Ver Portfólio Comercial',
-      homeBtnDownloads: '<i class="fas fa-download"></i> Biblioteca do Editor',
+      homeBtnDownloads: '<i class="fas fa-wrench"></i> Ferramentas',
       homeSectionTag: 'O que você procura?',
       homeSectionTitle: 'Explore as Áreas do Portfólio',
       homePillarMarcasTitle: 'Para Marcas',
@@ -587,9 +587,9 @@
       homePillarEventosTitle: 'Edição de Eventos',
       homePillarEventosDesc: 'Same-Day Edits e filmes de eventos montados com sensibilidade narrativa, ritmo dinâmico e tratamento de cor personalizado.',
       homePillarEventosBtn: 'Acessar Filmes de Eventos',
-      homePillarDownloadsTitle: 'Biblioteca do Editor',
-      homePillarDownloadsDesc: 'Recursos práticos para editores baseados na experiência <i>Giffú</i> de audiovisual, como templates e ferramentas de produtividade.',
-      homePillarDownloadsBtn: 'Acessar Biblioteca de Downloads',
+      homePillarDownloadsTitle: 'Ferramentas',
+      homePillarDownloadsDesc: 'Presets, scripts, apps e utilitários criados para acelerar e elevar a qualidade do seu fluxo de edição e pós-produção.',
+      homePillarDownloadsBtn: 'Acessar Ferramentas',
       homeHighlightsTag: 'Destaques do Portfólio',
       homeHighlightsTitle: 'Projetos em Destaque',
       homeHighlightsSub: 'Trabalhos recentes selecionados que demonstram domínio técnico, ritmo narrativo e excelência visual.',
@@ -607,9 +607,9 @@
       eventosTitle: 'Edição de Filmes & Eventos',
       eventosSub: 'Same-Day Edits, Save The Date, Teasers e Filmes de Casamento produzidos com narrativa emocional e acabamento de cinema.',
 
-      downloadsBadge: '<i class="fas fa-layer-group"></i> Biblioteca do Editor',
-      downloadsTitle: 'Ferramentas, Presets & Recursos Audiovisuais',
-      downloadsSub: 'Coleção exclusiva de presets para Premiere Pro, templates de After Effects, sound design e utilitários criados para acelerar seu fluxo de pós-produção.',
+      downloadsBadge: '<i class="fas fa-wrench"></i> Ferramentas & Recursos',
+      downloadsTitle: 'Ferramentas do Editor',
+      downloadsSub: 'Presets, scripts, apps e utilitários criados para acelerar seu fluxo de trabalho audiovisual.',
       downloadsSearchPlaceholder: 'Buscar recursos...',
       downloadsBtnText: 'Baixar',
       downloadsBtnDownload: 'Baixar',
@@ -650,7 +650,7 @@
     },
     en: {
       navHome: 'Home',
-      navDownloads: 'Downloads',
+      navDownloads: 'Tools',
       navMarcas: 'For Brands',
       navMotion: 'Motion Design',
       navEventos: 'Event Editing',
@@ -658,7 +658,7 @@
 
       homeHeroSub: 'Transforming concepts into high-end audiovisual narratives. Commercial editing for brands, dynamic visual identities, cinematic films, and tools for creators.',
       homeBtnMarcas: '<i class="fas fa-play"></i> View Commercial Portfolio',
-      homeBtnDownloads: '<i class="fas fa-download"></i> Editor\'s Library',
+      homeBtnDownloads: '<i class="fas fa-wrench"></i> Tools',
       homeSectionTag: 'What are you looking for?',
       homeSectionTitle: 'Explore Portfolio Categories',
       homePillarMarcasTitle: 'For Brands',
@@ -670,9 +670,9 @@
       homePillarEventosTitle: 'Event Editing',
       homePillarEventosDesc: 'Same-Day Edits and event films crafted with narrative sensitivity, dynamic pacing, and custom color grading.',
       homePillarEventosBtn: 'Access Event Films',
-      homePillarDownloadsTitle: 'Editor\'s Library',
-      homePillarDownloadsDesc: 'Practical tools and presets for editors based on the <i>Giffú</i> audiovisual experience, including templates and productivity utilities.',
-      homePillarDownloadsBtn: 'Access Downloads Library',
+      homePillarDownloadsTitle: 'Tools',
+      homePillarDownloadsDesc: 'Practical presets, scripts, apps, and utilities built to elevate and accelerate your post-production workflow.',
+      homePillarDownloadsBtn: 'Access Tools',
       homeHighlightsTag: 'Portfolio Highlights',
       homeHighlightsTitle: 'Featured Projects',
       homeHighlightsSub: 'Selected recent projects showcasing technical mastery, narrative pacing, and visual excellence.',
@@ -690,9 +690,9 @@
       eventosTitle: 'Film & Event Editing',
       eventosSub: 'Same-Day Edits, Save The Date, Teasers, and Wedding Films produced with emotional storytelling and cinematic finish.',
 
-      downloadsBadge: '<i class="fas fa-layer-group"></i> Editor\'s Library',
-      downloadsTitle: 'Tools, Presets & Audiovisual Resources',
-      downloadsSub: 'Exclusive collection of Premiere Pro presets, After Effects templates, sound design, and utilities built to speed up your post-production workflow.',
+      downloadsBadge: '<i class="fas fa-wrench"></i> Resources & Tools',
+      downloadsTitle: 'Editor Tools',
+      downloadsSub: 'Exclusive collection of presets, templates, sound design, apps, and utilities built to speed up your post-production workflow.',
       downloadsSearchPlaceholder: 'Search resources...',
       downloadsBtnText: 'Download',
       downloadsBtnDownload: 'Download',
@@ -746,7 +746,7 @@
     // 1. Atualizar Navegação
     const navHome = document.querySelector('nav.menu a[href*="index"]');
     if (navHome) navHome.textContent = dict.navHome;
-    const navDownloads = document.querySelector('nav.menu a[href*="downloads"]');
+    const navDownloads = document.querySelector('nav.menu a[href*="ferramentas"], nav.menu a[href*="downloads"]');
     if (navDownloads) navDownloads.textContent = dict.navDownloads;
     const navMarcas = document.querySelector('nav.menu a[href*="marcas"]');
     if (navMarcas) navMarcas.textContent = dict.navMarcas;
