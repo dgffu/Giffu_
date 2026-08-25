@@ -837,21 +837,21 @@
       if (heroSub) heroSub.textContent = dict.eventosSub;
     }
 
-    // Downloads page elements
-    const dlBadge = document.querySelector('.library-badge');
+    // Ferramentas / Tools page elements
+    const dlBadge = document.querySelector('.downloads-hero .hero-badge, .library-badge');
     if (dlBadge) dlBadge.innerHTML = dict.downloadsBadge;
-    const dlTitle = document.querySelector('.library-title');
+    const dlTitle = document.querySelector('.downloads-hero .hero-title, .library-title');
     if (dlTitle) dlTitle.textContent = dict.downloadsTitle;
-    const dlSub = document.querySelector('.library-subtitle');
+    const dlSub = document.querySelector('.downloads-hero .hero-subtitle, .library-subtitle');
     if (dlSub) dlSub.textContent = dict.downloadsSub;
 
     const dlSearch = document.getElementById('librarySearch');
     if (dlSearch) dlSearch.placeholder = dict.downloadsSearchPlaceholder;
 
-    // Filtros de Downloads
-    const filterAll = document.querySelector('.filter-chip[data-category="all"]');
+    // Filtros de Ferramentas / Tools
+    const filterAll = document.querySelector('.lib-filter-btn[data-filter="all"], .filter-chip[data-category="all"]');
     if (filterAll) filterAll.textContent = dict.downloadsFilterAll;
-    const filterApps = document.querySelector('.filter-chip[data-category="apps"]');
+    const filterApps = document.querySelector('.lib-filter-btn[data-filter="apps"], .filter-chip[data-category="apps"]');
     if (filterApps) filterApps.textContent = dict.downloadsFilterApps;
 
     // Textos de botões de download nos cards respeitando o actionType
