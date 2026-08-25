@@ -2030,11 +2030,11 @@ function renderAdminDownloadsGrid() {
     const actionType = item.actionType || 'download';
     let actionBadgeHtml = '';
     if (actionType === 'buy') {
-      actionBadgeHtml = `<span style="display:inline-flex; align-items:center; gap:4px; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:10px; background:rgba(255,180,0,0.15); color:#ffb400; border:1px solid rgba(255,180,0,0.3);"><i class="fas fa-shopping-cart"></i> Comprar</span>`;
+      actionBadgeHtml = `<span class="admin-action-badge buy"><i class="fas fa-shopping-cart"></i> Comprar</span>`;
     } else if (actionType === 'access') {
-      actionBadgeHtml = `<span style="display:inline-flex; align-items:center; gap:4px; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:10px; background:rgba(52,152,219,0.15); color:#3498db; border:1px solid rgba(52,152,219,0.3);"><i class="fas fa-arrow-up-right-from-square"></i> Acessar</span>`;
+      actionBadgeHtml = `<span class="admin-action-badge access"><i class="fas fa-arrow-up-right-from-square"></i> Acessar</span>`;
     } else {
-      actionBadgeHtml = `<span style="display:inline-flex; align-items:center; gap:4px; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:10px; background:rgba(46,204,113,0.15); color:#2ecc71; border:1px solid rgba(46,204,113,0.3);"><i class="fas fa-download"></i> Baixar</span>`;
+      actionBadgeHtml = `<span class="admin-action-badge download"><i class="fas fa-download"></i> Baixar</span>`;
     }
 
     const categoryLabels = {
@@ -2071,11 +2071,8 @@ function renderAdminDownloadsGrid() {
       </div>
 
       <div class="admin-download-header">
-        <span class="order-badge">#${globalIndex + 1}</span>
-        <div style="display: flex; gap: 6px; align-items: center;">
-          ${actionBadgeHtml}
-          <span class="page-badge">${escapeHtml(item.badgeText || 'Recurso')}</span>
-        </div>
+        ${actionBadgeHtml}
+        <span class="page-badge">${escapeHtml(item.badgeText || 'Recurso')}</span>
         <div class="admin-download-icon-wrap">
           <i class="${escapeHtml(iconClass)}"></i>
         </div>

@@ -1624,6 +1624,40 @@ body.light-mode .order-badge {
   overflow: hidden;
 }
 
+.admin-action-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  z-index: 2;
+  letter-spacing: 0.3px;
+  backdrop-filter: blur(8px);
+}
+
+.admin-action-badge.download {
+  background: rgba(46, 204, 113, 0.18);
+  color: #2ecc71;
+  border: 1px solid rgba(46, 204, 113, 0.4);
+}
+
+.admin-action-badge.buy {
+  background: rgba(255, 180, 0, 0.18);
+  color: #ffb400;
+  border: 1px solid rgba(255, 180, 0, 0.4);
+}
+
+.admin-action-badge.access {
+  background: rgba(52, 152, 219, 0.18);
+  color: #3498db;
+  border: 1px solid rgba(52, 152, 219, 0.4);
+}
+
 .admin-download-icon-wrap {
   width: 50px;
   height: 50px;
