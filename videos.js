@@ -612,7 +612,13 @@
       downloadsSub: 'Coleção exclusiva de presets para Premiere Pro, templates de After Effects, sound design e utilitários criados para acelerar seu fluxo de pós-produção.',
       downloadsSearchPlaceholder: 'Buscar recursos...',
       downloadsBtnText: 'Baixar',
+      downloadsBtnDownload: 'Baixar',
+      downloadsBtnBuy: 'Comprar',
+      downloadsBtnAccess: 'Acessar',
       downloadsModalBtn: '<i class="fas fa-download"></i> Baixar Agora',
+      downloadsModalBtnDownload: '<i class="fas fa-download"></i> Baixar Agora',
+      downloadsModalBtnBuy: '<i class="fas fa-shopping-cart"></i> Comprar Agora',
+      downloadsModalBtnAccess: '<i class="fas fa-arrow-up-right-from-square"></i> Acessar Ferramenta',
       downloadsModalClose: 'Fechar',
       downloadsFilterAll: 'Todos',
       downloadsFilterApps: 'Apps & Ferramentas',
@@ -689,7 +695,13 @@
       downloadsSub: 'Exclusive collection of Premiere Pro presets, After Effects templates, sound design, and utilities built to speed up your post-production workflow.',
       downloadsSearchPlaceholder: 'Search resources...',
       downloadsBtnText: 'Download',
+      downloadsBtnDownload: 'Download',
+      downloadsBtnBuy: 'Buy',
+      downloadsBtnAccess: 'Access',
       downloadsModalBtn: '<i class="fas fa-download"></i> Download Now',
+      downloadsModalBtnDownload: '<i class="fas fa-download"></i> Download Now',
+      downloadsModalBtnBuy: '<i class="fas fa-shopping-cart"></i> Buy Now',
+      downloadsModalBtnAccess: '<i class="fas fa-arrow-up-right-from-square"></i> Access Tool',
       downloadsModalClose: 'Close',
       downloadsFilterAll: 'All',
       downloadsFilterApps: 'Apps & Tools',
@@ -842,13 +854,25 @@
     const filterApps = document.querySelector('.filter-chip[data-category="apps"]');
     if (filterApps) filterApps.textContent = dict.downloadsFilterApps;
 
-    // Textos de botões de download nos cards
-    document.querySelectorAll('.btn-download-text').forEach(el => {
-      el.textContent = dict.downloadsBtnText;
+    // Textos de botões de download nos cards respeitando o actionType
+    document.querySelectorAll('.resource-card').forEach(card => {
+      const actionType = card.dataset.actionType || 'download';
+      const btnSpan = card.querySelector('.btn-download-text');
+      const btnIcon = card.querySelector('.btn-lib-download i');
+      if (btnSpan) {
+        if (actionType === 'buy') {
+          btnSpan.textContent = dict.downloadsBtnBuy || 'Comprar';
+          if (btnIcon) btnIcon.className = 'fas fa-shopping-cart';
+        } else if (actionType === 'access') {
+          btnSpan.textContent = dict.downloadsBtnAccess || 'Acessar';
+          if (btnIcon) btnIcon.className = 'fas fa-arrow-up-right-from-square';
+        } else {
+          btnSpan.textContent = dict.downloadsBtnDownload || 'Baixar';
+          if (btnIcon) btnIcon.className = 'fas fa-download';
+        }
+      }
     });
 
-    const dlModalBtn = document.getElementById('modalDownloadBtn');
-    if (dlModalBtn) dlModalBtn.innerHTML = dict.downloadsModalBtn;
     const dlCloseBtns = document.querySelectorAll('.btn-secondary[onclick="closeResourceModal()"]');
     dlCloseBtns.forEach(btn => btn.textContent = dict.downloadsModalClose);
 

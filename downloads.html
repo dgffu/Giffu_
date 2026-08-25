@@ -291,9 +291,10 @@
       const div = document.createElement('div');
       div.className = 'resource-card';
       div.dataset.category = item.category || 'presets';
+      const actionType = item.actionType || 'download';
+      div.dataset.actionType = actionType;
 
       const iconClass = item.icon || 'fas fa-download';
-      const actionType = item.actionType || 'download';
       const software = item.software || 'Universal';
       const badgeText = item.badgeText || 'Recurso';
       const title = item.title || 'Sem título';
@@ -303,14 +304,16 @@
       const compat = item.compatibility || '';
       const downloadUrl = item.downloadUrl || '#';
 
+      const isEn = (typeof window !== 'undefined' && window.GiffuI18n && window.GiffuI18n.getActiveLang() === 'en');
+
       let btnIcon = 'fas fa-download';
-      let btnText = 'Baixar';
+      let btnText = isEn ? 'Download' : 'Baixar';
       if (actionType === 'buy') {
         btnIcon = 'fas fa-shopping-cart';
-        btnText = 'Comprar';
+        btnText = isEn ? 'Buy' : 'Comprar';
       } else if (actionType === 'access') {
         btnIcon = 'fas fa-arrow-up-right-from-square';
-        btnText = 'Acessar';
+        btnText = isEn ? 'Access' : 'Acessar';
       }
 
       div.innerHTML = `
@@ -469,14 +472,15 @@
       const downloadBtn = document.getElementById('modalDownloadBtn');
       if (downloadBtn) {
         const actionType = item.actionType || 'download';
+        const isEn = (typeof window !== 'undefined' && window.GiffuI18n && window.GiffuI18n.getActiveLang() === 'en');
         let modalIcon = 'fas fa-download';
-        let modalText = 'Baixar Agora';
+        let modalText = isEn ? 'Download Now' : 'Baixar Agora';
         if (actionType === 'buy') {
           modalIcon = 'fas fa-shopping-cart';
-          modalText = 'Comprar Agora';
+          modalText = isEn ? 'Buy Now' : 'Comprar Agora';
         } else if (actionType === 'access') {
           modalIcon = 'fas fa-arrow-up-right-from-square';
-          modalText = 'Acessar Ferramenta';
+          modalText = isEn ? 'Access Tool' : 'Acessar Ferramenta';
         }
         downloadBtn.innerHTML = `<i class="${modalIcon}"></i> <span>${modalText}</span>`;
         downloadBtn.href = item.downloadUrl || '#';
