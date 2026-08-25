@@ -2027,6 +2027,16 @@ function renderAdminDownloadsGrid() {
     card.dataset.id = item.id;
 
     const iconClass = item.icon || 'fas fa-download';
+    const actionType = item.actionType || 'download';
+    let actionBadgeHtml = '';
+    if (actionType === 'buy') {
+      actionBadgeHtml = `<span style="display:inline-flex; align-items:center; gap:4px; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:10px; background:rgba(255,180,0,0.15); color:#ffb400; border:1px solid rgba(255,180,0,0.3);"><i class="fas fa-shopping-cart"></i> Comprar</span>`;
+    } else if (actionType === 'access') {
+      actionBadgeHtml = `<span style="display:inline-flex; align-items:center; gap:4px; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:10px; background:rgba(52,152,219,0.15); color:#3498db; border:1px solid rgba(52,152,219,0.3);"><i class="fas fa-arrow-up-right-from-square"></i> Acessar</span>`;
+    } else {
+      actionBadgeHtml = `<span style="display:inline-flex; align-items:center; gap:4px; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:10px; background:rgba(46,204,113,0.15); color:#2ecc71; border:1px solid rgba(46,204,113,0.3);"><i class="fas fa-download"></i> Baixar</span>`;
+    }
+
     const categoryLabels = {
       'premiere-templates': 'Premiere Pro Templates',
       'ae-templates': 'After Effects Templates',
@@ -2062,7 +2072,10 @@ function renderAdminDownloadsGrid() {
 
       <div class="admin-download-header">
         <span class="order-badge">#${globalIndex + 1}</span>
-        <span class="page-badge">${escapeHtml(item.badgeText || 'Recurso')}</span>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          ${actionBadgeHtml}
+          <span class="page-badge">${escapeHtml(item.badgeText || 'Recurso')}</span>
+        </div>
         <div class="admin-download-icon-wrap">
           <i class="${escapeHtml(iconClass)}"></i>
         </div>
@@ -2116,6 +2129,7 @@ function openDownloadModal(idOrNew) {
     document.getElementById('downloadTitleInput').value = '';
     document.getElementById('downloadCategorySelect').value = 'premiere-templates';
     document.getElementById('downloadSoftwareInput').value = 'Premiere Pro';
+    document.getElementById('downloadActionTypeSelect').value = 'download';
     document.getElementById('downloadBadgeInput').value = 'MOGRT';
     document.getElementById('downloadIconSelect').value = 'fas fa-bolt';
     document.getElementById('downloadDescInput').value = '';
@@ -2134,6 +2148,7 @@ function openDownloadModal(idOrNew) {
     document.getElementById('downloadTitleInput').value = item.title || '';
     document.getElementById('downloadCategorySelect').value = item.category || 'premiere-templates';
     document.getElementById('downloadSoftwareInput').value = item.software || '';
+    document.getElementById('downloadActionTypeSelect').value = item.actionType || 'download';
     document.getElementById('downloadBadgeInput').value = item.badgeText || '';
     document.getElementById('downloadIconSelect').value = item.icon || 'fas fa-bolt';
     document.getElementById('downloadDescInput').value = item.description || '';
@@ -2226,6 +2241,7 @@ function saveDownloadResource(e) {
   const title = document.getElementById('downloadTitleInput').value.trim();
   const category = document.getElementById('downloadCategorySelect').value;
   const software = document.getElementById('downloadSoftwareInput').value.trim();
+  const actionType = document.getElementById('downloadActionTypeSelect').value || 'download';
   const badgeText = document.getElementById('downloadBadgeInput').value.trim() || 'Recurso';
   const icon = document.getElementById('downloadIconSelect').value;
   const description = document.getElementById('downloadDescInput').value.trim();
@@ -2251,6 +2267,7 @@ function saveDownloadResource(e) {
     title,
     category,
     software,
+    actionType,
     badgeText,
     icon,
     description,

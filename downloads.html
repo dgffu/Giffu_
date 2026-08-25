@@ -293,6 +293,7 @@
       div.dataset.category = item.category || 'presets';
 
       const iconClass = item.icon || 'fas fa-download';
+      const actionType = item.actionType || 'download';
       const software = item.software || 'Universal';
       const badgeText = item.badgeText || 'Recurso';
       const title = item.title || 'Sem título';
@@ -300,8 +301,17 @@
       const format = item.format || '';
       const size = item.fileSize || '';
       const compat = item.compatibility || '';
-      const fileName = item.fileName || `${title.replace(/\s+/g, '-')}.zip`;
       const downloadUrl = item.downloadUrl || '#';
+
+      let btnIcon = 'fas fa-download';
+      let btnText = 'Baixar';
+      if (actionType === 'buy') {
+        btnIcon = 'fas fa-shopping-cart';
+        btnText = 'Comprar';
+      } else if (actionType === 'access') {
+        btnIcon = 'fas fa-arrow-up-right-from-square';
+        btnText = 'Acessar';
+      }
 
       div.innerHTML = `
         <div class="resource-header">
@@ -321,8 +331,8 @@
             ${compat ? `<span class="meta-pill"><i class="fas fa-check-circle"></i> ${escapeHtml(compat)}</span>` : ''}
           </div>
           <div class="resource-actions">
-            <a href="${escapeHtml(downloadUrl)}" class="btn-lib-download" onclick="handleCardDownload(this, '${escapeHtml(fileName)}', event)">
-              <i class="fas fa-download"></i> <span class="btn-download-text">Baixar</span>
+            <a href="${escapeHtml(downloadUrl)}" class="btn-lib-download" onclick="handleCardAction(this, '${escapeHtml(item.id)}', event)">
+              <i class="${btnIcon}"></i> <span class="btn-download-text">${escapeHtml(btnText)}</span>
             </a>
             <button class="btn-lib-details" onclick="openResourceModalById('${escapeHtml(item.id)}')">
               <i class="fas fa-info-circle"></i>
@@ -369,14 +379,32 @@
       return url;
     }
 
-    function handleCardDownload(linkElem, fileName, e) {
-      let url = linkElem.getAttribute('href');
+    function handleCardAction(linkElem, itemId, e) {
+      const item = allDownloads.find(d => d.id === itemId);
+      const actionType = item ? (item.actionType || 'download') : 'download';
+      const fileName = item ? (item.fileName || `${item.title}.zip`) : 'recurso.zip';
+      let url = (item && item.downloadUrl) ? item.downloadUrl.trim() : linkElem.getAttribute('href');
+
       if (!url || url === '#' || url === 'https://github.com/dgffu/Giffu_') {
         if (e) e.preventDefault();
-        alert(`📦 Preparando download de: "${fileName}"\n\nEm breve o link direto estará conectado pelo painel de administração!`);
+        if (actionType === 'buy') {
+          alert(`🛒 "${item ? item.title : 'Produto'}"\n\nEm breve o link de compra estará disponível!`);
+        } else if (actionType === 'access') {
+          alert(`🚀 "${item ? item.title : 'Ferramenta'}"\n\nLink em configuração no painel!`);
+        } else {
+          alert(`📦 Preparando download de: "${fileName}"\n\nEm breve o link direto estará conectado pelo painel de administração!`);
+        }
         return;
       }
 
+      if (actionType === 'access') {
+        linkElem.setAttribute('href', url);
+        linkElem.setAttribute('target', '_blank');
+        linkElem.setAttribute('rel', 'noopener');
+        return;
+      }
+
+      // Para 'download' e 'buy' (mantém a mesma ação de download por enquanto)
       const directUrl = convertToDirectGoogleDriveLink(url);
       linkElem.setAttribute('href', directUrl);
       linkElem.setAttribute('target', '_blank');
@@ -440,9 +468,20 @@
 
       const downloadBtn = document.getElementById('modalDownloadBtn');
       if (downloadBtn) {
+        const actionType = item.actionType || 'download';
+        let modalIcon = 'fas fa-download';
+        let modalText = 'Baixar Agora';
+        if (actionType === 'buy') {
+          modalIcon = 'fas fa-shopping-cart';
+          modalText = 'Comprar Agora';
+        } else if (actionType === 'access') {
+          modalIcon = 'fas fa-arrow-up-right-from-square';
+          modalText = 'Acessar Ferramenta';
+        }
+        downloadBtn.innerHTML = `<i class="${modalIcon}"></i> <span>${modalText}</span>`;
         downloadBtn.href = item.downloadUrl || '#';
         downloadBtn.onclick = function (e) {
-          handleCardDownload(downloadBtn, item.fileName || `${item.title}.zip`, e);
+          handleCardAction(downloadBtn, item.id, e);
         };
       }
 

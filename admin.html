@@ -660,25 +660,35 @@
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-          <!-- Nome do Arquivo -->
+          <!-- Tipo de Ação do Botão -->
           <div class="form-group" style="margin-bottom: 0;">
-            <label style="font-size: 13px; font-weight: 500; color: var(--text-primary);">Nome do Arquivo ZIP</label>
-            <input type="text" id="downloadFileNameInput" class="form-input" placeholder="Ex: Meu-Pack-Giffu.zip">
+            <label style="font-size: 13px; font-weight: 500; color: var(--text-primary);">Ação do Botão (Card) <span style="color: #FE5E00;">*</span></label>
+            <select id="downloadActionTypeSelect" class="form-select">
+              <option value="download">📥 Baixar (Download de arquivo)</option>
+              <option value="buy">🛒 Comprar (Produto / Pack)</option>
+              <option value="access">🚀 Acessar (Web App / Link Direto)</option>
+            </select>
           </div>
 
-          <!-- Link de Download -->
+          <!-- Nome do Arquivo -->
           <div class="form-group" style="margin-bottom: 0;">
-            <label style="font-size: 13px; font-weight: 500; color: var(--text-primary); display: flex; justify-content: space-between; align-items: center;">
-              <span>Link de Download (Google Drive, etc.)</span>
-              <span id="driveDirectStatus" style="font-size: 11px; color: #2ecc71; display: none; font-weight: 600;">
-                <i class="fas fa-bolt"></i> Download Direto Ativado
-              </span>
-            </label>
-            <input type="url" id="downloadUrlInput" class="form-input" placeholder="Cole o link do Google Drive (ex: https://drive.google.com/file/d/...)" oninput="handleDriveLinkInput(this)">
-            <span style="font-size: 11px; color: var(--text-secondary); margin-top: 4px; display: block; line-height: 1.4;">
-              ⚡ <strong>Download Direto Inteligente:</strong> Ao colar qualquer link de visualização ou compartilhamento do Google Drive, ele é convertido instantaneamente para download direto (clicou no site, o arquivo baixa na hora).
-            </span>
+            <label style="font-size: 13px; font-weight: 500; color: var(--text-primary);">Nome do Arquivo ZIP / Ref</label>
+            <input type="text" id="downloadFileNameInput" class="form-input" placeholder="Ex: Meu-Pack-Giffu.zip">
           </div>
+        </div>
+
+        <!-- Link de Download / Acesso -->
+        <div class="form-group" style="margin-bottom: 0;">
+          <label style="font-size: 13px; font-weight: 500; color: var(--text-primary); display: flex; justify-content: space-between; align-items: center;">
+            <span id="downloadUrlLabel">Link de Download / Acesso (Google Drive, URL, etc.)</span>
+            <span id="driveDirectStatus" style="font-size: 11px; color: #2ecc71; display: none; font-weight: 600;">
+              <i class="fas fa-bolt"></i> Download Direto Ativado
+            </span>
+          </label>
+          <input type="url" id="downloadUrlInput" class="form-input" placeholder="Cole o link do Google Drive ou URL (ex: https://giffu.com.br/overgen)" oninput="handleDriveLinkInput(this)">
+          <span style="font-size: 11px; color: var(--text-secondary); margin-top: 4px; display: block; line-height: 1.4;">
+            ⚡ <strong>Link Inteligente:</strong> Ao colar link do Google Drive no modo Download/Comprar, ele converte automaticamente para download direto. Para ferramentas no modo &quot;Acessar&quot;, o link direciona diretamente.
+          </span>
         </div>
 
         <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 10px; gap: 10px;">
