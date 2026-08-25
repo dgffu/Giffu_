@@ -4,7 +4,7 @@
     "title": "OverGen",
     "category": "apps",
     "software": "Assets",
-    "actionType": "access",
+    "actionType": "buy",
     "badgeText": "Gratuito",
     "icon": "fas fa-bolt",
     "description": "Gerador de overlay transitions personalizadas",
