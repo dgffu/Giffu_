@@ -11,6 +11,216 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script type="module" crossorigin src="./assets/index-BpCMGLdz.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-CejiYzVa.css">
+    <style id="boho-theme">
+      /* ============================================================
+         ESTÉTICA BOÊMIA ELEGANTE — DESIGN MATTE PLANO (BORDAS SUAVEMENTE QUADRADAS)
+         Fonte: Outfit (Mantida perfeitamente como solicitada)
+         ============================================================ */
+      
+      @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+
+      :root {
+        --boho-terracotta: #c45b38;
+        --boho-terracotta-hover: #d36643;
+        --boho-amber: #c87c2e;
+        --boho-amber-hover: #d88937;
+        --boho-sand: #f8eedf;
+        --boho-dark-mocha: #1d1511;
+        --boho-dark-mocha-hover: #2a1e18;
+        --boho-border-sand: #5c4838;
+        --boho-border-sand-active: #b89872;
+        --boho-radius: 4px;
+      }
+
+      /* Preserva e reforça a família da fonte Outfit em todos os elementos */
+      html, body, button, input, select, textarea, .font-sans {
+        font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      }
+
+      /* Estilo Base para Todos os Botões — Boêmio Matte com Bordas Levemente Arredondadas (4px) */
+      button, [role="button"], input[type="button"], input[type="submit"] {
+        font-family: 'Outfit', sans-serif !important;
+        letter-spacing: 0.035em !important;
+        transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease !important;
+        position: relative;
+        box-shadow: none !important;
+        text-shadow: none !important;
+        background-image: none !important;
+        filter: none !important;
+        border-radius: var(--boho-radius) !important;
+      }
+
+      /* Suavizar levemente o arredondamento de classes Tailwind utilitárias nos botões */
+      button.rounded-lg, button.rounded-xl, button.rounded-2xl, button.rounded-md,
+      div[role="button"].rounded-lg, div[role="button"].rounded-xl {
+        border-radius: var(--boho-radius) !important;
+      }
+
+      /* Feedback tátil simples ao clicar */
+      button:active, [role="button"]:active {
+        transform: translateY(1px) !important;
+      }
+
+      /* Removendo pseudos elementos de brilho/shimmer */
+      button::after, button::before {
+        display: none !important;
+      }
+
+      /* Botões Principais / Ação / Exportar (Terracota Matte Plano) */
+      button[class*="from-amber"], 
+      button[class*="from-orange"],
+      button[class*="bg-amber-500"]:not([class*="bg-amber-500/"]),
+      .bg-amber-500 {
+        background-color: var(--boho-terracotta) !important;
+        background-image: none !important;
+        color: var(--boho-sand) !important;
+        border: 1px solid #d97858 !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+        font-weight: 600 !important;
+        border-radius: var(--boho-radius) !important;
+      }
+
+      button[class*="from-amber"]:hover, 
+      button[class*="from-orange"]:hover,
+      button[class*="bg-amber-500"]:not([class*="bg-amber-500/"]):hover,
+      .bg-amber-500:hover {
+        background-color: var(--boho-terracotta-hover) !important;
+        background-image: none !important;
+        border-color: #eba38a !important;
+        color: #ffffff !important;
+        box-shadow: none !important;
+      }
+
+      /* Botões Secundários & Cards de Opções (Mocha Matte Escuro) */
+      button[class*="bg-film-"],
+      button[class*="border-white"],
+      button[class*="bg-slate-"] {
+        border: 1px solid var(--boho-border-sand) !important;
+        background-color: var(--boho-dark-mocha) !important;
+        background-image: none !important;
+        color: #e3d5c8 !important;
+        border-radius: var(--boho-radius) !important;
+        box-shadow: none !important;
+      }
+
+      button[class*="bg-film-"]:hover,
+      button[class*="border-white"]:hover,
+      button[class*="bg-slate-"]:hover {
+        border-color: var(--boho-border-sand-active) !important;
+        background-color: var(--boho-dark-mocha-hover) !important;
+        background-image: none !important;
+        color: #ffffff !important;
+        box-shadow: none !important;
+      }
+
+      /* Botões Ativos / Selecionados (Âmbar Boêmio Matte) */
+      button[class*="bg-amber-500/20"],
+      button[class*="border-amber-400"],
+      button[class*="border-amber-500"],
+      .border-amber-400 {
+        background-color: var(--boho-amber) !important;
+        background-image: none !important;
+        border: 1px solid #e09848 !important;
+        color: var(--boho-sand) !important;
+        box-shadow: none !important;
+        font-weight: 600 !important;
+        border-radius: var(--boho-radius) !important;
+      }
+
+      button[class*="bg-amber-500/20"]:hover,
+      button[class*="border-amber-400"]:hover,
+      button[class*="border-amber-500"]:hover {
+        background-color: var(--boho-amber-hover) !important;
+        background-image: none !important;
+        border-color: #f0b067 !important;
+        color: #ffffff !important;
+        box-shadow: none !important;
+      }
+
+      /* Sliders de Intervalo em Tom Terracota Matte sem Brilho */
+      input[type=range]::-webkit-slider-thumb {
+        background-color: var(--boho-terracotta) !important;
+        background-image: none !important;
+        border: 2px solid var(--boho-sand) !important;
+        box-shadow: none !important;
+        border-radius: 2px !important;
+      }
+
+      input[type=range]::-webkit-slider-thumb:hover {
+        background-color: var(--boho-terracotta-hover) !important;
+        transform: scale(1.15) !important;
+        box-shadow: none !important;
+      }
+
+      /* Barra de Rolagem Personalizada Matte */
+      ::-webkit-scrollbar-track {
+        background: #140d0a !important;
+      }
+      ::-webkit-scrollbar-thumb {
+        background-color: #7a3e29 !important;
+        background-image: none !important;
+        border-radius: 2px !important;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background-color: var(--boho-terracotta) !important;
+      }
+
+      /* ============================================================
+         CORREÇÃO DE ALTO CONTRASTE (WCAG - LEITURA PERFEITA)
+         ============================================================ */
+
+      /* Textos em Botões/Cards SELECIONADOS (Fundo Âmbar/Terracota) */
+      button[class*="bg-amber-500/20"],
+      button[class*="border-amber-400"],
+      button[class*="border-amber-500"],
+      .border-amber-400 {
+        color: #ffffff !important;
+      }
+
+      button[class*="bg-amber-500/20"] *,
+      button[class*="border-amber-400"] *,
+      button[class*="border-amber-500"] *,
+      .border-amber-400 * {
+        color: #fff9f0 !important;
+      }
+
+      /* Subtítulos/Descrições em Botões Selecionados (Ex: "Clarão súbito e cauda suave") */
+      button[class*="bg-amber-500/20"] p,
+      button[class*="bg-amber-500/20"] span,
+      button[class*="bg-amber-500/20"] div,
+      button[class*="bg-amber-500/20"] small,
+      button[class*="border-amber-400"] p,
+      button[class*="border-amber-400"] span,
+      button[class*="border-amber-400"] div,
+      button[class*="border-amber-400"] small,
+      .border-amber-400 p,
+      .border-amber-400 span,
+      .border-amber-400 div,
+      .border-amber-400 small {
+        color: #ffffff !important;
+        opacity: 0.95 !important;
+        font-weight: 500 !important;
+      }
+
+      /* Textos em Botões/Cards NÃO SELECIONADOS (Fundo Escuro) */
+      button[class*="bg-film-"] p,
+      button[class*="bg-film-"] span,
+      button[class*="border-white"] p,
+      button[class*="border-white"] span,
+      button[class*="bg-slate-"] p,
+      button[class*="bg-slate-"] span {
+        color: #d9cac0 !important;
+      }
+
+      /* Rótulos e Títulos de Seção (Ex: "CURVA DE EXPOSIÇÃO") */
+      .text-slate-400,
+      .text-slate-500,
+      label,
+      h1, h2, h3, h4, h5, h6 {
+        color: #ebdcd0 !important;
+      }
+    </style>
   </head>
   <body class="bg-[#07090e] text-slate-100 font-sans antialiased overflow-hidden select-none">
     <div id="root"></div>
