@@ -1,5 +1,21 @@
 [
   {
+    "id": "down-1788370035852",
+    "title": "Mouse Remapper",
+    "category": "apps",
+    "software": "MacOS",
+    "actionType": "download",
+    "badgeText": "Aplicativo",
+    "icon": "fas fa-code",
+    "description": "Remapeie botões auxiliares do seu mouse no MacOS gratuitamente.",
+    "format": ".dmg",
+    "fileSize": "1,7 MB",
+    "compatibility": "MacOS",
+    "detailsDesc": "Abra o DMG e arraste o app para o atalho de Applications.",
+    "fileName": "Mouse-Remapper.zip",
+    "downloadUrl": "https://drive.google.com/uc?export=download&id=19XLHYBDmBvT80wM_0ze0DR0fhm6EQsgu"
+  },
+  {
     "id": "down-1787682589139",
     "title": "OverGen",
     "category": "apps",
