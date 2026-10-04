@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Giffú Drop · Transferência Direta & Armazenamento Original</title>
+  <meta name="description" content="Envio simples de fotos, vídeos e textos em qualidade original sem compressão. Suporte a downloads em lote para Galeria (mobile) ou ZIP (desktop).">
+  
+  <!-- Favicon Giffú Padrão -->
+  <link rel="icon" type="image/x-icon" href="favico.ico">
+  <link rel="shortcut icon" href="favico.ico">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Subtle Background Mesh -->
+  <div class="bg-mesh"></div>
+
+  <!-- Main App Layout -->
+  <div class="app-layout">
+    
+    <!-- Top Sticky Header -->
+    <header class="app-header">
+      <a href="../" class="brand-section" title="Voltar ao Portfólio">
+        <div class="brand-badge">G</div>
+        <div class="brand-title">
+          Giffú <span style="font-weight: 300; opacity: 0.7;">/</span> Drop
+          <span class="tag">Original 100%</span>
+        </div>
+      </a>
+
+      <div class="header-actions">
+        <!-- Live Connection Status -->
+        <div class="status-pill" id="storageStatusPill" title="Status do Armazenamento">
+          <span class="status-dot" id="statusDot"></span>
+          <span id="statusText">Conectado</span>
+        </div>
+
+        <!-- Batch Selection Toggle -->
+        <button class="icon-btn" id="btnToggleSelect" title="Selecionar múltiplos itens">
+          <i class="fas fa-check-double"></i>
+        </button>
+
+        <!-- Cloud Settings -->
+        <button class="icon-btn" id="btnOpenSettings" title="Configurações de Armazenamento / Nuvem">
+          <i class="fas fa-cloud"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Filter & Stats Bar -->
+    <div class="filter-bar">
+      <div class="filter-chips">
+        <button class="filter-chip active" data-filter="all">Todos</button>
+        <button class="filter-chip" data-filter="image"><i class="fas fa-image"></i> Fotos</button>
+        <button class="filter-chip" data-filter="video"><i class="fas fa-video"></i> Vídeos</button>
+        <button class="filter-chip" data-filter="text"><i class="fas fa-file-alt"></i> Textos</button>
+        <button class="filter-chip" data-filter="batch"><i class="fas fa-layer-group"></i> Lotes</button>
+      </div>
+      <div class="feed-stats" id="feedStatsSummary">
+        Carregando...
+      </div>
+    </div>
+
+    <!-- Batch Selection Actions Bar (Visible when selecting items) -->
+    <div id="selectionActionBar" style="display: none; align-items: center; justify-content: space-between; background: var(--bg-surface); padding: 10px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-accent); margin-bottom: 12px;">
+      <span style="font-size: 13px; font-weight: 600;" id="selectionCountText">0 itens selecionados</span>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn-download-original" id="btnDownloadSelectedBatch">
+          <i class="fas fa-download"></i> <span id="batchDownloadBtnLabel">Baixar Seleção</span>
+        </button>
+        <button class="btn-secondary" id="btnCancelSelection">Cancelar</button>
+      </div>
+    </div>
+
+    <!-- Main Message / Drop Feed -->
+    <main class="feed-container" id="feedContainer">
+      <!-- Empty state initially -->
+      <div class="empty-feed" id="emptyFeedState">
+        <div class="empty-icon">
+          <i class="fas fa-cloud-arrow-up"></i>
+        </div>
+        <h2 class="empty-title">Seu Drop está pronto</h2>
+        <p class="empty-desc">
+          Arraste arquivos para cá, cole imagens da área de transferência ou digite uma nota abaixo. 
+          Fotos e vídeos são preservados em <strong>qualidade original sem qualquer perda</strong> (limite de 1 GB por arquivo).
+        </p>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Floating Input Dock -->
+  <div class="dock-wrapper">
+    <div class="dock-container">
+      
+      <!-- Staged Files Pill Bar (Previews before sending) -->
+      <div class="staged-files-bar" id="stagedFilesBar" style="display: none;"></div>
+
+      <!-- Dock Input Controls Row -->
+      <div class="dock-input-row">
+        <!-- Hidden file input supporting multiple files -->
+        <input type="file" id="fileInput" multiple style="display: none;">
+        
+        <button class="dock-attach-btn" id="btnAttach" title="Anexar Fotos, Vídeos ou Documentos">
+          <i class="fas fa-paperclip"></i>
+        </button>
+
+        <textarea 
+          class="dock-textarea" 
+          id="textInput" 
+          placeholder="Escreva uma nota ou arraste arquivos originais (até 1 GB)..."
+          rows="1"
+        ></textarea>
+
+        <button class="dock-send-btn" id="btnSend" title="Enviar para o Drop">
+          <i class="fas fa-arrow-up"></i>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Fullscreen Drag & Drop Overlay -->
+  <div class="drag-overlay" id="dragOverlay">
+    <div class="drag-box">
+      <i class="fas fa-cloud-arrow-up"></i>
+      <h3>Solte seus arquivos aqui</h3>
+      <p>Envio em qualidade original direta • Limite de 1 GB por arquivo</p>
+    </div>
+  </div>
+
+  <!-- Real-time Upload Progress Drawer -->
+  <div class="progress-card" id="uploadProgressCard">
+    <div class="progress-header">
+      <span id="uploadProgressTitle"><i class="fas fa-spinner fa-spin"></i> Enviando arquivo original...</span>
+      <span id="uploadProgressPercent">0%</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="uploadProgressBar"></div>
+    </div>
+    <div class="progress-meta">
+      <span id="uploadSpeedText">0 MB/s</span>
+      <span id="uploadRemainingText">Calculando...</span>
+    </div>
+  </div>
+
+  <!-- Lightbox Modal for Photo Inspection -->
+  <div class="lightbox-modal" id="lightboxModal">
+    <div class="lightbox-controls">
+      <a href="#" id="lightboxDownloadBtn" class="btn-download-original" download>
+        <i class="fas fa-download"></i> Baixar Original
+      </a>
+      <button class="icon-btn" id="lightboxCloseBtn" title="Fechar">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <img src="" alt="Visualização" class="lightbox-img" id="lightboxImg">
+    <div class="lightbox-caption" id="lightboxCaption"></div>
+  </div>
+
+  <!-- Cloud & Storage Settings Modal -->
+  <div class="settings-modal" id="settingsModal">
+    <div class="settings-dialog">
+      <div class="settings-title">
+        <span><i class="fas fa-cloud"></i> Configurações de Armazenamento</span>
+        <button class="mini-btn" id="btnCloseSettings"><i class="fas fa-times"></i></button>
+      </div>
+
+      <div class="form-group">
+        <label>Modo de Armazenamento</label>
+        <select class="form-input" id="cfgStorageMode">
+          <option value="local">Servidor Local / Nuvem Automática (localhost:8000)</option>
+          <option value="cloud">Nuvem Direta (Supabase Storage / Cloudflare R2 / S3)</option>
+        </select>
+        <div class="form-help">
+          No modo Local, os arquivos originais são gerenciados pelo servidor Python em <code>drop/uploads/</code>. No modo Nuvem, você pode conectar sua própria conta do Supabase ou Cloudflare R2 para hospedagem estática em <code>giffu.com.br/drop</code>.
+        </div>
+      </div>
+
+      <div id="cloudSettingsSection" style="display: none; flex-direction: column; gap: 12px;">
+        <div class="form-group">
+          <label>Provedor de Nuvem</label>
+          <select class="form-input" id="cfgCloudProvider">
+            <option value="supabase">Supabase Storage</option>
+            <option value="r2">Cloudflare R2 / S3</option>
+            <option value="custom_api">URL da API Cloud (Render / Railway / VPS)</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="cfgSupabaseGroup">
+          <label>Supabase Project URL</label>
+          <input type="text" class="form-input" id="cfgSupabaseUrl" placeholder="https://seu-projeto.supabase.co">
+          <label style="margin-top: 8px;">Supabase Anon Key</label>
+          <input type="password" class="form-input" id="cfgSupabaseKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6...">
+          <label style="margin-top: 8px;">Nome do Bucket</label>
+          <input type="text" class="form-input" id="cfgSupabaseBucket" value="giffu-drop">
+        </div>
+
+        <div class="form-group" id="cfgCustomApiGroup" style="display: none;">
+          <label>URL Base da API Externa</label>
+          <input type="text" class="form-input" id="cfgCustomApiUrl" placeholder="https://api.giffu.com.br">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Limite de Envio por Arquivo</label>
+        <input type="text" class="form-input" value="1 GB (1.073.741.824 bytes)" disabled style="opacity: 0.7;">
+        <div class="form-help">Arquivos com mais de 1 GB são bloqueados automaticamente pelo cliente e pelo servidor.</div>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px;">
+        <button class="btn-secondary" id="btnCancelSettings">Cancelar</button>
+        <button class="btn-download-original" id="btnSaveSettings">Salvar Configurações</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- JSZip for Desktop Batch Downloads -->
+  <script src="jszip.min.js"></script>
+  <!-- Configuration Script -->
+  <script src="config.js"></script>
+  <!-- Main Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
