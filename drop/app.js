@@ -506,7 +506,9 @@
   function initSupabase() {
     const cfg = window.GIFFU_DROP_CONFIG || {};
     const cloud = cfg.cloud || {};
-    const url = (cloud.supabaseUrl || '').trim();
+    const sanitizeUrl = window.sanitizeSupabaseUrl || ((u) => (u || '').trim());
+    const rawUrl = (cloud.supabaseUrl || '').trim();
+    const url = sanitizeUrl(rawUrl);
     const key = (cloud.supabaseAnonKey || '').trim();
 
     if (url && key && window.supabase) {
@@ -527,7 +529,8 @@
 
   function getSupabaseBucket() {
     const cfg = window.GIFFU_DROP_CONFIG || {};
-    return (cfg.cloud && cfg.cloud.bucketName && cfg.cloud.bucketName.trim()) || 'giffu-drop';
+    const sanitizeBucket = window.sanitizeBucketName || ((b) => (b || '').trim().toLowerCase() || 'giffu-drop');
+    return sanitizeBucket((cfg.cloud && cfg.cloud.bucketName) || 'giffu-drop');
   }
 
   // --- CLIENT-SIDE VIDEO THUMBNAIL EXTRACTION ---
@@ -764,17 +767,32 @@
       uploadProgressPercent.textContent = `${progress}%`;
     }, 300);
 
-    const { data, error } = await supabaseClient.storage.from(bucket).upload(storedPath, file, {
-      cacheControl: '3600',
-      upsert: false
-    });
+    let data, uploadErr;
+    try {
+      const res = await supabaseClient.storage.from(bucket).upload(storedPath, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
+      data = res.data;
+      uploadErr = res.error;
+    } catch (networkErr) {
+      uploadErr = networkErr;
+    }
 
     clearInterval(progressTimer);
     uploadProgressBar.style.width = '100%';
     uploadProgressPercent.textContent = '100%';
 
-    if (error) {
-      throw error;
+    if (uploadErr) {
+      let rawMsg = uploadErr.message || (typeof uploadErr === 'string' ? uploadErr : 'Falha na comunicação com o Supabase');
+      if (/invalid path/i.test(rawMsg) || /PGRST125/i.test(rawMsg)) {
+        throw new Error('URL do Supabase incorreta (apontando para REST em vez da raiz). No menu ☁️ Nuvem, informe apenas https://xxxx.supabase.co sem "/rest/v1" e sem barras finais.');
+      } else if (/row-level security/i.test(rawMsg) || /security policy/i.test(rawMsg) || /violates/i.test(rawMsg)) {
+        throw new Error(`Permissão negada (RLS) no bucket "${bucket}". Crie uma política no Supabase Storage permitindo INSERT e SELECT para anon.`);
+      } else if (/bucket not found/i.test(rawMsg) || /not found/i.test(rawMsg)) {
+        throw new Error(`Bucket "${bucket}" não encontrado no Supabase. Crie o bucket com esse nome e marque como "Public".`);
+      }
+      throw new Error(rawMsg);
     }
 
     const publicUrl = supabaseClient.storage.from(bucket).getPublicUrl(storedPath).data.publicUrl;
@@ -1725,10 +1743,13 @@
     toggleCloudSection(cfgStorageMode.value === 'cloud' || isStaticHosting);
 
     if (cfg.cloud) {
+      const sanitizeUrl = window.sanitizeSupabaseUrl || ((u) => (u || '').trim());
+      const sanitizeBucket = window.sanitizeBucketName || ((b) => (b || '').trim().toLowerCase() || 'giffu-drop');
+
       cfgCloudProvider.value = cfg.cloud.provider || 'supabase';
-      cfgSupabaseUrl.value = cfg.cloud.supabaseUrl || '';
+      cfgSupabaseUrl.value = sanitizeUrl(cfg.cloud.supabaseUrl || '');
       cfgSupabaseKey.value = cfg.cloud.supabaseAnonKey || '';
-      cfgSupabaseBucket.value = cfg.cloud.bucketName || 'giffu-drop';
+      cfgSupabaseBucket.value = sanitizeBucket(cfg.cloud.bucketName || 'giffu-drop');
       cfgCustomApiUrl.value = cfg.cloud.customApiUrl || '';
     }
     toggleProviderInputs();
@@ -1747,6 +1768,24 @@
   cfgStorageMode.addEventListener('change', (e) => toggleCloudSection(e.target.value === 'cloud'));
   cfgCloudProvider.addEventListener('change', toggleProviderInputs);
 
+  if (cfgSupabaseUrl) {
+    cfgSupabaseUrl.addEventListener('blur', () => {
+      const sanitizeUrl = window.sanitizeSupabaseUrl || ((u) => (u || '').trim());
+      if (cfgSupabaseUrl.value) {
+        cfgSupabaseUrl.value = sanitizeUrl(cfgSupabaseUrl.value);
+      }
+    });
+  }
+
+  if (cfgSupabaseBucket) {
+    cfgSupabaseBucket.addEventListener('blur', () => {
+      const sanitizeBucket = window.sanitizeBucketName || ((b) => (b || '').trim().toLowerCase() || 'giffu-drop');
+      if (cfgSupabaseBucket.value) {
+        cfgSupabaseBucket.value = sanitizeBucket(cfgSupabaseBucket.value);
+      }
+    });
+  }
+
   btnOpenSettings.addEventListener('click', () => {
     loadSettingsIntoModal();
     settingsModal.classList.add('active');
@@ -1762,20 +1801,29 @@
   btnCancelSettings.addEventListener('click', () => settingsModal.classList.remove('active'));
 
   btnSaveSettings.addEventListener('click', () => {
+    const sanitizeUrl = window.sanitizeSupabaseUrl || ((u) => (u || '').trim());
+    const sanitizeBucket = window.sanitizeBucketName || ((b) => (b || '').trim().toLowerCase() || 'giffu-drop');
+
+    const cleanUrl = sanitizeUrl(cfgSupabaseUrl.value.trim());
+    const cleanBucket = sanitizeBucket(cfgSupabaseBucket.value.trim());
+
+    cfgSupabaseUrl.value = cleanUrl;
+    cfgSupabaseBucket.value = cleanBucket;
+
     const newCfg = {
       ...window.GIFFU_DROP_CONFIG,
       storageMode: cfgStorageMode.value,
       cloud: {
         provider: cfgCloudProvider.value,
-        supabaseUrl: cfgSupabaseUrl.value.trim(),
+        supabaseUrl: cleanUrl,
         supabaseAnonKey: cfgSupabaseKey.value.trim(),
-        bucketName: cfgSupabaseBucket.value.trim() || 'giffu-drop',
+        bucketName: cleanBucket,
         customApiUrl: cfgCustomApiUrl.value.trim()
       }
     };
 
     if (window.saveAppConfig(newCfg)) {
-      showToast('Configurações salvas!', 'success');
+      showToast('Configurações salvas e validadas!', 'success');
       settingsModal.classList.remove('active');
       initSupabase();
       fetchItems();

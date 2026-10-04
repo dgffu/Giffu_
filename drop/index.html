@@ -215,11 +215,16 @@
         </div>
 
         <div class="form-group" id="cfgSupabaseGroup">
-          <div class="form-help" style="background: rgba(254, 94, 0, 0.08); border: 1px solid var(--border-accent); padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; line-height: 1.5; color: #fff;">
-            💡 <strong style="color: var(--accent-orange);">Passo a passo rápido no Supabase:</strong><br>
-            1. Crie um projeto gratuito em <a href="https://supabase.com" target="_blank" style="color: var(--accent-orange); text-decoration: underline;">supabase.com</a>.<br>
-            2. No menu <strong>Storage</strong>, clique em <strong>New bucket</strong>, digite <code>giffu-drop</code> e ative a opção <strong>Public bucket</strong>.<br>
-            3. Em <strong>Project Settings</strong> &gt; <strong>API</strong>, copie a <strong>Project URL</strong> e a chave <strong>anon public</strong> e cole abaixo:
+          <div class="form-help" style="background: rgba(254, 94, 0, 0.08); border: 1px solid var(--border-accent); padding: 12px 14px; border-radius: 8px; margin-bottom: 10px; line-height: 1.6; color: #fff; font-size: 12px;">
+            💡 <strong style="color: var(--accent-orange);">Configuração do Supabase Storage:</strong><br>
+            1. Crie seu projeto em <a href="https://supabase.com" target="_blank" style="color: var(--accent-orange); text-decoration: underline;">supabase.com</a>.<br>
+            2. Em <strong>Storage</strong>, clique em <strong>New bucket</strong>, informe o nome <code>giffu-drop</code> e marque <strong>Public bucket</strong>.<br>
+            3. Em <strong>Project Settings &gt; API</strong>, copie a <strong>Project URL</strong> (ex: <code>https://xxxx.supabase.co</code>) e a chave <strong>anon public</strong>.<br>
+            <div style="margin-top: 6px; padding: 6px 8px; background: rgba(0,0,0,0.4); border-radius: 6px; border-left: 3px solid var(--accent-orange);">
+              ⚠️ <em>Atenção: Use apenas o domínio base. O sistema limpa automaticamente sufixos como <code>/rest/v1</code>.</em><br>
+              🔒 <em>Se receber erro de permissão (RLS), execute no <strong>SQL Editor</strong> do Supabase:</em><br>
+              <code style="color: #fe5e00; display: block; margin-top: 4px; word-break: break-all; font-size: 11px;">create policy "Permitir Anon" on storage.objects for all to anon using (bucket_id = 'giffu-drop') with check (bucket_id = 'giffu-drop');</code>
+            </div>
           </div>
           <label>Supabase Project URL</label>
           <input type="text" class="form-input" id="cfgSupabaseUrl" placeholder="https://seu-projeto.supabase.co">
