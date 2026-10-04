@@ -21,6 +21,9 @@ import urllib.parse
 import mimetypes
 import uuid
 import base64
+import hashlib
+import secrets
+import random
 
 PORT = 8000
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -29,6 +32,19 @@ UPLOADS_DIR = os.path.join(BASE_DIR, 'uploads')
 THUMBS_DIR = os.path.join(UPLOADS_DIR, 'thumbs')
 DATA_DIR = os.path.join(BASE_DIR, 'data')
 ITEMS_FILE = os.path.join(DATA_DIR, 'items.json')
+
+# --- GIFFÚ ADMIN AUTHENTICATION ---
+ADMIN_USERNAME = "dilan@novel.art.br"
+ADMIN_SALT = b"giffu_novel_art_salt_2026"
+ADMIN_PASSWORD_HASH = hashlib.pbkdf2_hmac(
+    'sha256', 
+    b"##ArteNovel26", 
+    ADMIN_SALT, 
+    100000
+).hex()
+
+ACTIVE_SESSIONS = {}  # token -> { "username": str, "expires_at": float }
+PENDING_2FA = {}      # challenge_id -> { "username": str, "otp": str, "expires_at": float }
 
 MAX_FILE_SIZE = 1024 * 1024 * 1024  # 1 GB in bytes
 
@@ -112,6 +128,22 @@ class GiffuDropHandler(http.server.SimpleHTTPRequestHandler):
                 with open(drop_index, 'rb') as f:
                     self.wfile.write(f.read())
                 return
+
+        # API: Auth Status
+        if path == '/api/auth/status':
+            auth_header = self.headers.get('Authorization', '')
+            token = auth_header[7:].strip() if auth_header.startswith('Bearer ') else ''
+            cookie = self.headers.get('Cookie', '')
+            if not token and 'giffu_session=' in cookie:
+                token = cookie.split('giffu_session=')[1].split(';')[0].strip()
+            
+            if token and token in ACTIVE_SESSIONS:
+                sess = ACTIVE_SESSIONS[token]
+                if time.time() < sess['expires_at']:
+                    return self.send_json(200, {"authenticated": True, "user": sess['username']})
+                else:
+                    del ACTIVE_SESSIONS[token]
+            return self.send_json(200, {"authenticated": False})
 
         # API: Get Items List
         if path == '/api/drop/items':
@@ -240,6 +272,93 @@ class GiffuDropHandler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
+
+        # API: Auth Login
+        if path == '/api/auth/login':
+            try:
+                content_length = int(self.headers.get('Content-Length', 0))
+                body = self.rfile.read(content_length).decode('utf-8')
+                data = json.loads(body)
+                username = data.get('username', '').strip().lower()
+                password = data.get('password', '')
+
+                input_hash = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), ADMIN_SALT, 100000).hex()
+                if username != ADMIN_USERNAME or not secrets.compare_digest(input_hash, ADMIN_PASSWORD_HASH):
+                    return self.send_json(401, {"error": "Usuário ou senha incorretos."})
+
+                challenge_id = secrets.token_hex(16)
+                otp_code = f"{random.randint(100000, 999999)}"
+                PENDING_2FA[challenge_id] = {
+                    "username": username,
+                    "otp": otp_code,
+                    "expires_at": time.time() + 300,
+                    "attempts": 0
+                }
+
+                print("\n" + "=" * 50)
+                print("🔒 [GIFFÚ DROP - 2FA AUTENTICAÇÃO]")
+                print(f"📧 Destinatário: {username}")
+                print(f"🔑 CÓDIGO DE 6 DÍGITOS: 👉  {otp_code}  👈")
+                print("=" * 50 + "\n")
+
+                return self.send_json(200, {
+                    "success": True,
+                    "challengeId": challenge_id,
+                    "message": f"Código enviado para {username}"
+                })
+            except Exception as e:
+                return self.send_json(500, {"error": f"Erro no login: {str(e)}"})
+
+        # API: Verify 2FA
+        if path == '/api/auth/verify-2fa':
+            try:
+                content_length = int(self.headers.get('Content-Length', 0))
+                body = self.rfile.read(content_length).decode('utf-8')
+                data = json.loads(body)
+                challenge_id = data.get('challengeId', '')
+                code = str(data.get('code', '')).strip()
+
+                if challenge_id not in PENDING_2FA:
+                    return self.send_json(400, {"error": "Desafio 2FA expirado ou inválido."})
+
+                pending = PENDING_2FA[challenge_id]
+                if time.time() > pending['expires_at']:
+                    del PENDING_2FA[challenge_id]
+                    return self.send_json(400, {"error": "Código expirou."})
+
+                if not secrets.compare_digest(pending['otp'], code):
+                    pending['attempts'] += 1
+                    if pending['attempts'] >= 3:
+                        del PENDING_2FA[challenge_id]
+                        return self.send_json(400, {"error": "Número de tentativas excedido."})
+                    return self.send_json(401, {"error": "Código incorreto."})
+
+                token = secrets.token_hex(32)
+                ACTIVE_SESSIONS[token] = {
+                    "username": pending['username'],
+                    "expires_at": time.time() + 86400
+                }
+                del PENDING_2FA[challenge_id]
+                cookie_val = f"giffu_session={token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400"
+                return self.send_json(200, {
+                    "success": True,
+                    "sessionToken": token,
+                    "user": pending['username']
+                }, extra_headers={"Set-Cookie": cookie_val})
+            except Exception as e:
+                return self.send_json(500, {"error": f"Erro no 2FA: {str(e)}"})
+
+        # API: Auth Logout
+        if path == '/api/auth/logout':
+            auth_header = self.headers.get('Authorization', '')
+            token = auth_header[7:].strip() if auth_header.startswith('Bearer ') else ''
+            cookie = self.headers.get('Cookie', '')
+            if not token and 'giffu_session=' in cookie:
+                token = cookie.split('giffu_session=')[1].split(';')[0].strip()
+            if token in ACTIVE_SESSIONS:
+                del ACTIVE_SESSIONS[token]
+            cookie_val = "giffu_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly"
+            return self.send_json(200, {"success": True}, extra_headers={"Set-Cookie": cookie_val})
 
         # API: Text Note / Message
         if path == '/api/drop/text':

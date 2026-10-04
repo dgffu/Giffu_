@@ -2,10 +2,20 @@
  * Giffú Drop - Client Application Logic
  * Pure Vanilla JavaScript • Zero bloated frameworks • High Performance
  * Dual Storage Engine: Local Python Server (localhost:8000) + Supabase Cloud Storage (GitHub Pages / giffu.com.br/drop)
+ * Security: Giffú Admin Authentication & 2FA Gatekeeper
  */
 
 (function () {
   'use strict';
+
+  // --- AUTHENTICATION CONSTANTS & STATE (SAME AS GIFFÚ ADMIN) ---
+  const STATIC_AUTH_USER = "dilan@novel.art.br";
+  const STATIC_AUTH_HASH = "b41b60725a8b6510a27b22ff11503a08eba7ea1c66487aa00aafe50407d6e04c";
+  const STATIC_AUTH_SALT = "giffu_novel_art_salt_2026";
+  const GOOGLE_SCRIPT_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyVAeEcZW08W8w_UAkAzkUFhnUF9RR1OVJXlnlxfPREanohccteYbL5E6TvLI53ryv_Zw/exec";
+
+  let isAuthenticated = false;
+  let currentChallengeId = null;
 
   // --- STATE ---
   let items = [];
@@ -37,6 +47,22 @@
   const statusText = document.getElementById('statusText');
   const cloudSetupNotice = document.getElementById('cloudSetupNotice');
   const btnConnectCloudNotice = document.getElementById('btnConnectCloudNotice');
+
+  // Auth Overlay Elements
+  const dropLoginOverlay = document.getElementById('dropLoginOverlay');
+  const dropLoginStepCredentials = document.getElementById('dropLoginStepCredentials');
+  const dropLoginStep2FA = document.getElementById('dropLoginStep2FA');
+  const adminUsernameInput = document.getElementById('adminUsernameInput');
+  const adminPasswordInput = document.getElementById('adminPasswordInput');
+  const loginErrorBox = document.getElementById('loginErrorBox');
+  const twoFaErrorBox = document.getElementById('twoFaErrorBox');
+  const btnSubmitLogin = document.getElementById('btnSubmitLogin');
+  const btnSubmit2FA = document.getElementById('btnSubmit2FA');
+  const btnBackToCredentials = document.getElementById('btnBackToCredentials');
+  const sentEmailDisplay = document.getElementById('sentEmailDisplay');
+  const dropAuthUserBadge = document.getElementById('dropAuthUserBadge');
+  const dropAuthUserEmail = document.getElementById('dropAuthUserEmail');
+  const btnLogoutDrop = document.getElementById('btnLogoutDrop');
 
   // Selection
   const btnToggleSelect = document.getElementById('btnToggleSelect');
@@ -81,6 +107,13 @@
 
   // --- HELPERS ---
   const MAX_FILE_SIZE = window.GIFFU_DROP_CONFIG ? window.GIFFU_DROP_CONFIG.maxFileSizeBytes : (1024 * 1024 * 1024);
+
+  async function hashStringSHA256(str) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(str);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
 
   function isMobileDevice() {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
@@ -139,6 +172,334 @@
       uInt8Array[i] = raw.charCodeAt(i);
     }
     return new Blob([uInt8Array], { type: contentType });
+  }
+
+  function showLoginError(el, msg) {
+    if (!el) return;
+    el.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${msg}`;
+    el.style.display = 'flex';
+  }
+
+  function hideLoginError(el) {
+    if (!el) return;
+    el.style.display = 'none';
+  }
+
+  // --- AUTHENTICATION GATEKEEPER ---
+  async function checkDropAuth() {
+    // 1. Check shared sessionStorage and localStorage session (same origin as admin.html)
+    try {
+      const storedSession = sessionStorage.getItem('giffu_admin_session') || localStorage.getItem('giffu_admin_session');
+      if (storedSession) {
+        const session = JSON.parse(storedSession);
+        if (session && session.expiresAt && Date.now() < session.expiresAt) {
+          unlockDropUI(session.user || STATIC_AUTH_USER);
+          return;
+        } else {
+          sessionStorage.removeItem('giffu_admin_session');
+          localStorage.removeItem('giffu_admin_session');
+        }
+      }
+    } catch (e) {}
+
+    // 2. Check local backend session if running on localhost
+    if (!isStaticHosting) {
+      try {
+        const res = await fetch('/api/auth/status', { headers: { 'Cache-Control': 'no-cache' } });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.authenticated) {
+            unlockDropUI(data.user || STATIC_AUTH_USER);
+            return;
+          }
+        }
+      } catch (e) {}
+    }
+
+    // Not authenticated: lock screen and display login overlay
+    lockDropUI();
+  }
+
+  function unlockDropUI(userEmail) {
+    isAuthenticated = true;
+    if (dropLoginOverlay) dropLoginOverlay.classList.add('hidden');
+    if (dropAuthUserBadge) {
+      dropAuthUserBadge.style.display = 'flex';
+      if (dropAuthUserEmail) dropAuthUserEmail.textContent = userEmail;
+    }
+    initSupabase();
+    fetchItems();
+  }
+
+  function lockDropUI() {
+    isAuthenticated = false;
+    if (dropLoginOverlay) dropLoginOverlay.classList.remove('hidden');
+    if (dropLoginStepCredentials) dropLoginStepCredentials.style.display = 'flex';
+    if (dropLoginStep2FA) dropLoginStep2FA.style.display = 'none';
+    if (dropAuthUserBadge) dropAuthUserBadge.style.display = 'none';
+    hideLoginError(loginErrorBox);
+    hideLoginError(twoFaErrorBox);
+  }
+
+  async function submitDropLogin() {
+    if (!adminUsernameInput || !adminPasswordInput) return;
+
+    const username = adminUsernameInput.value.trim().toLowerCase();
+    const password = adminPasswordInput.value;
+
+    if (!username || !password) {
+      showLoginError(loginErrorBox, 'Por favor, informe seu e-mail e sua senha de administrador.');
+      return;
+    }
+
+    hideLoginError(loginErrorBox);
+    btnSubmitLogin.disabled = true;
+    btnSubmitLogin.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Autenticando...';
+
+    // Local server backend authentication
+    if (!isStaticHosting) {
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            currentChallengeId = data.challengeId;
+            goTo2FAStep(username);
+            return;
+          }
+        } else {
+          const data = await res.json().catch(() => ({}));
+          showLoginError(loginErrorBox, data.error || 'Usuário ou senha incorretos.');
+          btnSubmitLogin.disabled = false;
+          btnSubmitLogin.innerHTML = '<span>Continuar</span> <i class="fas fa-arrow-right"></i>';
+          return;
+        }
+      } catch (e) {}
+    }
+
+    // Static GitHub Pages authentication
+    try {
+      const inputHash = await hashStringSHA256(password + STATIC_AUTH_SALT);
+
+      if (username !== STATIC_AUTH_USER || inputHash !== STATIC_AUTH_HASH) {
+        showLoginError(loginErrorBox, 'Usuário ou senha incorretos.');
+        btnSubmitLogin.disabled = false;
+        btnSubmitLogin.innerHTML = '<span>Continuar</span> <i class="fas fa-arrow-right"></i>';
+        return;
+      }
+
+      // Generate 6-digit OTP code & challenge
+      const otpCode = String(Math.floor(100000 + Math.random() * 900000));
+      const challengeHash = await hashStringSHA256(otpCode + STATIC_AUTH_SALT);
+      const expiresAt = Date.now() + 300000; // 5 min
+
+      sessionStorage.setItem('giffu_drop_2fa', JSON.stringify({
+        challengeHash,
+        expiresAt,
+        attempts: 0
+      }));
+
+      // Send 2FA email via Google Apps Script (from novelfilmes@gmail.com)
+      try {
+        await fetch(GOOGLE_SCRIPT_WEBAPP_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            to: username,
+            subject: `[${otpCode}] Código de Verificação Giffú Drop`,
+            html: `
+              <div style="font-family: Arial, sans-serif; background: #0b0b0e; color: #ffffff; padding: 40px 20px; text-align: center;">
+                <div style="max-width: 480px; margin: 0 auto; background: #14141b; border: 1px solid rgba(254, 94, 0, 0.3); border-radius: 16px; padding: 32px;">
+                  <h2 style="color: #fe5e00; margin-top: 0;">Giffú Drop · Acesso Restrito</h2>
+                  <p style="color: #a0a0ab; font-size: 14px;">Seu código de acesso de 6 dígitos para o Drop é:</p>
+                  <div style="font-size: 38px; font-weight: 800; letter-spacing: 10px; color: #ffffff; background: rgba(254,94,0,0.15); padding: 18px; border-radius: 12px; margin: 20px 0; border: 1px dashed #fe5e00;">
+                    ${otpCode}
+                  </div>
+                  <p style="color: #6e6e7a; font-size: 12px;">Válido por 5 minutos. Enviado com segurança via Google.</p>
+                </div>
+              </div>
+            `
+          })
+        });
+      } catch (e) {
+        console.warn('Envio do Google Apps Script:', e);
+      }
+
+      goTo2FAStep(username);
+
+    } catch (err) {
+      showLoginError(loginErrorBox, 'Erro ao processar validação de segurança.');
+    } finally {
+      btnSubmitLogin.disabled = false;
+      btnSubmitLogin.innerHTML = '<span>Continuar</span> <i class="fas fa-arrow-right"></i>';
+    }
+  }
+
+  function goTo2FAStep(username) {
+    sentEmailDisplay.textContent = username;
+    dropLoginStepCredentials.style.display = 'none';
+    dropLoginStep2FA.style.display = 'flex';
+    for (let i = 0; i < 6; i++) {
+      const box = document.getElementById(`otp-${i}`);
+      if (box) box.value = '';
+    }
+    const firstOtp = document.getElementById('otp-0');
+    if (firstOtp) firstOtp.focus();
+  }
+
+  async function submitDrop2FA() {
+    let code = '';
+    for (let i = 0; i < 6; i++) {
+      const box = document.getElementById(`otp-${i}`);
+      if (box) code += box.value.trim();
+    }
+
+    if (code.length !== 6 || !/^\d{6}$/.test(code)) {
+      showLoginError(twoFaErrorBox, 'Por favor, informe os 6 dígitos do código de verificação.');
+      return;
+    }
+
+    hideLoginError(twoFaErrorBox);
+    btnSubmit2FA.disabled = true;
+    btnSubmit2FA.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Validando código...';
+
+    // Local server 2FA
+    if (currentChallengeId && !isStaticHosting) {
+      try {
+        const res = await fetch('/api/auth/verify-2fa', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ challengeId: currentChallengeId, code })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          saveAndCompleteLogin(data.user || STATIC_AUTH_USER);
+          return;
+        } else {
+          showLoginError(twoFaErrorBox, data.error || 'Código incorreto.');
+          btnSubmit2FA.disabled = false;
+          btnSubmit2FA.innerHTML = '<span>Verificar e Acessar o Drop</span> <i class="fas fa-check-circle"></i>';
+          return;
+        }
+      } catch (e) {}
+    }
+
+    // Static 2FA
+    try {
+      const rawChallenge = sessionStorage.getItem('giffu_drop_2fa');
+      if (!rawChallenge) {
+        showLoginError(twoFaErrorBox, 'Desafio 2FA expirado. Faça login novamente.');
+        btnSubmit2FA.disabled = false;
+        btnSubmit2FA.innerHTML = '<span>Verificar e Acessar o Drop</span> <i class="fas fa-check-circle"></i>';
+        return;
+      }
+
+      const challenge = JSON.parse(rawChallenge);
+      if (Date.now() > challenge.expiresAt) {
+        sessionStorage.removeItem('giffu_drop_2fa');
+        showLoginError(twoFaErrorBox, 'O código de 6 dígitos expirou. Tente novamente.');
+        btnSubmit2FA.disabled = false;
+        btnSubmit2FA.innerHTML = '<span>Verificar e Acessar o Drop</span> <i class="fas fa-check-circle"></i>';
+        return;
+      }
+
+      const inputChallengeHash = await hashStringSHA256(code + STATIC_AUTH_SALT);
+      if (inputChallengeHash !== challenge.challengeHash) {
+        challenge.attempts = (challenge.attempts || 0) + 1;
+        if (challenge.attempts >= 3) {
+          sessionStorage.removeItem('giffu_drop_2fa');
+          showLoginError(twoFaErrorBox, 'Número máximo de tentativas excedido.');
+        } else {
+          sessionStorage.setItem('giffu_drop_2fa', JSON.stringify(challenge));
+          showLoginError(twoFaErrorBox, 'Código de verificação incorreto.');
+        }
+        btnSubmit2FA.disabled = false;
+        btnSubmit2FA.innerHTML = '<span>Verificar e Acessar o Drop</span> <i class="fas fa-check-circle"></i>';
+        return;
+      }
+
+      sessionStorage.removeItem('giffu_drop_2fa');
+      saveAndCompleteLogin(STATIC_AUTH_USER);
+
+    } catch (err) {
+      showLoginError(twoFaErrorBox, 'Erro ao verificar código 2FA.');
+    } finally {
+      btnSubmit2FA.disabled = false;
+      btnSubmit2FA.innerHTML = '<span>Verificar e Acessar o Drop</span> <i class="fas fa-check-circle"></i>';
+    }
+  }
+
+  function saveAndCompleteLogin(userEmail) {
+    const sessionData = {
+      user: userEmail,
+      expiresAt: Date.now() + 86400000 // 24 hours
+    };
+    sessionStorage.setItem('giffu_admin_session', JSON.stringify(sessionData));
+    localStorage.setItem('giffu_admin_session', JSON.stringify(sessionData));
+    unlockDropUI(userEmail);
+    showToast('Acesso autorizado! Bem-vindo ao Giffú Drop.', 'success');
+  }
+
+  async function logoutDrop() {
+    sessionStorage.removeItem('giffu_admin_session');
+    localStorage.removeItem('giffu_admin_session');
+
+    if (!isStaticHosting) {
+      try {
+        await fetch('/api/auth/logout', { method: 'POST' });
+      } catch (e) {}
+    }
+
+    lockDropUI();
+    showToast('Sessão encerrada com sucesso.', 'info');
+  }
+
+  function setupOTPInputs() {
+    for (let i = 0; i < 6; i++) {
+      const box = document.getElementById(`otp-${i}`);
+      if (!box) continue;
+
+      box.addEventListener('input', (e) => {
+        const val = e.target.value;
+        if (val.length === 1 && i < 5) {
+          const nextBox = document.getElementById(`otp-${i + 1}`);
+          if (nextBox) nextBox.focus();
+        }
+        if (i === 5 && val.length === 1) {
+          submitDrop2FA();
+        }
+      });
+
+      box.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !box.value && i > 0) {
+          const prevBox = document.getElementById(`otp-${i - 1}`);
+          if (prevBox) {
+            prevBox.focus();
+            prevBox.value = '';
+          }
+        } else if (e.key === 'Enter') {
+          submitDrop2FA();
+        }
+      });
+
+      box.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const pasted = (e.clipboardData || window.clipboardData).getData('text').trim();
+        if (/^\d{6}$/.test(pasted)) {
+          for (let k = 0; k < 6; k++) {
+            const b = document.getElementById(`otp-${k}`);
+            if (b) b.value = pasted[k];
+          }
+          submitDrop2FA();
+        }
+      });
+    }
   }
 
   // --- SUPABASE STORAGE INITIALIZATION ---
@@ -232,6 +593,11 @@
 
   // --- STAGING FILES (BEFORE SEND) ---
   function addFilesToStage(fileList) {
+    if (!isAuthenticated) {
+      lockDropUI();
+      return;
+    }
+
     const files = Array.from(fileList);
     let rejectedOversized = false;
 
@@ -314,7 +680,6 @@
     const bucket = getSupabaseBucket();
 
     try {
-      // 1. Try reading data/items.json manifest from bucket
       const { data, error } = await supabaseClient.storage.from(bucket).download('data/items.json');
       if (!error && data) {
         const text = await data.text();
@@ -324,7 +689,6 @@
       console.warn('data/items.json não encontrado no bucket, listando arquivos do bucket:', e);
     }
 
-    // 2. Fallback: list files directly from uploads/ folder in bucket
     try {
       const { data: fileList, error: listErr } = await supabaseClient.storage.from(bucket).list('uploads', {
         limit: 100,
@@ -375,9 +739,6 @@
         upsert: true,
         contentType: 'application/json'
       });
-      if (error) {
-        console.warn('Aviso ao salvar data/items.json no Supabase:', error);
-      }
       return !error;
     } catch (e) {
       console.error('Erro ao sincronizar manifesto Supabase:', e);
@@ -394,7 +755,6 @@
     const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
     const storedPath = `uploads/${Date.now()}_${Math.random().toString(36).substring(2, 7)}_${cleanName}`;
 
-    // Upload with progress simulation for Supabase standard client
     let progress = 10;
     uploadProgressBar.style.width = '20%';
     uploadProgressPercent.textContent = '20%';
@@ -419,7 +779,6 @@
 
     const publicUrl = supabaseClient.storage.from(bucket).getPublicUrl(storedPath).data.publicUrl;
 
-    // Upload thumbnail if video
     let thumbUrl = null;
     if (options.thumbnailData) {
       try {
@@ -455,6 +814,7 @@
 
   // --- FEED DATA FETCHING DISPATCHER ---
   async function fetchItems() {
+    if (!isAuthenticated) return;
     const isCloudActive = isSupabaseConfigured();
 
     if (isStaticHosting) {
@@ -479,7 +839,6 @@
         statusText.textContent = 'Configurar Nuvem';
         if (cloudSetupNotice) cloudSetupNotice.style.display = 'flex';
 
-        // Load cached if any
         const cached = localStorage.getItem('giffu_drop_local_cache');
         if (cached) {
           try {
@@ -542,6 +901,11 @@
 
   // --- UPLOAD CONTROLLER ---
   async function handleSend() {
+    if (!isAuthenticated) {
+      lockDropUI();
+      return;
+    }
+
     const textContent = textInput.value.trim();
     const filesToUpload = [...stagedFiles];
 
@@ -549,14 +913,12 @@
       return;
     }
 
-    // If on GitHub Pages and Supabase is not configured, warn and open settings
     if (isStaticHosting && !isSupabaseConfigured()) {
       showToast('Para enviar arquivos no GitHub Pages, conecte seu projeto Supabase gratuito no menu de configurações.', 'warning');
       btnOpenSettings.click();
       return;
     }
 
-    // Reset input fields immediately
     textInput.value = '';
     textInput.style.height = 'auto';
     clearStagedFiles();
@@ -581,7 +943,6 @@
         return;
       }
 
-      // Local API flow
       try {
         const res = await fetch('/api/drop/text', {
           method: 'POST',
@@ -603,7 +964,7 @@
       return;
     }
 
-    // 2. File Uploads (Single or Batch Stack)
+    // 2. File Uploads
     const isBatch = filesToUpload.length > 1;
     const batchId = isBatch ? `batch_${Date.now()}_${Math.random().toString(36).substring(2, 8)}` : '';
     const totalFiles = filesToUpload.length;
@@ -615,14 +976,12 @@
       const file = filesToUpload[i];
       uploadProgressTitle.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Enviando [${i + 1}/${totalFiles}] ${file.name} (${formatBytes(file.size)})...`;
 
-      // Extract thumbnail if it's a video
       let thumbData = null;
       if (file.type.startsWith('video/')) {
         uploadProgressTitle.innerHTML = `<i class="fas fa-image"></i> Gerando thumbnail original de ${file.name}...`;
         thumbData = await extractVideoThumbnail(file);
       }
 
-      // Route through Supabase or Local Server
       if (isSupabaseConfigured() || isStaticHosting) {
         try {
           const uploadedFileInfo = await uploadFileToSupabase(file, {
@@ -651,7 +1010,6 @@
 
     showUploadProgress(false);
 
-    // If using Supabase, assemble item or batch item and update feed
     if (isSupabaseConfigured() || isStaticHosting) {
       if (uploadedFiles.length > 0) {
         if (isBatch) {
@@ -791,6 +1149,7 @@
 
   // --- DELETE CONTROLLER ---
   async function deleteItem(id, cardElement) {
+    if (!isAuthenticated) return;
     if (!confirm('Deseja realmente apagar este item e seus arquivos originais?')) {
       return;
     }
@@ -827,7 +1186,6 @@
       return;
     }
 
-    // Local API flow
     try {
       const res = await fetch(`/api/drop/items/${id}`, { method: 'DELETE' });
       const data = await res.json();
@@ -853,11 +1211,11 @@
 
   // --- BATCH DOWNLOAD (MOBILE GALLERY vs DESKTOP ZIP) ---
   async function downloadBatchFiles(fileList, batchTitle = 'giffu-drop-lote') {
+    if (!isAuthenticated) return;
     if (!fileList || fileList.length === 0) return;
 
     const isMobile = isMobileDevice();
 
-    // 1. MOBILE FLOW: Web Share API -> Direct to Gallery/Photos
     if (isMobile && navigator.canShare) {
       try {
         showToast('Preparando arquivos para a Galeria...', 'info');
@@ -881,14 +1239,11 @@
           return;
         }
       } catch (shareErr) {
-        if (shareErr.name === 'AbortError') {
-          return;
-        }
-        console.warn('Web Share API não suportada, fallback para download direto:', shareErr);
+        if (shareErr.name === 'AbortError') return;
+        console.warn('Web Share API não suportada, fallback para download:', shareErr);
       }
     }
 
-    // 2. DESKTOP FLOW (PC / Mac) OR FALLBACK: JSZip Archive
     if (window.JSZip) {
       try {
         showToast(`Criando arquivo ZIP com ${fileList.length} arquivo(s) original(is)...`, 'info');
@@ -922,7 +1277,6 @@
       }
     }
 
-    // 3. Fallback: Download each individually
     fileList.forEach((f, idx) => {
       setTimeout(() => {
         const a = document.createElement('a');
@@ -978,7 +1332,6 @@
       card.classList.add('selected');
     }
 
-    // Card Selection in Selection Mode
     card.addEventListener('click', (e) => {
       if (isSelectionMode) {
         e.preventDefault();
@@ -986,7 +1339,6 @@
       }
     });
 
-    // Header Meta
     const header = document.createElement('div');
     header.className = 'card-header';
 
@@ -1041,7 +1393,6 @@
       card.appendChild(cap);
     }
 
-    // Dispatcher
     if (item.type === 'text') {
       const textBody = document.createElement('div');
       textBody.className = 'card-text-body';
@@ -1433,11 +1784,34 @@
     }
   });
 
+  // Auth Button Listeners
+  if (btnSubmitLogin) btnSubmitLogin.addEventListener('click', submitDropLogin);
+  if (btnSubmit2FA) btnSubmit2FA.addEventListener('click', submitDrop2FA);
+  if (btnBackToCredentials) {
+    btnBackToCredentials.addEventListener('click', () => {
+      dropLoginStep2FA.style.display = 'none';
+      dropLoginStepCredentials.style.display = 'flex';
+      hideLoginError(twoFaErrorBox);
+    });
+  }
+
+  if (adminPasswordInput) {
+    adminPasswordInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') submitDropLogin();
+    });
+  }
+
+  if (btnLogoutDrop) {
+    btnLogoutDrop.addEventListener('click', logoutDrop);
+  }
+
   // --- INITIALIZATION ---
-  initSupabase();
-  fetchItems();
+  setupOTPInputs();
+  checkDropAuth();
   updateSendButtonState();
 
-  setInterval(fetchItems, 10000);
+  setInterval(() => {
+    if (isAuthenticated) fetchItems();
+  }, 10000);
 
 })();
