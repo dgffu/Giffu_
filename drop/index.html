@@ -77,6 +77,20 @@
       </div>
     </div>
 
+    <!-- Cloud Setup Notice (Displayed on GitHub Pages when Supabase is not configured) -->
+    <div id="cloudSetupNotice" style="display: none; background: rgba(254, 94, 0, 0.08); border: 1px solid var(--border-accent); border-radius: var(--radius-md); padding: 14px 18px; margin-bottom: 14px; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <i class="fas fa-cloud" style="color: var(--accent-orange); font-size: 22px;"></i>
+        <div>
+          <div style="font-weight: 600; font-size: 14px; color: #fff;">Ative o Armazenamento em Nuvem (Supabase Storage)</div>
+          <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Para enviar arquivos de até 1 GB no GitHub Pages, conecte seu projeto Supabase em 30 segundos.</div>
+        </div>
+      </div>
+      <button class="btn-download-original" id="btnConnectCloudNotice" style="padding: 6px 14px; font-size: 12px;">
+        <i class="fas fa-plug"></i> Conectar Supabase
+      </button>
+    </div>
+
     <!-- Main Message / Drop Feed -->
     <main class="feed-container" id="feedContainer">
       <!-- Empty state initially -->
@@ -193,6 +207,12 @@
         </div>
 
         <div class="form-group" id="cfgSupabaseGroup">
+          <div class="form-help" style="background: rgba(254, 94, 0, 0.08); border: 1px solid var(--border-accent); padding: 10px 12px; border-radius: 8px; margin-bottom: 8px; line-height: 1.5; color: #fff;">
+            💡 <strong style="color: var(--accent-orange);">Passo a passo rápido no Supabase:</strong><br>
+            1. Crie um projeto gratuito em <a href="https://supabase.com" target="_blank" style="color: var(--accent-orange); text-decoration: underline;">supabase.com</a>.<br>
+            2. No menu <strong>Storage</strong>, clique em <strong>New bucket</strong>, digite <code>giffu-drop</code> e ative a opção <strong>Public bucket</strong>.<br>
+            3. Em <strong>Project Settings</strong> &gt; <strong>API</strong>, copie a <strong>Project URL</strong> e a chave <strong>anon public</strong> e cole abaixo:
+          </div>
           <label>Supabase Project URL</label>
           <input type="text" class="form-input" id="cfgSupabaseUrl" placeholder="https://seu-projeto.supabase.co">
           <label style="margin-top: 8px;">Supabase Anon Key</label>
@@ -225,6 +245,8 @@
 
   <!-- JSZip for Desktop Batch Downloads -->
   <script src="jszip.min.js"></script>
+  <!-- Supabase JS Client for Direct Cloud Storage -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Configuration Script -->
   <script src="config.js"></script>
   <!-- Main Application Logic -->

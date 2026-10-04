@@ -1,6 +1,7 @@
 /**
  * Giffú Drop - Client Application Logic
  * Pure Vanilla JavaScript • Zero bloated frameworks • High Performance
+ * Dual Storage Engine: Local Python Server (localhost:8000) + Supabase Cloud Storage (GitHub Pages / giffu.com.br/drop)
  */
 
 (function () {
@@ -13,6 +14,12 @@
   let isSelectionMode = false;
   let selectedItemIds = new Set();
   let currentUploadingXHR = null;
+  let supabaseClient = null;
+
+  // Environment detection
+  const isStaticHosting = window.location.hostname.includes('github.io') || 
+                          window.location.hostname === 'giffu.com.br' || 
+                          window.location.hostname.endsWith('giffu.com.br');
 
   // --- DOM ELEMENTS ---
   const feedContainer = document.getElementById('feedContainer');
@@ -28,6 +35,8 @@
   const storageStatusPill = document.getElementById('storageStatusPill');
   const statusDot = document.getElementById('statusDot');
   const statusText = document.getElementById('statusText');
+  const cloudSetupNotice = document.getElementById('cloudSetupNotice');
+  const btnConnectCloudNotice = document.getElementById('btnConnectCloudNotice');
 
   // Selection
   const btnToggleSelect = document.getElementById('btnToggleSelect');
@@ -121,10 +130,48 @@
     }, 4500);
   }
 
+  function dataUrlToBlob(dataUrl) {
+    const parts = dataUrl.split(';base64,');
+    const contentType = parts[0].split(':')[1];
+    const raw = window.atob(parts[1]);
+    const uInt8Array = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; ++i) {
+      uInt8Array[i] = raw.charCodeAt(i);
+    }
+    return new Blob([uInt8Array], { type: contentType });
+  }
+
+  // --- SUPABASE STORAGE INITIALIZATION ---
+  function initSupabase() {
+    const cfg = window.GIFFU_DROP_CONFIG || {};
+    const cloud = cfg.cloud || {};
+    const url = (cloud.supabaseUrl || '').trim();
+    const key = (cloud.supabaseAnonKey || '').trim();
+
+    if (url && key && window.supabase) {
+      try {
+        supabaseClient = window.supabase.createClient(url, key);
+        return true;
+      } catch (e) {
+        console.warn('Erro ao inicializar cliente Supabase:', e);
+      }
+    }
+    supabaseClient = null;
+    return false;
+  }
+
+  function isSupabaseConfigured() {
+    return supabaseClient !== null;
+  }
+
+  function getSupabaseBucket() {
+    const cfg = window.GIFFU_DROP_CONFIG || {};
+    return (cfg.cloud && cfg.cloud.bucketName && cfg.cloud.bucketName.trim()) || 'giffu-drop';
+  }
+
   // --- CLIENT-SIDE VIDEO THUMBNAIL EXTRACTION ---
   function extractVideoThumbnail(file) {
     return new Promise((resolve) => {
-      // Must be a video file
       if (!file.type.startsWith('video/')) {
         return resolve(null);
       }
@@ -142,7 +189,6 @@
       };
 
       video.onloadeddata = () => {
-        // Seek to 1 second or 25% of video
         const targetTime = Math.min(1.0, video.duration > 0 ? video.duration * 0.25 : 0);
         video.currentTime = targetTime;
       };
@@ -177,7 +223,6 @@
         resolve(null);
       };
 
-      // Fallback timeout if seek doesn't trigger
       setTimeout(() => {
         cleanUp();
         resolve(null);
@@ -191,14 +236,12 @@
     let rejectedOversized = false;
 
     for (const file of files) {
-      // 1 GB Validation Check
       if (file.size > MAX_FILE_SIZE) {
         showToast(`O arquivo "${file.name}" tem ${formatBytes(file.size)} e ultrapassa o limite de 1 GB. Envio bloqueado.`, 'error');
         rejectedOversized = true;
         continue;
       }
 
-      // Check if already staged
       const exists = stagedFiles.some(f => f.name === file.name && f.size === file.size && f.lastModified === file.lastModified);
       if (!exists) {
         stagedFiles.push(file);
@@ -265,8 +308,191 @@
     btnSend.disabled = !hasText && !hasFiles;
   }
 
-  // --- FEED DATA FETCHING ---
+  // --- SUPABASE STORAGE PERSISTENCE LAYER ---
+  async function loadItemsFromSupabase() {
+    if (!isSupabaseConfigured()) return [];
+    const bucket = getSupabaseBucket();
+
+    try {
+      // 1. Try reading data/items.json manifest from bucket
+      const { data, error } = await supabaseClient.storage.from(bucket).download('data/items.json');
+      if (!error && data) {
+        const text = await data.text();
+        return JSON.parse(text);
+      }
+    } catch (e) {
+      console.warn('data/items.json não encontrado no bucket, listando arquivos do bucket:', e);
+    }
+
+    // 2. Fallback: list files directly from uploads/ folder in bucket
+    try {
+      const { data: fileList, error: listErr } = await supabaseClient.storage.from(bucket).list('uploads', {
+        limit: 100,
+        sortBy: { column: 'created_at', order: 'desc' }
+      });
+
+      if (!listErr && fileList) {
+        return fileList.map(f => {
+          const publicUrl = supabaseClient.storage.from(bucket).getPublicUrl(`uploads/${f.name}`).data.publicUrl;
+          const isImg = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(f.name);
+          const isVid = /\.(mp4|mov|webm|m4v|mkv)$/i.test(f.name);
+          const origName = f.name.replace(/^\d+_[a-z0-9]+_/, '');
+          return {
+            id: `sb_${f.id || f.name}`,
+            type: 'file',
+            file: {
+              id: f.id || f.name,
+              originalName: origName,
+              storedName: `uploads/${f.name}`,
+              url: publicUrl,
+              downloadUrl: publicUrl,
+              size: f.metadata ? f.metadata.size : 0,
+              formattedSize: formatBytes(f.metadata ? f.metadata.size : 0),
+              mimeType: f.metadata ? f.metadata.mimetype : 'application/octet-stream',
+              category: isImg ? 'image' : (isVid ? 'video' : 'other'),
+              thumbnailUrl: isVid ? supabaseClient.storage.from(bucket).getPublicUrl(`thumbs/thumb_${f.name}.jpg`).data.publicUrl : null
+            },
+            caption: '',
+            createdAt: f.created_at || new Date().toISOString(),
+            timestamp: new Date(f.created_at || Date.now()).getTime()
+          };
+        });
+      }
+    } catch (err) {
+      console.error('Erro ao listar arquivos do Supabase:', err);
+    }
+
+    return [];
+  }
+
+  async function saveItemsToSupabase(newItems) {
+    if (!isSupabaseConfigured()) return false;
+    const bucket = getSupabaseBucket();
+
+    try {
+      const jsonBlob = new Blob([JSON.stringify(newItems, null, 2)], { type: 'application/json' });
+      const { error } = await supabaseClient.storage.from(bucket).upload('data/items.json', jsonBlob, {
+        upsert: true,
+        contentType: 'application/json'
+      });
+      if (error) {
+        console.warn('Aviso ao salvar data/items.json no Supabase:', error);
+      }
+      return !error;
+    } catch (e) {
+      console.error('Erro ao sincronizar manifesto Supabase:', e);
+      return false;
+    }
+  }
+
+  async function uploadFileToSupabase(file, options) {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Supabase não configurado');
+    }
+
+    const bucket = getSupabaseBucket();
+    const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const storedPath = `uploads/${Date.now()}_${Math.random().toString(36).substring(2, 7)}_${cleanName}`;
+
+    // Upload with progress simulation for Supabase standard client
+    let progress = 10;
+    uploadProgressBar.style.width = '20%';
+    uploadProgressPercent.textContent = '20%';
+    const progressTimer = setInterval(() => {
+      progress = Math.min(92, progress + 15);
+      uploadProgressBar.style.width = `${progress}%`;
+      uploadProgressPercent.textContent = `${progress}%`;
+    }, 300);
+
+    const { data, error } = await supabaseClient.storage.from(bucket).upload(storedPath, file, {
+      cacheControl: '3600',
+      upsert: false
+    });
+
+    clearInterval(progressTimer);
+    uploadProgressBar.style.width = '100%';
+    uploadProgressPercent.textContent = '100%';
+
+    if (error) {
+      throw error;
+    }
+
+    const publicUrl = supabaseClient.storage.from(bucket).getPublicUrl(storedPath).data.publicUrl;
+
+    // Upload thumbnail if video
+    let thumbUrl = null;
+    if (options.thumbnailData) {
+      try {
+        const thumbBlob = dataUrlToBlob(options.thumbnailData);
+        const thumbPath = `thumbs/thumb_${Date.now()}_${cleanName}.jpg`;
+        const { error: tErr } = await supabaseClient.storage.from(bucket).upload(thumbPath, thumbBlob, {
+          contentType: 'image/jpeg',
+          upsert: true
+        });
+        if (!tErr) {
+          thumbUrl = supabaseClient.storage.from(bucket).getPublicUrl(thumbPath).data.publicUrl;
+        }
+      } catch (te) {
+        console.warn('Erro ao salvar thumbnail no Supabase:', te);
+      }
+    }
+
+    const category = file.type.startsWith('image/') ? 'image' : (file.type.startsWith('video/') ? 'video' : 'other');
+
+    return {
+      id: `file_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      originalName: file.name,
+      storedName: storedPath,
+      url: publicUrl,
+      downloadUrl: publicUrl,
+      size: file.size,
+      formattedSize: formatBytes(file.size),
+      mimeType: file.type || 'application/octet-stream',
+      category: category,
+      thumbnailUrl: thumbUrl
+    };
+  }
+
+  // --- FEED DATA FETCHING DISPATCHER ---
   async function fetchItems() {
+    const isCloudActive = isSupabaseConfigured();
+
+    if (isStaticHosting) {
+      if (isCloudActive) {
+        statusDot.style.background = '#10B981';
+        statusText.textContent = 'Nuvem (Supabase)';
+        if (cloudSetupNotice) cloudSetupNotice.style.display = 'none';
+
+        const sbItems = await loadItemsFromSupabase();
+        if (sbItems && sbItems.length > 0) {
+          items = sbItems;
+          localStorage.setItem('giffu_drop_local_cache', JSON.stringify(items));
+        } else {
+          const cached = localStorage.getItem('giffu_drop_local_cache');
+          if (cached) items = JSON.parse(cached);
+        }
+        renderFeed();
+        updateStats();
+        return;
+      } else {
+        statusDot.style.background = '#F59E0B';
+        statusText.textContent = 'Configurar Nuvem';
+        if (cloudSetupNotice) cloudSetupNotice.style.display = 'flex';
+
+        // Load cached if any
+        const cached = localStorage.getItem('giffu_drop_local_cache');
+        if (cached) {
+          try {
+            items = JSON.parse(cached);
+          } catch (e) {}
+        }
+        renderFeed();
+        updateStats();
+        return;
+      }
+    }
+
+    // Running on Localhost:8000
     try {
       const res = await fetch('/api/drop/items');
       if (res.ok) {
@@ -276,37 +502,42 @@
         updateStats();
         statusDot.style.background = '#10B981';
         statusText.textContent = 'Conectado (Local)';
+        if (cloudSetupNotice) cloudSetupNotice.style.display = 'none';
       } else {
         throw new Error('Falha ao conectar na API local');
       }
     } catch (err) {
-      console.warn('Servidor local não respondeu, tentando cache ou modo nuvem:', err);
-      statusDot.style.background = '#F59E0B';
-      statusText.textContent = 'Aguardando Servidor';
-      // Load from local storage fallback if any
-      const cached = localStorage.getItem('giffu_drop_local_cache');
-      if (cached) {
-        try {
-          items = JSON.parse(cached);
-          renderFeed();
-          updateStats();
-        } catch (e) {}
+      if (isCloudActive) {
+        const sbItems = await loadItemsFromSupabase();
+        items = sbItems;
+        renderFeed();
+        updateStats();
+        statusDot.style.background = '#10B981';
+        statusText.textContent = 'Nuvem (Supabase)';
+      } else {
+        statusDot.style.background = '#EF4444';
+        statusText.textContent = 'Desconectado';
       }
     }
   }
 
-  async function updateStats() {
-    try {
-      const res = await fetch('/api/drop/stats');
-      if (res.ok) {
-        const stats = await res.json();
-        feedStatsSummary.textContent = `${stats.totalItems} mensagem(ns) • ${stats.totalFiles} arquivo(s) (${stats.formattedTotal})`;
-      } else {
-        feedStatsSummary.textContent = `${items.length} item(ns)`;
+  function updateStats() {
+    let totalBytes = 0;
+    let fileCount = 0;
+
+    items.forEach(it => {
+      if (it.type === 'file' && it.file) {
+        totalBytes += it.file.size || 0;
+        fileCount++;
+      } else if (it.type === 'batch' && it.files) {
+        it.files.forEach(f => {
+          totalBytes += f.size || 0;
+          fileCount++;
+        });
       }
-    } catch (e) {
-      feedStatsSummary.textContent = `${items.length} item(ns)`;
-    }
+    });
+
+    feedStatsSummary.textContent = `${items.length} mensagem(ns) • ${fileCount} arquivo(s) (${formatBytes(totalBytes)})`;
   }
 
   // --- UPLOAD CONTROLLER ---
@@ -318,13 +549,39 @@
       return;
     }
 
-    // Reset input fields immediately for snappy UI
+    // If on GitHub Pages and Supabase is not configured, warn and open settings
+    if (isStaticHosting && !isSupabaseConfigured()) {
+      showToast('Para enviar arquivos no GitHub Pages, conecte seu projeto Supabase gratuito no menu de configurações.', 'warning');
+      btnOpenSettings.click();
+      return;
+    }
+
+    // Reset input fields immediately
     textInput.value = '';
     textInput.style.height = 'auto';
     clearStagedFiles();
 
     // 1. Text-only message
     if (filesToUpload.length === 0 && textContent) {
+      const textItem = {
+        id: `item_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+        type: 'text',
+        text: textContent,
+        createdAt: new Date().toISOString(),
+        timestamp: Date.now()
+      };
+
+      if (isSupabaseConfigured() || isStaticHosting) {
+        items.unshift(textItem);
+        localStorage.setItem('giffu_drop_local_cache', JSON.stringify(items));
+        renderFeed();
+        updateStats();
+        await saveItemsToSupabase(items);
+        showToast('Nota salva no Drop!', 'success');
+        return;
+      }
+
+      // Local API flow
       try {
         const res = await fetch('/api/drop/text', {
           method: 'POST',
@@ -353,7 +610,7 @@
 
     showUploadProgress(true);
 
-    let uploadedCount = 0;
+    const uploadedFiles = [];
     for (let i = 0; i < totalFiles; i++) {
       const file = filesToUpload[i];
       uploadProgressTitle.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Enviando [${i + 1}/${totalFiles}] ${file.name} (${formatBytes(file.size)})...`;
@@ -365,29 +622,79 @@
         thumbData = await extractVideoThumbnail(file);
       }
 
-      const success = await uploadSingleFile(file, {
-        batchId: isBatch ? batchId : '',
-        batchCount: totalFiles,
-        caption: (i === 0 && textContent) ? textContent : '',
-        thumbnailData: thumbData
-      });
+      // Route through Supabase or Local Server
+      if (isSupabaseConfigured() || isStaticHosting) {
+        try {
+          const uploadedFileInfo = await uploadFileToSupabase(file, {
+            thumbnailData: thumbData
+          });
+          uploadedFiles.push(uploadedFileInfo);
+        } catch (err) {
+          console.error('Falha no upload Supabase:', err);
+          showToast(`Erro ao enviar "${file.name}" para a nuvem: ${err.message}`, 'error');
+          break;
+        }
+      } else {
+        const success = await uploadSingleFileLocal(file, {
+          batchId: isBatch ? batchId : '',
+          batchCount: totalFiles,
+          caption: (i === 0 && textContent) ? textContent : '',
+          thumbnailData: thumbData
+        });
 
-      if (!success) {
-        showToast(`Falha no upload de "${file.name}". Processo interrompido.`, 'error');
-        break;
+        if (!success) {
+          showToast(`Falha no upload de "${file.name}". Processo interrompido.`, 'error');
+          break;
+        }
       }
-      uploadedCount++;
     }
 
     showUploadProgress(false);
 
-    if (uploadedCount === totalFiles) {
-      showToast(isBatch ? `Lote de ${totalFiles} arquivos originais enviado com sucesso!` : 'Arquivo original enviado!', 'success');
+    // If using Supabase, assemble item or batch item and update feed
+    if (isSupabaseConfigured() || isStaticHosting) {
+      if (uploadedFiles.length > 0) {
+        if (isBatch) {
+          let batchTotalSize = 0;
+          uploadedFiles.forEach(f => batchTotalSize += f.size);
+          const batchItem = {
+            id: `batch_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+            type: 'batch',
+            batchId: batchId,
+            caption: textContent,
+            totalExpected: totalFiles,
+            files: uploadedFiles,
+            totalSize: batchTotalSize,
+            formattedTotalSize: formatBytes(batchTotalSize),
+            createdAt: new Date().toISOString(),
+            timestamp: Date.now()
+          };
+          items.unshift(batchItem);
+        } else {
+          const singleItem = {
+            id: `item_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+            type: 'file',
+            file: uploadedFiles[0],
+            caption: textContent,
+            createdAt: new Date().toISOString(),
+            timestamp: Date.now()
+          };
+          items.unshift(singleItem);
+        }
+
+        localStorage.setItem('giffu_drop_local_cache', JSON.stringify(items));
+        renderFeed();
+        updateStats();
+        await saveItemsToSupabase(items);
+
+        showToast(isBatch ? `Lote de ${uploadedFiles.length} arquivos originais salvo na nuvem!` : 'Arquivo original salvo na nuvem!', 'success');
+      }
+    } else {
       fetchItems();
     }
   }
 
-  function uploadSingleFile(file, options) {
+  function uploadSingleFileLocal(file, options) {
     return new Promise((resolve) => {
       const xhr = new XMLHttpRequest();
       currentUploadingXHR = xhr;
@@ -402,7 +709,6 @@
           uploadProgressPercent.textContent = `${percent}%`;
           uploadProgressBar.style.width = `${percent}%`;
 
-          // Speed & Remaining calculation
           const now = Date.now();
           const timeDiff = (now - lastTime) / 1000;
           if (timeDiff > 0.5) {
@@ -430,6 +736,10 @@
           } catch (e) {
             resolve(true);
           }
+        } else if (xhr.status === 405) {
+          showToast('Erro 405: O GitHub Pages não aceita uploads locais. Conecte o Supabase no ícone de nuvem ☁️.', 'error');
+          btnOpenSettings.click();
+          resolve(false);
         } else {
           try {
             const errResp = JSON.parse(xhr.responseText);
@@ -443,6 +753,7 @@
 
       xhr.onerror = () => {
         currentUploadingXHR = null;
+        showToast('Erro de conexão durante o upload.', 'error');
         resolve(false);
       };
 
@@ -480,10 +791,43 @@
 
   // --- DELETE CONTROLLER ---
   async function deleteItem(id, cardElement) {
-    if (!confirm('Deseja realmente apagar este item e seus arquivos originais do servidor?')) {
+    if (!confirm('Deseja realmente apagar este item e seus arquivos originais?')) {
       return;
     }
 
+    if (isSupabaseConfigured() || isStaticHosting) {
+      const bucket = getSupabaseBucket();
+      const targetItem = items.find(it => it.id === id || it.batchId === id);
+
+      if (targetItem && supabaseClient) {
+        const filesToRemove = [];
+        if (targetItem.type === 'file' && targetItem.file && targetItem.file.storedName) {
+          filesToRemove.push(targetItem.file.storedName);
+        } else if (targetItem.type === 'batch' && targetItem.files) {
+          targetItem.files.forEach(f => {
+            if (f.storedName) filesToRemove.push(f.storedName);
+          });
+        }
+        if (filesToRemove.length > 0) {
+          await supabaseClient.storage.from(bucket).remove(filesToRemove);
+        }
+      }
+
+      items = items.filter(it => it.id !== id && it.batchId !== id);
+      localStorage.setItem('giffu_drop_local_cache', JSON.stringify(items));
+      cardElement.style.transform = 'scale(0.95)';
+      cardElement.style.opacity = '0';
+      setTimeout(() => {
+        cardElement.remove();
+        if (items.length === 0) emptyFeedState.style.display = 'flex';
+        updateStats();
+      }, 250);
+      await saveItemsToSupabase(items);
+      showToast('Item excluído da nuvem.', 'info');
+      return;
+    }
+
+    // Local API flow
     try {
       const res = await fetch(`/api/drop/items/${id}`, { method: 'DELETE' });
       const data = await res.json();
@@ -508,12 +852,6 @@
   }
 
   // --- BATCH DOWNLOAD (MOBILE GALLERY vs DESKTOP ZIP) ---
-  /**
-   * Core Batch Download Logic:
-   * - Mobile: Uses Web Share API (navigator.share) with File objects.
-   *   On iOS and Android, this prompts "Salvar Imagens / Vídeos na Galeria"!
-   * - Desktop: Bundles everything into a .ZIP archive via JSZip.
-   */
   async function downloadBatchFiles(fileList, batchTitle = 'giffu-drop-lote') {
     if (!fileList || fileList.length === 0) return;
 
@@ -544,14 +882,13 @@
         }
       } catch (shareErr) {
         if (shareErr.name === 'AbortError') {
-          // User closed share sheet, nothing to do
           return;
         }
-        console.warn('Web Share API não suportada para estes arquivos ou erro, fallback para download direto:', shareErr);
+        console.warn('Web Share API não suportada, fallback para download direto:', shareErr);
       }
     }
 
-    // 2. DESKTOP FLOW (PC / Mac) OR MOBILE FALLBACK: JSZip Archive
+    // 2. DESKTOP FLOW (PC / Mac) OR FALLBACK: JSZip Archive
     if (window.JSZip) {
       try {
         showToast(`Criando arquivo ZIP com ${fileList.length} arquivo(s) original(is)...`, 'info');
@@ -678,7 +1015,6 @@
       </div>
     `;
 
-    // Copy Button listener
     const btnCopy = header.querySelector('.btn-copy');
     if (btnCopy) {
       btnCopy.addEventListener('click', (e) => {
@@ -688,7 +1024,6 @@
       });
     }
 
-    // Delete Button listener
     const btnDel = header.querySelector('.btn-delete');
     if (btnDel) {
       btnDel.addEventListener('click', (e) => {
@@ -699,7 +1034,6 @@
 
     card.appendChild(header);
 
-    // Caption if present
     if (item.caption) {
       const cap = document.createElement('div');
       cap.className = 'card-caption';
@@ -707,29 +1041,24 @@
       card.appendChild(cap);
     }
 
-    // BODY DISPATCHER
+    // Dispatcher
     if (item.type === 'text') {
       const textBody = document.createElement('div');
       textBody.className = 'card-text-body';
       textBody.textContent = item.text;
       card.appendChild(textBody);
-    } 
-    else if (item.type === 'file') {
-      const f = item.file;
-      renderSingleFileBody(card, f);
-    } 
-    else if (item.type === 'batch') {
+    } else if (item.type === 'file') {
+      renderSingleFileBody(card, item.file);
+    } else if (item.type === 'batch') {
       renderBatchBody(card, item);
     }
 
     return card;
   }
 
-  // --- RENDER SINGLE FILE BODY ---
   function renderSingleFileBody(card, f) {
     if (!f) return;
 
-    // 1. PHOTO: High quality inline preview
     if (f.category === 'image') {
       const wrap = document.createElement('div');
       wrap.className = 'photo-preview-wrap';
@@ -749,10 +1078,7 @@
       });
 
       card.appendChild(wrap);
-    }
-
-    // 2. VIDEO: Displays thumbnail only + original download button
-    else if (f.category === 'video') {
+    } else if (f.category === 'video') {
       const wrap = document.createElement('div');
       wrap.className = 'video-thumb-wrap';
 
@@ -781,7 +1107,6 @@
       wrap.addEventListener('click', (e) => {
         if (!isSelectionMode) {
           e.stopPropagation();
-          // Trigger download directly or open preview
           const a = document.createElement('a');
           a.href = f.downloadUrl;
           a.download = f.originalName;
@@ -795,7 +1120,6 @@
       card.appendChild(wrap);
     }
 
-    // FOOTER: Details & Original Download Button
     const footer = document.createElement('div');
     footer.className = 'card-footer';
     footer.innerHTML = `
@@ -811,12 +1135,10 @@
     card.appendChild(footer);
   }
 
-  // --- RENDER BATCH BODY (ARQUIVOS EMPILHADOS) ---
   function renderBatchBody(card, batchItem) {
     const files = batchItem.files || [];
     const isMobile = isMobileDevice();
 
-    // Batch Stack Gallery
     const gallery = document.createElement('div');
     gallery.className = 'batch-gallery';
 
@@ -851,7 +1173,6 @@
 
       cell.appendChild(thumbWrap);
 
-      // Meta and single download inside cell
       const details = document.createElement('div');
       details.className = 'batch-item-details';
       details.innerHTML = `
@@ -870,7 +1191,6 @@
 
     card.appendChild(gallery);
 
-    // BATCH ACTION FOOTER (Mobile Gallery / Desktop ZIP)
     const footer = document.createElement('div');
     footer.className = 'card-footer';
 
@@ -991,17 +1311,15 @@
     if (e.target.files && e.target.files.length > 0) {
       addFilesToStage(e.target.files);
     }
-    fileInput.value = ''; // Reset for re-selection
+    fileInput.value = '';
   });
 
-  // Auto-resize textarea
   textInput.addEventListener('input', () => {
     textInput.style.height = 'auto';
     textInput.style.height = Math.min(120, textInput.scrollHeight) + 'px';
     updateSendButtonState();
   });
 
-  // Keyboard shortcut: Cmd/Ctrl + Enter or Enter to send
   textInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -1011,7 +1329,7 @@
 
   btnSend.addEventListener('click', handleSend);
 
-  // --- FULLSCREEN DRAG & DROP ---
+  // Drag & drop
   let dragCounter = 0;
   window.addEventListener('dragenter', (e) => {
     e.preventDefault();
@@ -1042,7 +1360,6 @@
     }
   });
 
-  // --- CLIPBOARD PASTE SUPPORT ---
   window.addEventListener('paste', (e) => {
     if (e.clipboardData && e.clipboardData.files && e.clipboardData.files.length > 0) {
       addFilesToStage(e.clipboardData.files);
@@ -1052,9 +1369,9 @@
 
   // --- SETTINGS CONTROLLER ---
   function loadSettingsIntoModal() {
-    const cfg = window.GIFFU_DROP_CONFIG;
-    cfgStorageMode.value = cfg.storageMode || 'local';
-    toggleCloudSection(cfgStorageMode.value === 'cloud');
+    const cfg = window.GIFFU_DROP_CONFIG || {};
+    cfgStorageMode.value = isStaticHosting ? 'cloud' : (cfg.storageMode || 'local');
+    toggleCloudSection(cfgStorageMode.value === 'cloud' || isStaticHosting);
 
     if (cfg.cloud) {
       cfgCloudProvider.value = cfg.cloud.provider || 'supabase';
@@ -1084,6 +1401,12 @@
     settingsModal.classList.add('active');
   });
 
+  if (btnConnectCloudNotice) {
+    btnConnectCloudNotice.addEventListener('click', () => {
+      btnOpenSettings.click();
+    });
+  }
+
   btnCloseSettings.addEventListener('click', () => settingsModal.classList.remove('active'));
   btnCancelSettings.addEventListener('click', () => settingsModal.classList.remove('active'));
 
@@ -1103,6 +1426,7 @@
     if (window.saveAppConfig(newCfg)) {
       showToast('Configurações salvas!', 'success');
       settingsModal.classList.remove('active');
+      initSupabase();
       fetchItems();
     } else {
       showToast('Erro ao salvar configurações.', 'error');
@@ -1110,10 +1434,10 @@
   });
 
   // --- INITIALIZATION ---
+  initSupabase();
   fetchItems();
   updateSendButtonState();
 
-  // Periodically refresh feed every 10 seconds
   setInterval(fetchItems, 10000);
 
 })();
