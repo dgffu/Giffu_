@@ -11,17 +11,17 @@ const DEFAULT_CONFIG = {
   maxFileSizeBytes: 1024 * 1024 * 1024, // 1 GB (1,073,741,824 bytes)
   maxFileSizeFormatted: '1 GB',
 
-  // Modo de Armazenamento: 'local' (localhost:8000 ou servidor python) ou 'cloud' (Supabase, R2, S3 ou Cloud Server)
-  storageMode: 'local', // 'local' | 'cloud'
+  // Modo de Armazenamento: 'cloud' como padrão de produção
+  storageMode: 'cloud', // 'local' | 'cloud'
 
   // Servidor Local / API Endpoint padrão
   localApiUrl: '', // vazio usa relative path (/api/drop/...)
 
-  // Configuração para Nuvem (Supabase Storage, Cloudflare R2 ou API externa)
+  // Configuração para Nuvem Pré-Configurada (Supabase Storage)
   cloud: {
     provider: 'supabase', // 'supabase' | 'r2' | 'custom_api'
-    supabaseUrl: '',
-    supabaseAnonKey: '',
+    supabaseUrl: 'https://bvrqfpzbhaqiokvhjnan.supabase.co',
+    supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2cnFmcHpiaGFxaW9rdmhqbmFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwODExOTksImV4cCI6MjEwNjY1NzE5OX0.ppYszcfTeJhOdGVTqjxOy7v2nMfNLRM4EzujBpZz2zc',
     bucketName: 'giffu-drop',
     customApiUrl: ''
   }
@@ -69,15 +69,38 @@ function getAppConfig() {
   try {
     const saved = localStorage.getItem('giffu_drop_config');
     if (saved) {
-      const cfg = { ...DEFAULT_CONFIG, ...JSON.parse(saved) };
-      if (cfg.cloud) {
-        if (cfg.cloud.supabaseUrl) {
-          cfg.cloud.supabaseUrl = sanitizeSupabaseUrl(cfg.cloud.supabaseUrl);
+      const parsed = JSON.parse(saved);
+      const cfg = {
+        ...DEFAULT_CONFIG,
+        ...parsed,
+        cloud: {
+          ...DEFAULT_CONFIG.cloud,
+          ...(parsed.cloud || {})
         }
-        if (cfg.cloud.bucketName) {
-          cfg.cloud.bucketName = sanitizeBucketName(cfg.cloud.bucketName);
-        }
+      };
+
+      if (!cfg.cloud.supabaseUrl || cfg.cloud.supabaseUrl.trim() === '') {
+        cfg.cloud.supabaseUrl = DEFAULT_CONFIG.cloud.supabaseUrl;
       }
+      if (!cfg.cloud.supabaseAnonKey || cfg.cloud.supabaseAnonKey.trim() === '') {
+        cfg.cloud.supabaseAnonKey = DEFAULT_CONFIG.cloud.supabaseAnonKey;
+      }
+      if (!cfg.cloud.bucketName || cfg.cloud.bucketName.trim() === '') {
+        cfg.cloud.bucketName = DEFAULT_CONFIG.cloud.bucketName;
+      }
+
+      if (cfg.cloud.supabaseUrl) {
+        cfg.cloud.supabaseUrl = sanitizeSupabaseUrl(cfg.cloud.supabaseUrl);
+      }
+      if (cfg.cloud.bucketName) {
+        cfg.cloud.bucketName = sanitizeBucketName(cfg.cloud.bucketName);
+      }
+
+      // Sincroniza o localStorage com os novos valores higienizados
+      try {
+        localStorage.setItem('giffu_drop_config', JSON.stringify(cfg));
+      } catch (e) {}
+
       return cfg;
     }
   } catch (e) {
