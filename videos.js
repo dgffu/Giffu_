@@ -943,6 +943,12 @@
       if (p) p.textContent = pageCat === 'home' ? dict.emptyHomeSub : dict.emptyGridSub;
     }
 
+    // Suporte a elementos multilíngues declarativos (data-i18n-pt e data-i18n-en)
+    document.querySelectorAll('[data-i18n-pt][data-i18n-en]').forEach(el => {
+      const val = lang === 'en' ? el.getAttribute('data-i18n-en') : el.getAttribute('data-i18n-pt');
+      if (val) el.innerHTML = val;
+    });
+
     // Botões de alternar idioma
     updateAllLangButtons(lang);
   }

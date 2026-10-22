@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <script>
+    if (localStorage.getItem('giffu_theme') === 'light') document.documentElement.classList.add('light-mode');
+    (function(){if(typeof window!=='undefined'&&window.location&&window.location.protocol!=='file:'){var p=window.location.pathname;if(p.endsWith('.html')||p.indexOf('.html')!==-1){var c=p.replace(/\/index\.html$/i,'/').replace(/\.html$/i,'');if(c==='')c='/';var t=c+window.location.search+window.location.hash;if(t!==p+window.location.search+window.location.hash){try{window.history.replaceState(null,'',t);}catch(e){}}}}}());
+  </script>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Termos de Uso · Dilan Giffú</title>
+  <meta name="description"
+    content="Termos de Uso de Dilan Giffú (giffu.com.br). Condições de navegação, contratação audiovisual, uso de ferramentas e proteção de direitos autorais.">
+  <link rel="icon" type="image/x-icon" href="source/favico.ico">
+
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://use.typekit.net/tco5ixw.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+</head>
+
+<body>
+
+  <!-- Header Fixo Glassmorphic -->
+  <header>
+    <a class="logo" href="index.html" title="Giffú Home">
+      <img src="source/W_404040SVG.svg" alt="Giffú Logo">
+    </a>
+
+    <nav class="menu">
+      <a href="index.html">Home</a>
+      <a href="ferramentas.html">Ferramentas</a>
+      <a href="marcas.html">Para Marcas</a>
+      <a href="motion.html">Motion Design</a>
+      <a href="eventos.html">Edição de Eventos</a>
+      <a href="about.html">Sobre</a>
+    </nav>
+
+    <div class="header-right">
+      <div class="social">
+        <button class="theme-toggle-btn" title="Modo Claro" aria-label="Alternar modo claro e escuro">
+          <i class="fas fa-sun"></i>
+        </button>
+        <a href="https://www.instagram.com/giffu.mov" target="_blank" rel="noopener" title="Instagram">
+          <i class="fab fa-instagram"></i>
+        </a>
+        <a href="https://www.youtube.com/dilangiffu" target="_blank" rel="noopener" title="YouTube">
+          <i class="fab fa-youtube"></i>
+        </a>
+        <button class="lang-toggle-btn" data-lang="pt" title="Mudar Idioma (PT / EN)" aria-label="Mudar Idioma">
+          <svg class="flag-icon flag-br" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2L1 12L12 22L23 12L12 2ZM12 6.2C15.2 6.2 17.8 8.8 17.8 12C17.8 15.2 15.2 17.8 12 17.8C8.8 17.8 6.2 15.2 6.2 12C6.2 8.8 8.8 6.2 12 6.2Z"/>
+            <path d="M6.4 11.2C7.8 10 9.8 9.3 12 9.3C14.2 9.3 16.2 10 17.6 11.2C17.8 11.6 17.8 12 17.6 12.4C16.2 11.2 14.2 10.5 12 10.5C9.8 10.5 7.8 11.2 6.4 12.4C6.2 12 6.2 11.6 6.4 11.2Z"/>
+          </svg>
+          <svg class="flag-icon flag-us" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M2 3H11.5V12H2V3ZM4.2 4.8C4.5 4.8 4.7 5 4.7 5.3C4.7 5.6 4.5 5.8 4.2 5.8C3.9 5.8 3.7 5.6 3.7 5.3C3.7 5 3.9 4.8 4.2 4.8ZM6.7 4.8C7 4.8 7.2 5 7.2 5.3C7.2 5.6 7 5.8 6.7 5.8C6.4 5.8 6.2 5.6 6.2 5.3C6.2 5 6.4 4.8 6.7 4.8ZM9.2 4.8C9.5 4.8 9.7 5 9.7 5.3C9.7 5.6 9.5 5.8 9.2 5.8C8.9 5.8 8.7 5.6 8.7 5.3C8.7 5 8.9 4.8 9.2 4.8ZM5.45 7C5.75 7 5.95 7.2 5.95 7.5C5.95 7.8 5.75 8 5.45 8C5.15 8 4.95 7.8 4.95 7.5C4.95 7.2 5.15 7 5.45 7ZM7.95 7C8.25 7 8.45 7.2 8.45 7.5C8.45 7.8 8.25 8 7.95 8C7.65 8 7.45 7.8 7.45 7.5C7.45 7.2 7.65 7 7.95 7ZM4.2 9.2C4.5 9.2 4.7 9.4 4.7 9.7C4.7 10 4.5 10.2 4.2 10.2C3.9 10.2 3.7 10 3.7 9.7C3.7 9.4 3.9 9.2 4.2 9.2ZM6.7 9.2C7 9.2 7.2 9.4 7.2 9.7C7.2 10 7 10.2 6.7 10.2C6.4 10.2 6.2 10 6.2 9.7C6.2 9.4 6.4 9.2 6.7 9.2ZM9.2 9.2C9.5 9.2 9.7 9.4 9.7 9.7C9.7 10 9.5 10.2 9.2 10.2C8.9 10.2 8.7 10 8.7 9.7C8.7 9.4 8.9 9.2 9.2 9.2Z M12.5 3H22V4.6H12.5V3ZM12.5 6.7H22V8.3H12.5V6.7ZM12.5 10.4H22V12H12.5V10.4ZM2 14.1H22V15.7H2V14.1ZM2 17.8H22V19.4H2V17.8ZM2 21.4H22V23H2V21.4Z"/>
+          </svg>
+        </button>
+      </div>
+      <button class="mobile-nav-toggle" aria-label="Abrir Menu">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <div class="legal-wrapper">
+
+      <!-- Cabeçalho Jurídico -->
+      <div class="legal-header">
+        <div class="legal-badge" data-i18n-pt="<i class='fas fa-file-contract'></i> Diretrizes &amp; Condições" data-i18n-en="<i class='fas fa-file-contract'></i> Guidelines &amp; Terms">
+          <i class="fas fa-file-contract"></i> Diretrizes &amp; Condições
+        </div>
+        <h1 class="legal-title" data-i18n-pt="Termos de Uso" data-i18n-en="Terms of Use">Termos de Uso</h1>
+        <p class="legal-subtitle" data-i18n-pt="Condições gerais para navegação no portfólio oficial de Dilan Giffú, contratação de serviços audiovisuais, uso de ferramentas e diretrizes de propriedade intelectual." data-i18n-en="General terms for browsing Dilan Giffú's official portfolio, hiring audiovisual services, using tools, and intellectual property guidelines.">
+          Condições gerais para navegação no portfólio oficial de Dilan Giffú, contratação de serviços audiovisuais, uso de ferramentas e diretrizes de propriedade intelectual.
+        </p>
+
+        <div class="legal-meta">
+          <span class="legal-meta-item">
+            <i class="far fa-calendar-check"></i>
+            <span data-i18n-pt="Última atualização: Outubro de 2026" data-i18n-en="Last updated: October 2026">Última atualização: Outubro de 2026</span>
+          </span>
+          <span class="legal-meta-item">
+            <i class="fas fa-copyright"></i>
+            <span data-i18n-pt="Propriedade Intelectual Protegida" data-i18n-en="Intellectual Property Protected">Propriedade Intelectual Protegida</span>
+          </span>
+          <span class="legal-meta-item">
+            <i class="fas fa-globe"></i>
+            <span data-i18n-pt="Domínio giffu.com.br" data-i18n-en="Domain giffu.com.br">Domínio giffu.com.br</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Sumário / Navegação Rápida -->
+      <nav class="legal-toc" aria-label="Navegação rápida pelos tópicos">
+        <div class="legal-toc-title">
+          <i class="fas fa-list-ul"></i> Sumário Rápido
+        </div>
+        <div class="legal-toc-grid">
+          <a href="#aceite" class="legal-toc-link"><i class="fas fa-angle-right"></i> 1. Aceitação</a>
+          <a href="#portfolio" class="legal-toc-link"><i class="fas fa-angle-right"></i> 2. Objeto do Site</a>
+          <a href="#propriedade" class="legal-toc-link"><i class="fas fa-angle-right"></i> 3. Propriedade Intelectual</a>
+          <a href="#ferramentas" class="legal-toc-link"><i class="fas fa-angle-right"></i> 4. Ferramentas &amp; Downloads</a>
+          <a href="#conduta" class="legal-toc-link"><i class="fas fa-angle-right"></i> 5. Conduta do Usuário</a>
+          <a href="#servicos" class="legal-toc-link"><i class="fas fa-angle-right"></i> 6. Serviços Audiovisuais</a>
+          <a href="#isencao" class="legal-toc-link"><i class="fas fa-angle-right"></i> 7. Responsabilidade</a>
+          <a href="#legislacao" class="legal-toc-link"><i class="fas fa-angle-right"></i> 8. Legislação &amp; Foro</a>
+        </div>
+      </nav>
+
+      <!-- Cartão Principal de Conteúdo -->
+      <article class="legal-card">
+
+        <!-- 1. Aceitação dos Termos -->
+        <section id="aceite" class="legal-section">
+          <div class="legal-section-header">
+            <div class="legal-section-icon"><i class="fas fa-handshake"></i></div>
+            <h2 class="legal-section-title">1. Aceitação e Vigência</h2>
+          </div>
+          <div class="legal-body">
+            <p>
+              Bem-vindo ao site de <b>Dilan Giffú</b> (disponível em <b>giffu.com.br</b>). Ao acessar, navegar ou utilizar qualquer página, ferramenta, utilitário ou serviço audiovisual ofertado nesta plataforma, você declara ter lido, compreendido e concordado integralmente com estes <b>Termos de Uso</b> e com a nossa <a href="privacidade.html">Política de Privacidade</a>.
+            </p>
+            <p>
+              Caso não concorde com quaisquer das disposições aqui estabelecidas, solicitamos gentilmente que interrompa o uso do site. A continuidade de uso constitui anuência tácita aos termos vigentes.
+            </p>
+          </div>
+        </section>
+
+        <!-- 2. Objeto do Site -->
+        <section id="portfolio" class="legal-section">
+          <div class="legal-section-header">
+            <div class="legal-section-icon"><i class="fas fa-film"></i></div>
+            <h2 class="legal-section-title">2. Objeto da Plataforma</h2>
+          </div>
+          <div class="legal-body">
+            <p>
+              O site destina-se primordialmente à:
+            </p>
+            <ul class="legal-list">
+              <li>Exibição e demonstração do portfólio autoral e comercial de <b>Dilan Giffú</b> e <b>Novel Filmes</b> nas áreas de edição para marcas, motion design, filmes de casamento e eventos;</li>
+              <li>Canal de comunicação direta para recepção de briefings, solicitações de orçamentos e formalização de propostas audiovisuais;</li>
+              <li>Disponibilização de utilitários, presets, scripts e ferramentas técnicas para a comunidade de editores e criadores de conteúdo (seção Ferramentas e utilitário Drop).</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- 3. Propriedade Intelectual & Direitos Autorais -->
+        <section id="propriedade" class="legal-section">
+          <div class="legal-section-header">
+            <div class="legal-section-icon"><i class="fas fa-copyright"></i></div>
+            <h2 class="legal-section-title">3. Propriedade Intelectual &amp; Direitos Autorais</h2>
+          </div>
+          <div class="legal-body">
+            <p>
+              Todos os elementos audiovisuais, gráficos e textuais contidos neste site estão rigorosamente protegidos pela <b>Lei Federal de Direitos Autorais (Lei nº 9.610/1998)</b>, pela <b>Lei de Propriedade Industrial (Lei nº 9.279/1996)</b> e por convenções internacionais sobre a matéria.
+            </p>
+            <div class="legal-info-grid">
+              <div class="legal-info-item">
+                <div class="legal-info-title"><i class="fas fa-video"></i> Filmes &amp; Motion Design</div>
+                <div class="legal-info-desc">
+                  Os vídeos comerciais, vinhetas 2D/3D, color gradings, cortes e animações exibidos pertencem a Dilan Giffú ou aos clientes contratantes sob licença de portfólio. É proibido qualquer download para reuso comercial não autorizado.
+                </div>
+              </div>
+              <div class="legal-info-item">
+                <div class="legal-info-title"><i class="fas fa-trademark"></i> Marcas &amp; Identidade</div>
+                <div class="legal-info-desc">
+                  Os nomes "Giffú", "Dilan Giffú", "Novel", bem como logotipos, tipografias customizadas, layouts de interface e códigos-fonte são criações protegidas, vedada sua reprodução sem anuência prévia e expressa.
+                </div>
+              </div>
+            </div>
+
+            <div class="legal-callout">
+              <div class="legal-callout-icon"><i class="fas fa-triangle-exclamation"></i></div>
+              <div class="legal-callout-text">
+                <strong>Vedações Expressas de Reprodução:</strong> É terminantemente proibido clonar, republicar, espelhar, reencodar sem créditos, comercializar ou utilizar qualquer trecho de vídeo do portfólio para simular autoria ou enriquecimento sem causa.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. Uso de Ferramentas & Downloads -->
+        <section id="ferramentas" class="legal-section">
+          <div class="legal-section-header">
+            <div class="legal-section-icon"><i class="fas fa-wrench"></i></div>
+            <h2 class="legal-section-title">4. Regras para Ferramentas &amp; Downloads</h2>
+          </div>
+          <div class="legal-body">
+            <p>
+              A seção de ferramentas e recursos foi criada para acelerar a rotina de editores e produtores. As regras de uso dos recursos são as seguintes:
+            </p>
+            <ul class="legal-list">
+              <li>
+                <strong>Licença de Uso em Obras Finais:</strong> Os presets, templates e scripts disponibilizados podem ser utilizados livremente como componentes auxiliares na montagem de seus próprios vídeos, comerciais ou projetos pessoais.
+              </li>
+              <li>
+                <strong>Proibição de Revenda dos Arquivos-Fonte:</strong> É expressamente proibido revender, sublicenciar, redistribuir em marketplaces ou disponibilizar os pacotes brutos baixados em outros sites, grupos ou repositórios públicos.
+              </li>
+              <li>
+                <strong>Utilitário Drop (Transferência de Arquivos):</strong> O Giffú Drop é destinado ao envio direto de mídias de trabalho. É expressamente vedado o upload de conteúdos ilícitos, vírus, softwares maliciosos, pirataria ou materiais que violem a moral e a legislação vigente.
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- 5. Conduta do Usuário & Proibições -->
+        <section id="conduta" class="legal-section">
+          <div class="legal-section-header">
+            <div class="legal-section-icon"><i class="fas fa-shield-halved"></i></div>
+            <h2 class="legal-section-title">5. Conduta do Usuário &amp; Vedações</h2>
+          </div>
+          <div class="legal-body">
+            <p>
+              Ao utilizar este site, você se compromete a agir com boa-fé e estrita conformidade legal. É expressamente proibido:
+            </p>
+            <ul class="legal-list">
+              <li>Tentar violar as barreiras de segurança do site, do servidor ou do painel administrativo restrito;</li>
+              <li>Executar varreduras automatizadas nocivas (scraping abusivo, ataques de injeção de script ou DDoS);</li>
+              <li>Utilizar nossos e-mails ou formulários para disparo de correspondência em massa (SPAM), correntes comerciais não solicitadas ou mensagens ofensivas;</li>
+              <li>Fazer-se passar por Dilan Giffú, Novel Filmes ou qualquer membro da equipe criativa.</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- 6. Serviços Audiovisuais & Contratação -->
+        <section id="servicos" class="legal-section">
+          <div class="legal-section-header">
+            <div class="legal-section-icon"><i class="fas fa-clapperboard"></i></div>
+            <h2 class="legal-section-title">6. Propostas &amp; Contratação Audiovisual</h2>
+          </div>
+          <div class="legal-body">
+            <p>
+              A exibição dos trabalhos e os botões de contato neste site têm caráter informativo e promocional. O envio de mensagens ou pedidos de orçamento através do site não configura, por si só, início automático de vínculo contratual.
+            </p>
+            <p>
+              Todos os serviços profissionais — sejam de <b>edição comercial para marcas</b>, <b>motion design</b>, <b>same-day edit</b> ou <b>pós-produção avançada</b> — são formalizados através de proposta comercial personalizada, cronograma de entregas, termos de confidencialidade e <b>Contrato de Prestação de Serviços Audiovisuais</b> assinado formalmente por ambas as partes.
+            </p>
+          </div>
+        </section>
+
+        <!-- 7. Limitação de Responsabilidade -->
+        <section id="isencao" class="legal-section">
+          <div class="legal-section-header">
+            <div class="legal-section-icon"><i class="fas fa-scale-balanced"></i></div>
+            <h2 class="legal-section-title">7. Limitação de Responsabilidade</h2>
+          </div>
+          <div class="legal-body">
+            <p>
+              Empregamos nossos melhores esforços técnicos para manter o site continuamente disponível, seguro e atualizado. Todavia, você compreende e concorda que:
+            </p>
+            <ul class="legal-list">
+              <li>O site e seus utilitários são fornecidos no estado em que se encontram ("as is"), podendo ocorrer indisponibilidades momentâneas motivadas por manutenções técnicas ou falhas em serviços terceiros de infraestrutura (provedor de hospedagem GitHub Pages, YouTube Player, DNS);</li>
+              <li>Não nos responsabilizamos por perdas de dados decorrentes de falhas de hardware ou software nos dispositivos do usuário ao baixar ou executar presets e utilitários;</li>
+              <li>Links externos para redes sociais (Instagram, YouTube) direcionam para plataformas de terceiros que possuem seus próprios termos de serviço e políticas de privacidade.</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- 8. Legislação & Foro -->
+        <section id="legislacao" class="legal-section">
+          <div class="legal-section-header">
+            <div class="legal-section-icon"><i class="fas fa-gavel"></i></div>
+            <h2 class="legal-section-title">8. Alterações, Legislação Aplicável e Foro</h2>
+          </div>
+          <div class="legal-body">
+            <p>
+              Reservamo-nos o direito de atualizar, revisar ou modificar estes Termos de Uso a qualquer momento, visando adequações legais ou aperfeiçoamento de nossos serviços. A data da versão mais recente estará sempre indicada no topo desta página.
+            </p>
+            <p>
+              Estes Termos de Uso são regidos e interpretados em estrita consonância com as <b>leis da República Federativa do Brasil</b>.
+            </p>
+            <p>
+              Para dirimir quaisquer controvérsias, litígios ou dúvidas decorrentes da interpretação ou execução destes termos, fica eleito o <b>Foro da Comarca de São Paulo, Estado de São Paulo</b>, com renúncia expressa a qualquer outro, por mais privilegiado que seja ou venha a ser.
+            </p>
+
+            <div class="legal-controller-card" style="margin-top: 24px;">
+              <div class="legal-controller-row">
+                <i class="fas fa-headset"></i>
+                <div><strong>Dúvidas sobre os Termos:</strong> Entre em contato através de <a href="mailto:novelfilmes@gmail.com">novelfilmes@gmail.com</a></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </article>
+
+      <!-- Cartão de Transição para Política de Privacidade -->
+      <div class="legal-switch-card">
+        <div class="legal-switch-info">
+          <h4>Deseja conhecer nossa Política de Privacidade?</h4>
+          <p>Entenda detalhadamente como protegemos seus dados pessoais de acordo com a LGPD.</p>
+        </div>
+        <a href="privacidade.html" class="legal-switch-btn">
+          <span>Ver Política de Privacidade</span>
+          <i class="fas fa-arrow-right"></i>
+        </a>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Rodapé Unificado -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="source/W_404040SVG.svg" alt="Logo Giffú">
+        <span class="footer-text">© 2026 Dilan Giffú · Todos os direitos reservados.</span>
+      </div>
+      <div class="social">
+        <button class="theme-toggle-btn" title="Modo Claro" aria-label="Alternar modo claro e escuro">
+          <i class="fas fa-sun"></i>
+        </button>
+        <a href="https://www.instagram.com/giffu.mov" target="_blank" rel="noopener" title="Instagram">
+          <i class="fab fa-instagram"></i>
+        </a>
+        <a href="https://www.youtube.com/dilangiffu" target="_blank" rel="noopener" title="YouTube">
+          <i class="fab fa-youtube"></i>
+        </a>
+        <button class="lang-toggle-btn" data-lang="pt" title="Mudar Idioma (PT / EN)" aria-label="Mudar Idioma">
+          <svg class="flag-icon flag-br" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2L1 12L12 22L23 12L12 2ZM12 6.2C15.2 6.2 17.8 8.8 17.8 12C17.8 15.2 15.2 17.8 12 17.8C8.8 17.8 6.2 15.2 6.2 12C6.2 8.8 8.8 6.2 12 6.2Z"/>
+            <path d="M6.4 11.2C7.8 10 9.8 9.3 12 9.3C14.2 9.3 16.2 10 17.6 11.2C17.8 11.6 17.8 12 17.6 12.4C16.2 11.2 14.2 10.5 12 10.5C9.8 10.5 7.8 11.2 6.4 12.4C6.2 12 6.2 11.6 6.4 11.2Z"/>
+          </svg>
+          <svg class="flag-icon flag-us" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M2 3H11.5V12H2V3ZM4.2 4.8C4.5 4.8 4.7 5 4.7 5.3C4.7 5.6 4.5 5.8 4.2 5.8C3.9 5.8 3.7 5.6 3.7 5.3C3.7 5 3.9 4.8 4.2 4.8ZM6.7 4.8C7 4.8 7.2 5 7.2 5.3C7.2 5.6 7 5.8 6.7 5.8C6.4 5.8 6.2 5.6 6.2 5.3C6.2 5 6.4 4.8 6.7 4.8ZM9.2 4.8C9.5 4.8 9.7 5 9.7 5.3C9.7 5.6 9.5 5.8 9.2 5.8C8.9 5.8 8.7 5.6 8.7 5.3C8.7 5 8.9 4.8 9.2 4.8ZM5.45 7C5.75 7 5.95 7.2 5.95 7.5C5.95 7.8 5.75 8 5.45 8C5.15 8 4.95 7.8 4.95 7.5C4.95 7.2 5.15 7 5.45 7ZM7.95 7C8.25 7 8.45 7.2 8.45 7.5C8.45 7.8 8.25 8 7.95 8C7.65 8 7.45 7.8 7.45 7.5C7.45 7.2 7.65 7 7.95 7ZM4.2 9.2C4.5 9.2 4.7 9.4 4.7 9.7C4.7 10 4.5 10.2 4.2 10.2C3.9 10.2 3.7 10 3.7 9.7C3.7 9.4 3.9 9.2 4.2 9.2ZM6.7 9.2C7 9.2 7.2 9.4 7.2 9.7C7.2 10 7 10.2 6.7 10.2C6.4 10.2 6.2 10 6.2 9.7C6.2 9.4 6.4 9.2 6.7 9.2ZM9.2 9.2C9.5 9.2 9.7 9.4 9.7 9.7C9.7 10 9.5 10.2 9.2 10.2C8.9 10.2 8.7 10 8.7 9.7C8.7 9.4 8.9 9.2 9.2 9.2Z M12.5 3H22V4.6H12.5V3ZM12.5 6.7H22V8.3H12.5V6.7ZM12.5 10.4H22V12H12.5V10.4ZM2 14.1H22V15.7H2V14.1ZM2 17.8H22V19.4H2V17.8ZM2 21.4H22V23H2V21.4Z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <script src="videos.js"></script>
+</body>
+
+</html>
