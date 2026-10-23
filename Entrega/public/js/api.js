@@ -1,14 +1,24 @@
 // API Client for Giffú Entrega
 
+function apiFetch(url, options = {}) {
+  return fetch(url, {
+    credentials: 'include',
+    ...options,
+    headers: {
+      ...(options.headers || {})
+    }
+  });
+}
+
 const API = {
   async getData() {
-    const res = await fetch('/api/data');
+    const res = await apiFetch('/api/data');
     if (!res.ok) throw new Error('Falha ao carregar dados');
     return await res.json();
   },
 
   async createProject(projectData) {
-    const res = await fetch('/api/projects', {
+    const res = await apiFetch('/api/projects', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(projectData)
@@ -21,7 +31,7 @@ const API = {
   },
 
   async updateProject(id, projectData) {
-    const res = await fetch(`/api/projects/${id}`, {
+    const res = await apiFetch(`/api/projects/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(projectData)
@@ -34,7 +44,7 @@ const API = {
   },
 
   async updateProjectCategory(id, category) {
-    const res = await fetch(`/api/projects/${id}/category`, {
+    const res = await apiFetch(`/api/projects/${id}/category`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ category })
@@ -47,25 +57,25 @@ const API = {
   },
 
   async archiveProject(id) {
-    const res = await fetch(`/api/projects/${id}/archive`, { method: 'POST' });
+    const res = await apiFetch(`/api/projects/${id}/archive`, { method: 'POST' });
     if (!res.ok) throw new Error('Erro ao arquivar projeto');
     return await res.json();
   },
 
   async unarchiveProject(id) {
-    const res = await fetch(`/api/projects/${id}/unarchive`, { method: 'POST' });
+    const res = await apiFetch(`/api/projects/${id}/unarchive`, { method: 'POST' });
     if (!res.ok) throw new Error('Erro ao restaurar projeto');
     return await res.json();
   },
 
   async deleteProject(id) {
-    const res = await fetch(`/api/projects/${id}`, { method: 'DELETE' });
+    const res = await apiFetch(`/api/projects/${id}`, { method: 'DELETE' });
     if (!res.ok) throw new Error('Erro ao excluir projeto');
     return await res.json();
   },
 
   async addVideo(projectId, videoData) {
-    const res = await fetch(`/api/projects/${projectId}/videos`, {
+    const res = await apiFetch(`/api/projects/${projectId}/videos`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(videoData)
@@ -75,13 +85,13 @@ const API = {
   },
 
   async deleteVideo(projectId, videoId) {
-    const res = await fetch(`/api/projects/${projectId}/videos/${videoId}`, { method: 'DELETE' });
+    const res = await apiFetch(`/api/projects/${projectId}/videos/${videoId}`, { method: 'DELETE' });
     if (!res.ok) throw new Error('Erro ao remover vídeo');
     return await res.json();
   },
 
   async verifyPassword(slug, password) {
-    const res = await fetch('/api/projects/verify-password', {
+    const res = await apiFetch('/api/projects/verify-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ slug, password })
@@ -90,7 +100,7 @@ const API = {
   },
 
   async addComment(commentData) {
-    const res = await fetch('/api/comments', {
+    const res = await apiFetch('/api/comments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(commentData)
@@ -100,7 +110,7 @@ const API = {
   },
 
   async updateComment(commentId, content) {
-    const res = await fetch(`/api/comments/${commentId}`, {
+    const res = await apiFetch(`/api/comments/${commentId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content })
@@ -110,13 +120,13 @@ const API = {
   },
 
   async deleteComment(commentId) {
-    const res = await fetch(`/api/comments/${commentId}`, { method: 'DELETE' });
+    const res = await apiFetch(`/api/comments/${commentId}`, { method: 'DELETE' });
     if (!res.ok) throw new Error('Erro ao excluir comentário');
     return await res.json();
   },
 
   async toggleResolveComment(commentId, resolved) {
-    const res = await fetch(`/api/comments/${commentId}/toggle-resolve`, {
+    const res = await apiFetch(`/api/comments/${commentId}/toggle-resolve`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(typeof resolved === 'boolean' ? { resolved } : {})
@@ -126,7 +136,7 @@ const API = {
   },
 
   async replyComment(commentId, replyData) {
-    const res = await fetch(`/api/comments/${commentId}/reply`, {
+    const res = await apiFetch(`/api/comments/${commentId}/reply`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(replyData)
@@ -136,7 +146,7 @@ const API = {
   },
 
   async updateReply(commentId, replyId, content) {
-    const res = await fetch(`/api/comments/${commentId}/reply/${replyId}`, {
+    const res = await apiFetch(`/api/comments/${commentId}/reply/${replyId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content })
@@ -146,13 +156,13 @@ const API = {
   },
 
   async deleteReply(commentId, replyId) {
-    const res = await fetch(`/api/comments/${commentId}/reply/${replyId}`, { method: 'DELETE' });
+    const res = await apiFetch(`/api/comments/${commentId}/reply/${replyId}`, { method: 'DELETE' });
     if (!res.ok) throw new Error('Erro ao excluir resposta');
     return await res.json();
   },
 
   async syncDrive(projectId, driveLink) {
-    const res = await fetch('/api/drive/sync', {
+    const res = await apiFetch('/api/drive/sync', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ projectId, driveLink })
@@ -161,7 +171,7 @@ const API = {
   },
 
   async saveSettings(settings) {
-    const res = await fetch('/api/settings', {
+    const res = await apiFetch('/api/settings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(settings)

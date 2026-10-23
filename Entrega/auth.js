@@ -96,8 +96,13 @@ function baseUrl(req) {
 }
 
 function appendCookie(req, res, name, value, { maxAgeSec, cookiePath = '/' }) {
-  const parts = [`${name}=${value}`, `Path=${cookiePath}`, 'HttpOnly', 'SameSite=Lax', `Max-Age=${maxAgeSec}`];
-  if (isSecureRequest(req)) parts.push('Secure');
+  const secure = isSecureRequest(req);
+  const sameSite = secure ? 'SameSite=None' : 'SameSite=Lax';
+  const parts = [`${name}=${value}`, `Path=${cookiePath}`, 'HttpOnly', sameSite, `Max-Age=${maxAgeSec}`];
+  if (secure) {
+    parts.push('Secure');
+    parts.push('Partitioned');
+  }
   res.append('Set-Cookie', parts.join('; '));
 }
 

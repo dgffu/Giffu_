@@ -9,7 +9,7 @@ const Auth = {
 
   async refreshSession() {
     try {
-      const sess = await fetch('/api/auth/session').then(r => r.json());
+      const sess = await fetch('/api/auth/session', { credentials: 'include' }).then(r => r.json());
       this.user = sess.user || null;
       this.driveConnected = Boolean(sess.driveConnected);
     } catch (e) {
@@ -19,7 +19,7 @@ const Auth = {
 
   async init() {
     try {
-      this.config = await fetch('/api/auth/config').then(r => r.json());
+      this.config = await fetch('/api/auth/config', { credentials: 'include' }).then(r => r.json());
     } catch (e) {
       console.error('Erro ao iniciar autenticação:', e);
     }
@@ -86,7 +86,7 @@ const Auth = {
 
   async logout() {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
     } catch (e) {}
     this.user = null;
     this.driveConnected = false;
@@ -97,9 +97,14 @@ const Auth = {
 (function installSessionGuard() {
   const originalFetch = window.fetch.bind(window);
   window.fetch = async (...args) => {
-    const res = await originalFetch(...args);
+    let [resource, config] = args;
+    config = config ? { ...config } : {};
+    if (!config.credentials) {
+      config.credentials = 'include';
+    }
+    const res = await originalFetch(resource, config);
     try {
-      const url = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url) || '';
+      const url = typeof resource === 'string' ? resource : (resource && resource.url) || '';
       const isApi = url.startsWith('/api/') && !url.startsWith('/api/auth/') && !url.startsWith('/api/projects/verify-password');
       if (res.status === 401 && isApi && Auth.user) {
         Auth.user = null;
