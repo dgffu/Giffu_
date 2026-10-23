@@ -1,8 +1,13 @@
 .DS_Store
 node_modules/
+**/node_modules/
 package-lock.json
 email_config.json
 .env
 drop/uploads/
 drop/data/items.json
+*.zip
+Entrega/token.json
+Entrega/credentials.json
+
 
