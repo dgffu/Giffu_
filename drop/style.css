@@ -1107,8 +1107,15 @@ html, body {
     padding: 8px 10px;
   }
   
+  .btn-download-original {
+    padding: 7px 12px;
+    font-size: 12px;
+    gap: 6px;
+  }
+
   .btn-download-original span.btn-text-full {
-    display: none;
+    display: inline;
+    font-size: 12px;
   }
 
   .batch-gallery {
@@ -1337,5 +1344,77 @@ html, body {
   background: rgba(239, 68, 68, 0.22);
   color: #fff;
   border-color: #EF4444;
+}
+
+/* ==========================================================================
+   IOS SAVE TO PHOTOS CONFIRMATION MODAL
+   ========================================================================== */
+.ios-save-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 14, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+.ios-save-dialog {
+  width: 100%;
+  max-width: 400px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg);
+  padding: 28px 24px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.ios-save-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(254, 94, 0, 0.12);
+  border: 1px solid var(--border-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: var(--accent-orange);
+  box-shadow: 0 0 24px rgba(254, 94, 0, 0.25);
+}
+
+.ios-save-dialog h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.ios-save-dialog p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.ios-save-dialog p strong {
+  color: var(--accent-orange);
+}
+
+.ios-save-actions {
+  width: 100%;
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 

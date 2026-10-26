@@ -103,6 +103,14 @@
   const cfgSupabaseBucket = document.getElementById('cfgSupabaseBucket');
   const cfgCustomApiUrl = document.getElementById('cfgCustomApiUrl');
 
+  // iOS Save Modal Elements
+  const iosSaveModal = document.getElementById('iosSaveModal');
+  const iosSaveTitle = document.getElementById('iosSaveTitle');
+  const iosSaveDesc = document.getElementById('iosSaveDesc');
+  const btnIosConfirmShare = document.getElementById('btnIosConfirmShare');
+  const btnIosConfirmLabel = document.getElementById('btnIosConfirmLabel');
+  const btnIosCancelShare = document.getElementById('btnIosCancelShare');
+
   const toastContainer = document.getElementById('toastContainer');
 
   // --- HELPERS ---
@@ -115,9 +123,121 @@
     return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
   }
 
+  // --- DEVICE DETECTION (MOBILE CELULAR vs DESKTOP WEB) ---
+  function isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+
+  function isAndroid() {
+    return /Android/i.test(navigator.userAgent);
+  }
+
   function isMobileDevice() {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-      (window.matchMedia && window.matchMedia('(max-width: 768px)').matches && 'ontouchstart' in window);
+    if (isIOS() || isAndroid()) return true;
+    if (/webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) return true;
+    if (window.matchMedia && window.matchMedia('(max-width: 900px)').matches && ('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
+      return true;
+    }
+    return false;
+  }
+
+  function getDeviceBatchActionInfo(count = 0) {
+    if (isIOS()) {
+      return {
+        label: count > 0 ? `Salvar no Fotos (${count})` : 'Salvar no Fotos',
+        icon: 'fa-images',
+        isMobile: true
+      };
+    }
+    if (isAndroid()) {
+      return {
+        label: count > 0 ? `Salvar na Galeria (${count})` : 'Salvar na Galeria',
+        icon: 'fa-images',
+        isMobile: true
+      };
+    }
+    return {
+      label: count > 0 ? `Baixar Lote (.ZIP) [${count}]` : 'Baixar Lote (.ZIP)',
+      icon: 'fa-file-zipper',
+      isMobile: false
+    };
+  }
+
+  function getDeviceSingleActionInfo(fileCategory = 'image') {
+    if (isIOS()) {
+      return {
+        label: fileCategory === 'video' ? 'Salvar Vídeo no Fotos' : 'Salvar no Fotos',
+        icon: 'fa-arrow-down-to-bracket',
+        isMobile: true
+      };
+    }
+    if (isAndroid()) {
+      return {
+        label: fileCategory === 'video' ? 'Salvar Vídeo na Galeria' : 'Salvar na Galeria',
+        icon: 'fa-arrow-down-to-bracket',
+        isMobile: true
+      };
+    }
+    return {
+      label: 'Baixar Arquivo Original',
+      icon: 'fa-download',
+      isMobile: false
+    };
+  }
+
+  function getReliableMimeType(fileName, fallbackMime = '') {
+    if (fallbackMime && fallbackMime !== 'application/octet-stream' && fallbackMime.includes('/')) {
+      return fallbackMime;
+    }
+    const ext = (fileName || '').split('.').pop().toLowerCase();
+    const mimeMap = {
+      // Images
+      'jpg': 'image/jpeg',
+      'jpeg': 'image/jpeg',
+      'png': 'image/png',
+      'heic': 'image/heic',
+      'heif': 'image/heif',
+      'webp': 'image/webp',
+      'gif': 'image/gif',
+      'svg': 'image/svg+xml',
+      'tif': 'image/tiff',
+      'tiff': 'image/tiff',
+      'bmp': 'image/bmp',
+      'dng': 'image/x-adobe-dng',
+      'cr2': 'image/x-canon-cr2',
+      'nef': 'image/x-nikon-nef',
+      'arw': 'image/x-sony-arw',
+      // Videos
+      'mp4': 'video/mp4',
+      'mov': 'video/quicktime',
+      'm4v': 'video/mp4',
+      'webm': 'video/webm',
+      'avi': 'video/x-msvideo',
+      'mkv': 'video/x-matroska',
+      '3gp': 'video/3gpp',
+      // Audio
+      'mp3': 'audio/mpeg',
+      'm4a': 'audio/mp4',
+      'wav': 'audio/wav',
+      'aac': 'audio/aac',
+      // Docs
+      'pdf': 'application/pdf',
+      'txt': 'text/plain',
+      'json': 'application/json',
+      'zip': 'application/zip'
+    };
+    return mimeMap[ext] || fallbackMime || 'application/octet-stream';
+  }
+
+  async function fetchOriginalBlob(url, originalName, mimeType) {
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error(`Falha ao obter arquivo: HTTP ${res.status}`);
+    }
+    const rawBlob = await res.blob();
+    const cleanMime = getReliableMimeType(originalName, mimeType || rawBlob.type);
+    return new Blob([rawBlob], { type: cleanMime });
   }
 
   function formatBytes(bytes) {
@@ -1227,82 +1347,334 @@
     }
   }
 
+  // --- SINGLE FILE DOWNLOAD CONTROLLER (MOBILE GALLERY vs DESKTOP) ---
+  async function downloadSingleFile(f) {
+    if (!f) return;
+    const downloadUrl = f.downloadUrl || f.url;
+    const isMobile = isMobileDevice();
+    const isApple = isIOS();
+
+    if (isApple && navigator.share && (f.category === 'image' || f.category === 'video')) {
+      try {
+        showToast('Preparando arquivo para o Fotos...', 'info');
+        const blob = await fetchOriginalBlob(downloadUrl, f.originalName, f.mimeType);
+        const cleanMime = getReliableMimeType(f.originalName, f.mimeType || blob.type);
+        const fileObj = new File([blob], f.originalName || 'arquivo', { type: cleanMime, lastModified: Date.now() });
+
+        if (navigator.canShare && navigator.canShare({ files: [fileObj] })) {
+          await navigator.share({
+            files: [fileObj],
+            title: f.originalName || 'Giffú Drop Original'
+          });
+          showToast('Toque em "Salvar Imagem" no menu para salvar no Fotos!', 'success');
+          return;
+        }
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+        console.warn('Share no iOS falhou, salvando via download direto:', err);
+      }
+    }
+
+    try {
+      showToast(`Baixando ${f.originalName} em qualidade original...`, 'info');
+      const blob = await fetchOriginalBlob(downloadUrl, f.originalName, f.mimeType);
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = f.originalName || 'arquivo_original';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 15000);
+      if (isMobile) {
+        showToast('Arquivo salvo solto na Galeria!', 'success');
+      } else {
+        showToast('Download concluído em qualidade 100% original!', 'success');
+      }
+    } catch (err) {
+      console.error('Erro no download direto:', err);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = f.originalName || '';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+  }
+
   // --- BATCH DOWNLOAD (MOBILE GALLERY vs DESKTOP ZIP) ---
   async function downloadBatchFiles(fileList, batchTitle = 'giffu-drop-lote') {
     if (!isAuthenticated) return;
     if (!fileList || fileList.length === 0) return;
 
     const isMobile = isMobileDevice();
+    const isApple = isIOS();
 
-    if (isMobile && navigator.canShare) {
-      try {
-        showToast('Preparando arquivos para a Galeria...', 'info');
+    // -----------------------------------------------------------------
+    // CASO 1: CELULAR (MOBILE) - JAMAIS GERAR .ZIP!
+    // Salva direto na galeria os arquivos soltos em qualidade original.
+    // -----------------------------------------------------------------
+    if (isMobile) {
+      if (isApple) {
+        await handleIosBatchSaveToPhotos(fileList, batchTitle);
+      } else {
+        await handleAndroidBatchSaveToGallery(fileList);
+      }
+      return;
+    }
 
-        const shareFiles = [];
-        for (const f of fileList) {
-          const downloadUrl = f.url || f.downloadUrl;
-          const blobRes = await fetch(downloadUrl);
-          const blob = await blobRes.blob();
-          const shareFile = new File([blob], f.originalName || 'arquivo', { type: f.mimeType || blob.type });
-          shareFiles.push(shareFile);
+    // -----------------------------------------------------------------
+    // CASO 2: WEB / DESKTOP (Computador Mac / Windows / Linux)
+    // "ao identificar que é web, aí sim ele gera o .zip"
+    // -----------------------------------------------------------------
+    await handleDesktopZipDownload(fileList, batchTitle);
+  }
+
+  // --- FLUXO iOS: SALVAMENTO DIRETO NO APP FOTOS (APPLE PHOTOS) ---
+  async function handleIosBatchSaveToPhotos(fileList, batchTitle) {
+    try {
+      showToast(`Preparando ${fileList.length} arquivo(s) originais para o Fotos...`, 'info');
+
+      const mediaFiles = [];
+      const nonMediaFiles = [];
+
+      for (const f of fileList) {
+        if (f.category === 'image' || f.category === 'video') {
+          mediaFiles.push(f);
+        } else {
+          nonMediaFiles.push(f);
         }
+      }
 
-        if (navigator.canShare({ files: shareFiles })) {
+      const targetList = mediaFiles.length > 0 ? mediaFiles : fileList;
+      const shareFiles = [];
+
+      for (let i = 0; i < targetList.length; i++) {
+        const f = targetList[i];
+        const downloadUrl = f.url || f.downloadUrl;
+        const blob = await fetchOriginalBlob(downloadUrl, f.originalName, f.mimeType);
+        const cleanMime = getReliableMimeType(f.originalName, f.mimeType || blob.type);
+        const fileObj = new File([blob], f.originalName || `arquivo_${i + 1}`, {
+          type: cleanMime,
+          lastModified: Date.now()
+        });
+        shareFiles.push(fileObj);
+      }
+
+      if (mediaFiles.length > 0 && nonMediaFiles.length > 0) {
+        nonMediaFiles.forEach((nf, idx) => {
+          setTimeout(() => downloadSingleFile(nf), (idx + 1) * 400);
+        });
+      }
+
+      if (navigator.canShare && navigator.canShare({ files: shareFiles })) {
+        try {
           await navigator.share({
             files: shareFiles,
-            title: 'Giffú Drop',
-            text: 'Arquivos em qualidade original'
+            title: 'Giffú Drop Original',
+            text: `${shareFiles.length} foto(s)/vídeo(s) soltos em qualidade original`
           });
-          showToast('Arquivos enviados para a Galeria/Compartilhamento!', 'success');
+          showToast('Toque em "Salvar Imagens" para adicionar ao Fotos!', 'success');
           return;
+        } catch (shareErr) {
+          if (shareErr.name === 'AbortError') return;
+          if (shareErr.name === 'NotAllowedError' || (shareErr.message && shareErr.message.includes('gesture'))) {
+            showIosSaveModal(shareFiles, fileList);
+            return;
+          }
+          console.warn('navigator.share falhou:', shareErr);
         }
-      } catch (shareErr) {
-        if (shareErr.name === 'AbortError') return;
-        console.warn('Web Share API não suportada, fallback para download:', shareErr);
       }
-    }
 
-    if (window.JSZip) {
-      try {
-        showToast(`Criando arquivo ZIP com ${fileList.length} arquivo(s) original(is)...`, 'info');
-        const zip = new JSZip();
-
-        let loaded = 0;
-        for (const f of fileList) {
-          const downloadUrl = f.url || f.downloadUrl;
-          const res = await fetch(downloadUrl);
-          const blob = await res.blob();
-          zip.file(f.originalName || `arquivo_${loaded + 1}`, blob);
-          loaded++;
-        }
-
-        const zipBlob = await zip.generateAsync({ type: 'blob' });
-        const zipUrl = URL.createObjectURL(zipBlob);
-        const a = document.createElement('a');
-        a.href = zipUrl;
-        const cleanBatchName = batchTitle.replace(/[^a-zA-Z0-9_-]/g, '_');
-        a.download = `${cleanBatchName}_${new Date().toISOString().slice(0, 10)}.zip`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(() => URL.revokeObjectURL(zipUrl), 10000);
-
-        showToast('Download do ZIP concluído!', 'success');
+      if (shareFiles.length > 0) {
+        showIosSaveModal(shareFiles, fileList);
         return;
-      } catch (zipErr) {
-        console.error('Erro ao gerar ZIP:', zipErr);
-        showToast('Erro ao criar arquivo ZIP. Baixando individualmente...', 'warning');
       }
+
+      saveLooseFilesSequentially(fileList);
+    } catch (err) {
+      console.error('Erro ao processar lote no iOS:', err);
+      showToast('Baixando arquivos soltos...', 'warning');
+      saveLooseFilesSequentially(fileList);
+    }
+  }
+
+  // --- MODAL DE GESTO NO IOS PARA O NATIVO DO FOTOS ---
+  let pendingIosShareFiles = null;
+  let pendingIosRawList = null;
+
+  function showIosSaveModal(shareFiles, rawList = null) {
+    pendingIosShareFiles = shareFiles;
+    pendingIosRawList = rawList;
+    if (iosSaveModal) {
+      if (iosSaveTitle) {
+        iosSaveTitle.textContent = `${shareFiles.length} Arquivo(s) Prontos para o Fotos`;
+      }
+      if (iosSaveDesc) {
+        iosSaveDesc.innerHTML = `Toque no botão abaixo para abrir a folha do sistema iOS e selecione <strong>"Salvar ${shareFiles.length > 1 ? shareFiles.length + ' Imagens' : 'Imagem'}"</strong> para guardar soltos direto no seu app Fotos.`;
+      }
+      if (btnIosConfirmLabel) {
+        btnIosConfirmLabel.textContent = `Salvar no Fotos (${shareFiles.length})`;
+      }
+      iosSaveModal.style.display = 'flex';
+    }
+  }
+
+  function hideIosSaveModal() {
+    if (iosSaveModal) {
+      iosSaveModal.style.display = 'none';
+    }
+    pendingIosShareFiles = null;
+    pendingIosRawList = null;
+  }
+
+  if (btnIosConfirmShare) {
+    btnIosConfirmShare.addEventListener('click', async () => {
+      if (!pendingIosShareFiles || pendingIosShareFiles.length === 0) {
+        hideIosSaveModal();
+        return;
+      }
+      const filesToShare = [...pendingIosShareFiles];
+      const fallbackList = pendingIosRawList ? [...pendingIosRawList] : null;
+      hideIosSaveModal();
+
+      try {
+        await navigator.share({
+          files: filesToShare,
+          title: 'Giffú Drop Original',
+          text: `${filesToShare.length} arquivos soltos em qualidade original`
+        });
+        showToast('Toque em "Salvar Imagens" para salvar no Fotos!', 'success');
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+        console.warn('Erro ao abrir share sheet no iOS:', err);
+        if (fallbackList) {
+          saveLooseFilesSequentially(fallbackList);
+        }
+      }
+    });
+  }
+
+  if (btnIosCancelShare) {
+    btnIosCancelShare.addEventListener('click', hideIosSaveModal);
+  }
+  if (iosSaveModal) {
+    iosSaveModal.addEventListener('click', (e) => {
+      if (e.target === iosSaveModal) hideIosSaveModal();
+    });
+  }
+
+  // --- FLUXO ANDROID: SALVAMENTO SOLTO DIRETO NA GALERIA ---
+  async function handleAndroidBatchSaveToGallery(fileList) {
+    try {
+      showToast(`Iniciando salvamento de ${fileList.length} arquivo(s) na Galeria...`, 'info');
+      let completed = 0;
+
+      for (let i = 0; i < fileList.length; i++) {
+        const f = fileList[i];
+        const downloadUrl = f.url || f.downloadUrl;
+
+        try {
+          const blob = await fetchOriginalBlob(downloadUrl, f.originalName, f.mimeType);
+          const blobUrl = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = blobUrl;
+          a.download = f.originalName || `arquivo_${i + 1}`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 15000);
+          completed++;
+
+          if (fileList.length > 1) {
+            showToast(`Salvando na Galeria: ${completed} de ${fileList.length} (${f.originalName})...`, 'info');
+          }
+        } catch (itemErr) {
+          console.warn('Falha com blob no Android, usando link direto:', itemErr);
+          const a = document.createElement('a');
+          a.href = downloadUrl;
+          a.download = f.originalName || '';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          completed++;
+        }
+
+        if (i < fileList.length - 1) {
+          await new Promise(res => setTimeout(res, 350));
+        }
+      }
+
+      showToast(`Pronto! ${completed} arquivo(s) salvos soltos na Galeria em qualidade 100% original.`, 'success');
+    } catch (err) {
+      console.error('Erro ao salvar lote na Galeria do Android:', err);
+      showToast('Erro ao processar salvamento na Galeria.', 'error');
+    }
+  }
+
+  // --- FLUXO WEB / DESKTOP: GERAÇÃO DE .ZIP ORIGINAL ---
+  async function handleDesktopZipDownload(fileList, batchTitle) {
+    if (!window.JSZip) {
+      showToast('Biblioteca ZIP indisponível. Baixando arquivos individualmente...', 'warning');
+      saveLooseFilesSequentially(fileList);
+      return;
     }
 
+    try {
+      showToast(`Criando arquivo ZIP com ${fileList.length} arquivo(s) original(is)...`, 'info');
+      const zip = new JSZip();
+
+      let loaded = 0;
+      for (const f of fileList) {
+        const downloadUrl = f.url || f.downloadUrl;
+        const res = await fetch(downloadUrl);
+        const blob = await res.blob();
+        zip.file(f.originalName || `arquivo_${loaded + 1}`, blob);
+        loaded++;
+      }
+
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const zipUrl = URL.createObjectURL(zipBlob);
+      const a = document.createElement('a');
+      a.href = zipUrl;
+      const cleanBatchName = batchTitle.replace(/[^a-zA-Z0-9_-]/g, '_');
+      a.download = `${cleanBatchName}_${new Date().toISOString().slice(0, 10)}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(zipUrl), 10000);
+
+      showToast('Download do ZIP concluído com sucesso!', 'success');
+    } catch (zipErr) {
+      console.error('Erro ao gerar ZIP na web:', zipErr);
+      showToast('Erro ao criar arquivo ZIP. Baixando arquivos individualmente...', 'warning');
+      saveLooseFilesSequentially(fileList);
+    }
+  }
+
+  // --- SALVAMENTO SEQUENCIAL SOLTO (FALLBACK MOBILE NUNCA ZIP) ---
+  function saveLooseFilesSequentially(fileList) {
     fileList.forEach((f, idx) => {
-      setTimeout(() => {
-        const a = document.createElement('a');
-        a.href = f.downloadUrl || f.url;
-        a.download = f.originalName || '';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+      setTimeout(async () => {
+        try {
+          const downloadUrl = f.url || f.downloadUrl;
+          const blob = await fetchOriginalBlob(downloadUrl, f.originalName, f.mimeType);
+          const blobUrl = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = blobUrl;
+          a.download = f.originalName || `arquivo_${idx + 1}`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 15000);
+        } catch (e) {
+          const a = document.createElement('a');
+          a.href = f.downloadUrl || f.url;
+          a.download = f.originalName || '';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        }
       }, idx * 400);
     });
   }
@@ -1442,7 +1814,7 @@
       wrap.addEventListener('click', (e) => {
         if (!isSelectionMode) {
           e.stopPropagation();
-          openLightbox(f.url, `${f.originalName} • ${f.formattedSize}`, f.downloadUrl);
+          openLightbox(f.url, `${f.originalName} • ${f.formattedSize}`, f.downloadUrl, f);
         }
       });
 
@@ -1476,19 +1848,14 @@
       wrap.addEventListener('click', (e) => {
         if (!isSelectionMode) {
           e.stopPropagation();
-          const a = document.createElement('a');
-          a.href = f.downloadUrl;
-          a.download = f.originalName;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          showToast(`Iniciando download do vídeo original (${f.formattedSize})...`, 'info');
+          downloadSingleFile(f);
         }
       });
 
       card.appendChild(wrap);
     }
 
+    const actionInfo = getDeviceSingleActionInfo(f.category);
     const footer = document.createElement('div');
     footer.className = 'card-footer';
     footer.innerHTML = `
@@ -1496,17 +1863,22 @@
         <span class="file-name-truncate" title="${f.originalName}">${f.originalName}</span>
         <span class="file-size-sub">${f.formattedSize} • Qualidade 100% Original</span>
       </div>
-      <a href="${f.downloadUrl}" class="btn-download-original" download="${f.originalName}">
-        <i class="fas fa-download"></i> <span class="btn-text-full">Baixar Arquivo Original</span>
-      </a>
+      <button type="button" class="btn-download-original btn-save-single" title="${actionInfo.label}">
+        <i class="fas ${actionInfo.icon}"></i> <span class="btn-text-full">${actionInfo.label}</span>
+      </button>
     `;
+
+    footer.querySelector('.btn-save-single').addEventListener('click', (e) => {
+      e.stopPropagation();
+      downloadSingleFile(f);
+    });
 
     card.appendChild(footer);
   }
 
   function renderBatchBody(card, batchItem) {
     const files = batchItem.files || [];
-    const isMobile = isMobileDevice();
+    const batchActionInfo = getDeviceBatchActionInfo(files.length);
 
     const gallery = document.createElement('div');
     gallery.className = 'batch-gallery';
@@ -1523,7 +1895,7 @@
         thumbWrap.addEventListener('click', (e) => {
           if (!isSelectionMode) {
             e.stopPropagation();
-            openLightbox(f.url, `${f.originalName} • ${f.formattedSize}`, f.downloadUrl);
+            openLightbox(f.url, `${f.originalName} • ${f.formattedSize}`, f.downloadUrl, f);
           }
         });
       } else if (f.category === 'video') {
@@ -1549,10 +1921,16 @@
           <span class="batch-item-name" title="${f.originalName}">${f.originalName}</span>
           <span class="batch-item-size">${f.formattedSize}</span>
         </div>
-        <a href="${f.downloadUrl}" class="mini-btn" download="${f.originalName}" title="Baixar original individual">
+        <button type="button" class="mini-btn mini-btn-save-single" title="Salvar arquivo original individual">
           <i class="fas fa-download"></i>
-        </a>
+        </button>
       `;
+
+      details.querySelector('.mini-btn-save-single').addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        downloadSingleFile(f);
+      });
 
       cell.appendChild(details);
       gallery.appendChild(cell);
@@ -1563,16 +1941,13 @@
     const footer = document.createElement('div');
     footer.className = 'card-footer';
 
-    const batchDownloadLabel = isMobile ? 'Salvar no Fotos / Galeria' : 'Baixar Lote (.ZIP)';
-    const batchDownloadIcon = isMobile ? 'fa-mobile-screen-button' : 'fa-file-zipper';
-
     footer.innerHTML = `
       <div class="file-info-text">
         <span class="file-name-truncate">Lote com ${files.length} arquivos</span>
         <span class="file-size-sub">${batchItem.formattedTotalSize || formatBytes(batchItem.totalSize)} • Preservação Original</span>
       </div>
-      <button class="btn-download-original btn-download-batch">
-        <i class="fas ${batchDownloadIcon}"></i> <span>${batchDownloadLabel}</span>
+      <button type="button" class="btn-download-original btn-download-batch" title="${batchActionInfo.label}">
+        <i class="fas ${batchActionInfo.icon}"></i> <span>${batchActionInfo.label}</span>
       </button>
     `;
 
@@ -1585,21 +1960,40 @@
   }
 
   // --- LIGHTBOX CONTROLLER ---
-  function openLightbox(imgSrc, captionText, downloadUrl) {
+  let currentLightboxFile = null;
+
+  function openLightbox(imgSrc, captionText, downloadUrl, fileObj = null) {
     lightboxImg.src = imgSrc;
     lightboxCaption.textContent = captionText || '';
-    lightboxDownloadBtn.href = downloadUrl || imgSrc;
+    currentLightboxFile = fileObj || {
+      url: imgSrc,
+      downloadUrl: downloadUrl || imgSrc,
+      originalName: captionText ? captionText.split(' • ')[0] : 'foto_original.jpg',
+      category: 'image'
+    };
+
+    const actionInfo = getDeviceSingleActionInfo('image');
+    lightboxDownloadBtn.innerHTML = `<i class="fas ${actionInfo.icon}"></i> <span>${actionInfo.label}</span>`;
+    lightboxDownloadBtn.removeAttribute('href');
     lightboxModal.classList.add('active');
   }
 
   function closeLightbox() {
     lightboxModal.classList.remove('active');
     lightboxImg.src = '';
+    currentLightboxFile = null;
   }
 
   lightboxCloseBtn.addEventListener('click', closeLightbox);
   lightboxModal.addEventListener('click', (e) => {
     if (e.target === lightboxModal) closeLightbox();
+  });
+
+  lightboxDownloadBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (currentLightboxFile) {
+      downloadSingleFile(currentLightboxFile);
+    }
   });
 
   // --- SELECTION MODE CONTROLLER ---
@@ -1633,8 +2027,12 @@
   function updateSelectionActionBar() {
     const count = selectedItemIds.size;
     selectionCountText.textContent = `${count} item(ns) selecionado(s)`;
-    const isMobile = isMobileDevice();
-    batchDownloadBtnLabel.textContent = isMobile ? 'Salvar Seleção na Galeria' : 'Baixar Seleção (.ZIP)';
+    const actionInfo = getDeviceBatchActionInfo(count);
+    batchDownloadBtnLabel.textContent = isIOS() ? 'Salvar Seleção no Fotos' : (isAndroid() ? 'Salvar Seleção na Galeria' : 'Baixar Seleção (.ZIP)');
+    const iconEl = btnDownloadSelectedBatch.querySelector('i');
+    if (iconEl) {
+      iconEl.className = `fas ${actionInfo.icon}`;
+    }
     btnDownloadSelectedBatch.disabled = count === 0;
     btnDownloadSelectedBatch.style.opacity = count === 0 ? '0.4' : '1';
   }

@@ -329,6 +329,25 @@
     </div>
   </div>
 
+  <!-- Modal de Confirmação para Salvar no Fotos (iOS) -->
+  <div class="ios-save-modal" id="iosSaveModal" style="display: none;">
+    <div class="ios-save-dialog">
+      <div class="ios-save-icon">
+        <i class="fas fa-images"></i>
+      </div>
+      <h3 id="iosSaveTitle">Arquivos Originais Prontos</h3>
+      <p id="iosSaveDesc">Toque no botão abaixo para abrir a folha do iOS e selecione <strong>"Salvar Imagens"</strong> para salvar direto no seu app Fotos.</p>
+      <div class="ios-save-actions">
+        <button class="btn-download-original" id="btnIosConfirmShare" type="button" style="width: 100%; justify-content: center; padding: 12px 18px; font-size: 15px;">
+          <i class="fas fa-arrow-down-to-bracket"></i> <span id="btnIosConfirmLabel">Salvar no Fotos do iOS</span>
+        </button>
+        <button class="btn-secondary" id="btnIosCancelShare" type="button" style="width: 100%; justify-content: center; padding: 10px 18px; margin-top: 8px;">
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
 
