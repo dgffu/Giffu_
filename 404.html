@@ -9,18 +9,9 @@
       if (typeof window !== 'undefined' && window.location && window.location.pathname) {
         var p = window.location.pathname;
 
-        // Redireciona subrotas do Giffú Entrega (ex: /entrega/260830-fotos_fju)
-        if (p.startsWith('/entrega/')) {
-          var cleanSub = p.replace(/^\/entrega\//, '').replace(/\/+$/, '');
-          if (cleanSub && cleanSub !== 'index.html') {
-            window.location.replace('/entrega?p=' + encodeURIComponent(cleanSub) + window.location.search + window.location.hash);
-            return;
-          }
-        }
-
         if (p.endsWith('/') && p.length > 1) {
           var clean = p.replace(/\/+$/, '');
-          var valid = ['/entrega', '/privacidade', '/termos', '/about', '/ferramentas', '/marcas', '/motion', '/eventos', '/downloads', '/admin'];
+          var valid = ['/privacidade', '/termos', '/about', '/ferramentas', '/marcas', '/motion', '/eventos', '/downloads', '/admin'];
           if (valid.indexOf(clean.toLowerCase()) !== -1) {
             window.location.replace(clean + window.location.search + window.location.hash);
             return;
