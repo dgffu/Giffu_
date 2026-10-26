@@ -14,8 +14,8 @@ const DB_FILE = path.join(__dirname, 'data', 'db.json');
 
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(__dirname));
+app.use('/entrega', express.static(__dirname));
 
 // Database helpers
 function readDB() {
@@ -859,7 +859,7 @@ async function handleDownloadZip(req, res) {
       } else if (v.localPath && fs.existsSync(v.localPath)) {
         stream = fs.createReadStream(v.localPath);
       } else if (v.url && v.url.startsWith('/assets/')) {
-        const assetPath = path.join(__dirname, 'public', v.url);
+        const assetPath = path.join(__dirname, v.url);
         if (fs.existsSync(assetPath)) {
           stream = fs.createReadStream(assetPath);
         }
@@ -923,7 +923,7 @@ app.get('/api/stream', (req, res) => {
 
   let resolvedFilePath = null;
   if (target.startsWith('/assets/')) {
-    resolvedFilePath = path.join(__dirname, 'public', target);
+    resolvedFilePath = path.join(__dirname, target);
   } else {
     try {
       resolvedFilePath = path.resolve(decodeURIComponent(target));
@@ -945,7 +945,7 @@ app.get('/api/stream', (req, res) => {
     }
   }));
 
-  const isAllowed = isUnder(resolvedFilePath, path.join(__dirname, 'public', 'assets')) ||
+  const isAllowed = isUnder(resolvedFilePath, path.join(__dirname, 'assets')) ||
     registered.has(resolvedFilePath);
   if (!isAllowed) {
     return res.status(403).send('Acesso não autorizado');
@@ -1061,7 +1061,7 @@ app.post('/api/settings', requireAuthor, (req, res) => {
 
 function sendHtmlWithTitle(res, pageTitle) {
   try {
-    const htmlPath = path.join(__dirname, 'public', 'index.html');
+    const htmlPath = path.join(__dirname, 'index.html');
     let html = fs.readFileSync(htmlPath, 'utf-8');
     const safeTitle = (pageTitle || 'Giffú Entrega')
       .replace(/&/g, '&amp;')
@@ -1071,7 +1071,7 @@ function sendHtmlWithTitle(res, pageTitle) {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.send(html);
   } catch (err) {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'index.html'));
   }
 }
 
@@ -1121,19 +1121,19 @@ app.get('/:year/:slug/:videoId', (req, res, next) => {
 });
 
 app.get(['/privacidade', '/privacy'], (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'privacidade.html'));
+  res.sendFile(path.join(__dirname, 'privacidade.html'));
 });
 
 app.get(['/termos', '/terms'], (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'termos.html'));
+  res.sendFile(path.join(__dirname, 'termos.html'));
 });
 
 app.get('/author', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 function getLanIp() {

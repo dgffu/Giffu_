@@ -257,7 +257,17 @@ class EntregaApp {
     let slug = null;
     let videoId = null;
 
-    if (parts[0] === 'entrega' && parts[1]) {
+    const searchParams = new URLSearchParams(window.location.search);
+    const pParam = searchParams.get('p');
+    if (pParam) {
+      const pParts = pParam.split('/').filter(Boolean);
+      slug = pParts[0];
+      videoId = pParts[1];
+      try {
+        const cleanPath = '/entrega/' + pParts.join('/') + window.location.hash;
+        window.history.replaceState(null, '', cleanPath);
+      } catch (e) {}
+    } else if (parts[0] === 'entrega' && parts[1]) {
       slug = parts[1];
       videoId = parts[2];
     } else if (/^\d{4}$/.test(parts[0]) && parts[1]) {
@@ -289,7 +299,6 @@ class EntregaApp {
 
     // Default to Author view: homepage is the directories lobby
     this.isClientMode = false;
-    const searchParams = new URLSearchParams(window.location.search);
     const authorProjParam = searchParams.get('project');
     const authorVidParam = searchParams.get('video');
 
@@ -2008,6 +2017,11 @@ class EntregaApp {
     const btnZip = document.getElementById('btnOptionDownloadZip');
     if (btnZip) {
       btnZip.onclick = () => {
+        if (typeof JSZip !== 'undefined') {
+          this.downloadClientZip(proj, targetItems, modal);
+          return;
+        }
+
         let zipUrl = `/api/projects/${proj.id}/download-zip`;
         const params = [];
         if (this.selectedMediaIds && this.selectedMediaIds.size > 0 && this.selectedMediaIds.size < (allItems || []).length) {
@@ -2048,6 +2062,55 @@ class EntregaApp {
     }
   }
 
+  async downloadClientZip(proj, targetItems, modal) {
+    const progressEl = document.getElementById('batchDownloadProgress');
+    const fillEl = document.getElementById('batchProgressFill');
+    const statusEl = document.getElementById('batchProgressStatus');
+
+    if (progressEl) progressEl.style.display = 'block';
+    const total = targetItems.length;
+    const zip = new JSZip();
+
+    try {
+      window.showToast('Compactando arquivos para .ZIP no navegador...');
+      for (let i = 0; i < total; i++) {
+        const item = targetItems[i];
+        const fileName = item.fileName || `${item.title}.${item.type === 'image' ? 'jpg' : 'mp4'}`;
+        if (statusEl) statusEl.textContent = `Carregando item (${i + 1}/${total}): ${fileName}...`;
+        if (fillEl) fillEl.style.width = `${Math.round(((i + 1) / total) * 70)}%`;
+
+        const downloadUrl = item.downloadUrl || item.url;
+        const res = await fetch(downloadUrl);
+        if (!res.ok) throw new Error(`Falha ao obter ${fileName}`);
+        const blob = await res.blob();
+        zip.file(fileName, blob);
+      }
+
+      if (statusEl) statusEl.textContent = 'Compactando arquivo .ZIP final...';
+      const zipBlob = await zip.generateAsync({ type: 'blob' }, (metadata) => {
+        if (fillEl) fillEl.style.width = `${70 + Math.round(metadata.percent * 0.3)}%`;
+      });
+
+      const url = URL.createObjectURL(zipBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${proj.name}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+
+      if (fillEl) fillEl.style.width = '100%';
+      if (statusEl) statusEl.textContent = 'Download do .ZIP concluído!';
+      window.showToast('Download do .zip concluído!');
+      setTimeout(() => { if (modal) modal.classList.remove('open'); }, 2000);
+    } catch (err) {
+      console.warn('Erro ao gerar ZIP no navegador, alternando para arquivos soltos:', err);
+      if (statusEl) statusEl.textContent = 'Alternando para download de arquivos individuais...';
+      this.downloadLooseFiles(proj, targetItems, modal);
+    }
+  }
+
   async downloadLooseFiles(proj, targetItems, modal) {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     const progressEl = document.getElementById('batchDownloadProgress');
@@ -2065,7 +2128,7 @@ class EntregaApp {
         const fileObjects = [];
         for (let i = 0; i < total; i++) {
           const item = targetItems[i];
-          const streamUrl = `${item.url}${item.url.includes('?') ? '&' : '?'}download=1`;
+          const streamUrl = item.downloadUrl || (item.url ? `${item.url}${item.url.includes('?') ? '&' : '?'}download=1` : '');
           if (fillEl) fillEl.style.width = `${Math.round(((i + 1) / total) * 60)}%`;
           if (statusEl) statusEl.textContent = `Carregando ${i + 1} de ${total}: ${item.fileName || item.title}...`;
 
@@ -2101,7 +2164,7 @@ class EntregaApp {
     // Direct sequential downloads (PC, Mac, and Mobile fallback)
     for (let i = 0; i < total; i++) {
       const item = targetItems[i];
-      const streamUrl = `${item.url}${item.url.includes('?') ? '&' : '?'}download=1`;
+      const streamUrl = item.downloadUrl || (item.url ? `${item.url}${item.url.includes('?') ? '&' : '?'}download=1` : '');
       const fileName = item.fileName || `${item.title}.${item.type === 'image' ? 'jpg' : 'mp4'}`;
 
       if (fillEl) fillEl.style.width = `${Math.round(((i + 1) / total) * 100)}%`;

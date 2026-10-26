@@ -74,7 +74,7 @@ class CustomVideoPlayer {
 
     this.container.innerHTML = `
       <!-- Video Element -->
-      <video class="custom-video-element" playsinline preload="metadata" src="${this.videoData.url}"></video>
+      <video class="custom-video-element" playsinline preload="metadata" src="${this.videoData.url}" poster="${this.videoData.thumbnailUrl || ''}"></video>
 
       <!-- Center Play/Pause Overlay - ONLY APPEARS ON HOVER -->
       <div class="player-center-play-overlay">
@@ -494,6 +494,32 @@ class CustomVideoPlayer {
       this.playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
       this.centerPlayBtn.classList.remove('paused');
       this.centerPlayBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+    });
+
+    // Erro ao carregar vídeo (fallback para Google Drive Player / Download direto)
+    this.video.addEventListener('error', (e) => {
+      console.warn('Vídeo não pôde ser reproduzido diretamente via HTML5 stream:', e);
+      if (this.videoData.driveFileId) {
+        const fallbackNotice = document.createElement('div');
+        fallbackNotice.className = 'player-stream-fallback';
+        fallbackNotice.style.cssText = 'position:absolute;inset:0;background:rgba(13,15,18,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:30;padding:24px;text-align:center;';
+        fallbackNotice.innerHTML = `
+          <div style="font-size:32px;color:var(--accent-orange,#FF5400)">▶</div>
+          <h4 style="font-size:16px;font-weight:700;color:#fff;margin:0;">Reproduzir no Google Drive</h4>
+          <p style="font-size:13px;color:#a1a1aa;max-width:320px;line-height:1.4;margin:0;">
+            O arquivo original é protegido pelo Google Drive. Você pode assisti-lo em alta qualidade ou baixá-lo na íntegra.
+          </p>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+            <a href="https://drive.google.com/file/d/${this.videoData.driveFileId}/preview" target="_blank" class="btn-primary" style="text-decoration:none;padding:10px 18px;font-size:13px;">
+              Assistir Prévia no Drive ↗
+            </a>
+            <a href="${this.videoData.downloadUrl}" class="btn-secondary" style="text-decoration:none;padding:10px 18px;font-size:13px;">
+              Baixar Arquivo Original
+            </a>
+          </div>
+        `;
+        this.container.appendChild(fallbackNotice);
+      }
     });
 
     // Time update & Progress bar
