@@ -7,7 +7,5 @@ email_config.json
 drop/uploads/
 drop/data/items.json
 *.zip
-Entrega/token.json
-Entrega/credentials.json
 
 
